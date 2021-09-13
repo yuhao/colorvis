@@ -1,6 +1,8 @@
+var trace;
 var cTrace;
 var transRgTrace;
 var transXyPoints;
+var xyzPoints;
 
 //d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/3d-scatter.csv', function(err, rows){
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
@@ -26,16 +28,16 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     cB[i] = b / (r + g + b);
   }
  
-  var trace = {
+  trace = {
     x:unpack(rows, 'r'), y: unpack(rows, 'g'), z: unpack(rows, 'b'),
     text:unpack(rows, 'wavelength'),
     mode: 'lines+markers',
     marker: {
       size: 4,
-      line: {
-        color: 'rgba(217, 217, 217, 0.14)',
-        width: 0.5
-      },
+      //line: {
+      //  color: 'rgba(217, 217, 217, 0.14)',
+      //  width: 0.5
+      //},
       opacity: 0.8
     },
     type: 'scatter3d',
@@ -53,7 +55,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       //line: {
       //  color: 'rgba(120, 120, 120, 0.4)',
       //  width: 0.5
-        //},
+      //},
       opacity: 0.8
     },
     type: 'scatter3d',
@@ -69,7 +71,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var transRGB = math.multiply(transM, [unpack(rows, 'r'), unpack(rows, 'g'), unpack(rows, 'b')]);
   var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
 
-  var xyzPoints = {
+  xyzPoints = {
     //x: Cx.map(function(item) {return item/(Cx.reduce((a, b) => a + b, 0))}),
     //y: Cx.map(function(item) {return item/(Cy.reduce((a, b) => a + b, 0))}),
     //z: Cx.map(function(item) {return item/(Cz.reduce((a, b) => a + b, 0))}),
@@ -89,19 +91,19 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     name: 'XYZ primaries',
   };
  
-  var data = [cTrace, xyzPoints];
-  //var data = [trace];
-  
+  var data = [trace];
+ 
   var layout = {
     height: 800,
     width: 1200,
+    showlegend: true,
     margin: {
       l: 150,
       r: 0,
       b: 0,
       t: 100
     },
-    title: 'Spectral locus in CIE 1931 chromaticity plot (3D)',
+    title: 'Spectral locus in CIE 1931 RGB color space',
     scene: {
       camera: {
         projection: {
@@ -112,17 +114,10 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       aspectmode: 'cube',
       xaxis: {
         autorange: true,
-        //range: [-1, 2],
-        //showgrid: true,
+        //range: [0, 1],
         zeroline: true,
-        //showline: true,
-        //mirror: 'ticks',
-        //gridcolor: '#000000',
-        //gridwidth: 0,
         zerolinecolor: '#DA2500',
         zerolinewidth: 5,
-        //linecolor: '#636363',
-        //linewidth: 6,
         showspikes: false,
         title: {
           text: 'r'
@@ -130,7 +125,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       },
       yaxis: {
         autorange: true,
-        //range: [-1, 2],
+        //range: [0, 1],
         zeroline: true,
         zerolinecolor: '#DA2500',
         zerolinewidth: 5,
@@ -141,7 +136,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       },
       zaxis: {
         autorange: true,
-        //range: [-1, 2],
+        //range: [0, 1],
         zeroline: true,
         zerolinecolor: '#DA2500',
         zerolinewidth: 5,
@@ -259,11 +254,13 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 });
 
 // will be instantaneous, since animation applies to 2d plots.
-function randomize() {
+function RGB2rgb() {
   Plotly.animate('myDiv', {
     data: [cTrace],
     traces: [0],
-    layout: {}
+    layout: {
+      title: 'Spectral locus in CIE 1931 rgb chromaticity plot',
+    }
   }, {
     transition: {
       duration: 500,
@@ -271,7 +268,11 @@ function randomize() {
     },
   })
 }
-  
+ 
+function addXYZPrimaries() {
+  Plotly.addTraces('myDiv', [xyzPoints])
+}
+
 //function transform() {
 //  Plotly.animate('2dDiv', ['frame1', 'frame2'], {
 //    //frame: [
@@ -286,7 +287,7 @@ function randomize() {
 //  });
 //}
 
-function transform() {
+function rgb2xyz() {
   Plotly.animate('2dDiv', {
     data: [transRgTrace, transXyPoints],
     traces: [0, 1],
