@@ -3,16 +3,21 @@
   <!-- Load plotly.js into the DOM -->
   <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <body>
-  <div id="myDiv"></div>
-  <button onclick="javascript:randomize();">Transform!</button>
+  <div class="container">
+    <div id="myDiv"></div>
+  </div>
+  <button onclick="javascript:randomize();">RGB to rgb!</button>
 
-  <div id="2dDiv"></div>
-  <button onclick="javascript:transform();">Transform!</button>
+  <div class="container">
+    <div id="2dDiv"></div>
+  </div>
+  <button onclick="javascript:transform();">rgb to xyz!</button>
   <button onclick="javascript:zoom();">Zoom!</button>
 
   <script src="draw.js"></script>

@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+.center {
+  width: 1920px; 
+  padding: 10px;
+  background: #5F85DB;
+  color: #fff;
+  font-weight: bold;
+  font-family: Tahoma;
+}

@@ -14,7 +14,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var cR = []; // chromaticity
   var cG = [];
   var cB = [];
-  
+
   for (var i = 0; i < rows.length; i++) {
     dict[rows[i].wavelength] = i;
     var r = parseFloat(rows[i].r);
@@ -25,18 +25,21 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     cG[i] = g / (r + g + b);
     cB[i] = b / (r + g + b);
   }
-  
+ 
   var trace = {
     x:unpack(rows, 'r'), y: unpack(rows, 'g'), z: unpack(rows, 'b'),
-      text:unpack(rows, 'wavelength'),
+    text:unpack(rows, 'wavelength'),
     mode: 'lines+markers',
     marker: {
       size: 4,
       line: {
-      color: 'rgba(217, 217, 217, 0.14)',
-      width: 0.5},
-      opacity: 0.8},
-    type: 'scatter3d'
+        color: 'rgba(217, 217, 217, 0.14)',
+        width: 0.5
+      },
+      opacity: 0.8
+    },
+    type: 'scatter3d',
+    name: 'spectral locus',
   };
   
   cTrace = {
@@ -53,7 +56,8 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         //},
       opacity: 0.8
     },
-    type: 'scatter3d'
+    type: 'scatter3d',
+    name: 'spectral locus',
   };
 
   var Cx = [1.27, -1.74, -0.74, 1.27];
@@ -81,20 +85,23 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       },
       opacity: 0.8
     },
-    type: 'scatter3d'
+    type: 'scatter3d',
+    name: 'XYZ primaries',
   };
  
   var data = [cTrace, xyzPoints];
   //var data = [trace];
   
   var layout = {
-    //height: 800,
+    height: 800,
+    width: 1200,
     margin: {
-      l: 100,
+      l: 150,
       r: 0,
       b: 0,
-      t: 0
+      t: 100
     },
+    title: 'Spectral locus in CIE 1931 chromaticity plot (3D)',
     scene: {
       camera: {
         projection: {
@@ -214,8 +221,18 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var layout = {
     width: 600,
     height: 600,
-    title: 'CIE 1931 rg-Chromaticity plot',
+    title: 'Spectral locus in CIE 1931 rg-chromaticity plot',
     showlegend: true,
+    xaxis: {
+      title: {
+        text: 'r'
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'g'
+      }
+    }
   };
 
   Plotly.newPlot('2dDiv', data, layout);
@@ -226,7 +243,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   //    traces: [0, 1],
   //    name: 'frame1',
   //    layout: {
-  //        title: 'CIE 1931 xy-Chromaticity plot',
+  //        title: 'CIE 1931 xy-chromaticity plot',
   //    }
   //  },
   //  {
@@ -274,7 +291,17 @@ function transform() {
     data: [transRgTrace, transXyPoints],
     traces: [0, 1],
     layout: {
-        title: 'CIE 1931 xy-Chromaticity plot',
+      title: 'Spectral locus in CIE 1931 xy-chromaticity plot',
+      xaxis: {
+        title: {
+          text: 'x'
+        }
+      },
+      yaxis: {
+        title: {
+          text: 'y'
+        }
+      }
     }
   }, {
     transition: {
