@@ -4,6 +4,11 @@ var transRgTrace;
 var transXyPoints;
 var xyzPoints;
 
+var selectX = [];
+var selectY = [];
+var selectZ = [];
+var count = 0;
+
 //d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/3d-scatter.csv', function(err, rows){
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
   function unpack(rows, key) {
@@ -155,14 +160,41 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     j: [dict[510]],
     k: [dict[590]],
   };
-  
-  //https://stackoverflow.com/questions/35846210/plotly-js-gd-data-must-be-an-array
-  //Plotly.newPlot('myDiv', data, layout).then(
-  //    () => {
-  //      Plotly.addTraces('myDiv', [triangle]);
-  //    });
+
   Plotly.newPlot('myDiv', data, layout);
-  
+
+  var myPlot = document.getElementById('myDiv');
+  myPlot.on('plotly_click', function(data){
+    //if (count == 4) {
+    //  count = 0;
+    //  Plotly.deleteTraces('myDiv', [-1]);
+    //}
+    var pn = data.points[0].pointNumber;
+    selectX[count] = data.points[0].data.x[pn];
+    selectY[count] = data.points[0].data.y[pn];
+    selectZ[count] = data.points[0].data.z[pn];
+    count++;
+    if (count == 3) {
+      var trianglePoints = {
+        x: selectX.concat([selectX[0]]),
+        y: selectY.concat([selectY[0]]),
+        z: selectZ.concat([selectZ[0]]),
+        mode: 'lines+markers',
+        marker: {
+          size: 8,
+          line: {
+            color: '#000000',
+            width: 1
+          },
+          opacity: 0.8
+        },
+        type: 'scatter3d',
+        name: 'XYZ primaries',
+      };
+      Plotly.addTraces('myDiv', [trianglePoints])
+    }
+  });
+
   // the rg-chromaticity plot
   var rgTrace = {
     x: cR,
