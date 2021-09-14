@@ -364,6 +364,7 @@ function calcTriVals() {
 }
 
 // SPD plot
+// https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
 var x_data = range(380, 780, 5);
 var y_data_1 = Array.apply(0, Array(81)).map(function() { return 0; });
 //var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
