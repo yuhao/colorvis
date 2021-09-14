@@ -1,3 +1,268 @@
+// https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
+function updateLocus(ConeL, ConeM, ConeS) {
+  var layout_update = {
+    title: 'Updated spectral locus in LMS cone space',
+  };
+  var data_update = {'x': [ConeL], 'y': [ConeM], 'z': [ConeS]};
+
+  var lmsPlot = document.getElementById('lmsDiv');
+  Plotly.update(lmsPlot, data_update, layout_update, [0]);
+}
+
+d3.csv('linss2_10e_1.csv', function(err, rows){
+  function unpack(rows, key) {
+    return rows.map(function(row) {
+        return parseFloat(row[key]);
+      });
+  }
+
+  function calcTriVals() {
+    var triR = math.dot(y_data_1, CMFR);
+    var triG = math.dot(y_data_1, CMFG);
+    var triB = math.dot(y_data_1, CMFB);
+  
+    var point = {
+      x: [triR],
+      y: [triG],
+      z: [triB],
+      mode: 'markers',
+      marker: {
+        size: 4,
+        opacity: 0.8
+      },
+      type: 'scatter3d',
+      name: 'color',
+    };
+  
+    Plotly.addTraces('myDiv', point);
+  }
+
+  // points to the cone arrays that will be used to plot the chart;
+  window.dConeL = unpack(rows, 'l');
+  window.dConeM = unpack(rows, 'm');
+  window.dConeS = unpack(rows, 's');
+  // contains the original cone data; used in reset;
+  window.ConeL = [...window.dConeL];
+  window.ConeM = [...window.dConeM];
+  window.ConeS = [...window.dConeS];
+
+  var wlen = unpack(rows, 'wavelength');
+  var firstW = wlen[0];
+  var lastW = wlen[wlen.length - 1];
+  var nWavelen = lastW - firstW + 1;
+
+  // LMS plot
+  // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
+  var x_data = range(firstW, lastW, 1);
+  var y_data_1 = window.dConeL;
+  var y_data_2 = window.dConeM;
+  var y_data_3 = window.dConeS;
+  //var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
+
+  function range(start, end, stride) {
+    return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
+  }
+
+  // globals
+  var activePoint = null;
+  var canvas = null;
+ 
+  // draw a line chart on the canvas context
+  var ctx = document.getElementById("canvas").getContext("2d");
+  canvas = document.getElementById("canvas");
+  window.myChart = Chart.Line(ctx, {
+  //window.myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          data: y_data_1,
+          label: "L Cone",
+          borderColor: "#da2500",
+          fill: false
+        },
+        {
+          data: y_data_2,
+          label: "M Cone",
+          borderColor: "#008f00",
+          fill: false
+        },
+        {
+          data: y_data_3,
+          label: "S Cone",
+          borderColor: "#011993",
+          fill: false
+        },
+      ]
+    },
+    options: {
+      animation: {
+        duration: 0
+      },
+      tooltips: {
+        mode: 'nearest'
+      },
+      title: {
+        display: true,
+        text: 'LMS cone sensitivity functions (normalized)',
+        fontSize: 24,
+      },
+      scales: {
+        yAxes: [{
+          ticks: {
+            min: 0,
+            max: 1
+          }
+        }]
+      }
+    }
+  });
+  
+  // set pointer event handlers for canvas element
+  canvas.onpointerdown = down_handler;
+  canvas.onpointerup = up_handler;
+  canvas.onpointermove = null;
+
+  function down_handler(event) {
+    // check for data point near event location
+    const points = window.myChart.getElementAtEvent(event, {intersect: false});
+    if (points.length > 0) {
+      // grab nearest point, start dragging
+      activePoint = points[0];
+      canvas.onpointermove = move_handler;
+    };
+  };
+
+  function up_handler(event) {
+    // release grabbed point, stop dragging
+    activePoint = null;
+    canvas.onpointermove = null;
+    //calcTriVals();
+    updateLocus(window.dConeL, window.dConeM, window.dConeS);
+  };
+ 
+  function move_handler(event)
+  {
+    // locate grabbed point in chart data
+    if (activePoint != null) {
+      var data = activePoint._chart.data;
+      var datasetIndex = activePoint._datasetIndex;
+  
+      // read mouse position
+      const helpers = Chart.helpers;
+      var position = helpers.getRelativePosition(event, myChart);
+  
+      // convert mouse position to chart y axis value 
+      var chartArea = window.myChart.chartArea;
+      var yAxis = window.myChart.scales["y-axis-0"];
+      var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+  
+      // update y value of active data point
+      data.datasets[datasetIndex].data[activePoint._index] = yValue;
+      window.myChart.update();
+    };
+  };
+
+  // map value to other coordinate system
+  function map(value, start1, stop1, start2, stop2) {
+    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
+  };
+
+  // the spectral locus
+  trace = {
+    x: window.dConeL,
+    y: window.dConeM,
+    z: window.dConeS,
+    text: wlen,
+    mode: 'lines+markers',
+    marker: {
+      size: 4,
+      opacity: 0.8,
+      color: '#888888'
+    },
+    type: 'scatter3d',
+    name: 'spectral locus',
+  };
+
+  var data = [trace];
+ 
+  var layout = {
+    height: 800,
+    //width: 1200,
+    showlegend: true,
+    margin: {
+      l: 100,
+      r: 0,
+      b: 0,
+      t: 100
+    },
+    title: 'Spectral locus in LMS cone space',
+    scene: {
+      camera: {
+        projection: {
+          type: 'orthographic'
+        }
+      },
+      // https://plotly.com/javascript/3d-axes/
+      //aspectmode: 'cube',
+      xaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#DA2500',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'L'
+        }
+      },
+      yaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#DA2500',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'M'
+        }
+      },
+      zaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#DA2500',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'S'
+        }
+      },
+    }
+  };
+
+  Plotly.newPlot('lmsDiv', data, layout);
+});
+
+
+function lmsReset() {
+  // do a value copy here!
+  window.myChart.data.datasets[0].data = Array.from(window.ConeL);
+  window.myChart.data.datasets[1].data = Array.from(window.ConeM);
+  window.myChart.data.datasets[2].data = Array.from(window.ConeS);
+  window.myChart.update();
+  updateLocus(window.ConeL, window.ConeM, window.ConeS);
+  // the window.dXXX arrays have to be sharing the same reference as the chart's data arrays
+  window.dConeL = window.myChart.data.datasets[0].data;
+  window.dConeM = window.myChart.data.datasets[1].data;
+  window.dConeS = window.myChart.data.datasets[2].data;
+}
+
+
+
+
+
 var trace;
 var cTrace;
 var transRgTrace;
@@ -342,132 +607,3 @@ function zoom() {
   })
 }
 
-function calcTriVals() {
-  var triR = math.dot(y_data_1, CMFR);
-  var triG = math.dot(y_data_1, CMFG);
-  var triB = math.dot(y_data_1, CMFB);
-
-  var point = {
-    x: [triR],
-    y: [triG],
-    z: [triB],
-    mode: 'markers',
-    marker: {
-      size: 4,
-      opacity: 0.8
-    },
-    type: 'scatter3d',
-    name: 'color',
-  };
-
-  Plotly.addTraces('myDiv', point);
-}
-
-// SPD plot
-// https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
-var x_data = range(380, 780, 5);
-var y_data_1 = Array.apply(0, Array(81)).map(function() { return 0; });
-//var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
-
-function range(start, end, stride) {
-  return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*5)
-}
-
-// globals
-var activePoint = null;
-var canvas = null;
-//var myChart;
-
-// draw a line chart on the canvas context
-window.onload = function () {
-    // Draw a line chart with two data sets
-    var ctx = document.getElementById("canvas").getContext("2d");
-    canvas = document.getElementById("canvas");
-    window.myChart = Chart.Line(ctx, {
-    //myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: x_data,
-            datasets: [
-                {
-                    data: y_data_1,
-                    label: "Data 1",
-                    borderColor: "#3e95cd",
-                    fill: false
-                },
-                //{
-                //    data: y_data_2,
-                //    label: "Data 2",
-                //    borderColor: "#cd953e",
-                //    fill: false
-                //}
-            ]
-        },
-        options: {
-          animation: {
-            duration: 0
-          },
-          tooltips: {
-            mode: 'nearest'
-          },
-          scales: {
-            yAxes: [{
-              ticks: {
-                min: 0,
-                max: 1
-              }
-            }]
-          }
-        }
-    });
-
-    // set pointer event handlers for canvas element
-    canvas.onpointerdown = down_handler;
-    canvas.onpointerup = up_handler;
-    canvas.onpointermove = null;
-};
-
-function down_handler(event) {
-    // check for data point near event location
-    const points = window.myChart.getElementAtEvent(event, {intersect: false});
-    if (points.length > 0) {
-        // grab nearest point, start dragging
-        activePoint = points[0];
-        canvas.onpointermove = move_handler;
-    };
-};
-
-function up_handler(event) {
-    // release grabbed point, stop dragging
-    activePoint = null;
-    canvas.onpointermove = null;
-    //rgb2xyz();
-    calcTriVals();
-};
-
-function move_handler(event)
-{
-    // locate grabbed point in chart data
-    if (activePoint != null) {
-        var data = activePoint._chart.data;
-        var datasetIndex = activePoint._datasetIndex;
-
-        // read mouse position
-        const helpers = Chart.helpers;
-        var position = helpers.getRelativePosition(event, myChart);
-
-        // convert mouse position to chart y axis value 
-        var chartArea = window.myChart.chartArea;
-        var yAxis = window.myChart.scales["y-axis-0"];
-        var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
-
-        // update y value of active data point
-        data.datasets[datasetIndex].data[activePoint._index] = yValue;
-        window.myChart.update();
-    };
-};
-
-// map value to other coordinate system
-function map(value, start1, stop1, start2, stop2) {
-    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
-};
