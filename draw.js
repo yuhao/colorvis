@@ -4,6 +4,10 @@ var transRgTrace;
 var transXyPoints;
 var xyzPoints;
 
+var CMFR = [];
+var CMFG = [];
+var CMFB = [];
+
 var selectX = [];
 var selectY = [];
 var selectZ = [];
@@ -16,6 +20,10 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         return row[key];
       });
   }
+
+  CMFR = unpack(rows, 'r');
+  CMFG = unpack(rows, 'g');
+  CMFB = unpack(rows, 'b');
   
   var dict = {};
   var cR = []; // chromaticity
@@ -39,10 +47,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     mode: 'lines+markers',
     marker: {
       size: 4,
-      //line: {
-      //  color: 'rgba(217, 217, 217, 0.14)',
-      //  width: 0.5
-      //},
       opacity: 0.8
     },
     type: 'scatter3d',
@@ -125,7 +129,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'r'
+          text: 'R'
         }
       },
       yaxis: {
@@ -136,7 +140,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'g'
+          text: 'G'
         }
       },
       zaxis: {
@@ -147,7 +151,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'b'
+          text: 'B'
         }
       },
     }
@@ -165,10 +169,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 
   var myPlot = document.getElementById('myDiv');
   myPlot.on('plotly_click', function(data){
-    //if (count == 4) {
-    //  count = 0;
-    //  Plotly.deleteTraces('myDiv', [-1]);
-    //}
     var pn = data.points[0].pointNumber;
     selectX[count] = data.points[0].data.x[pn];
     selectY[count] = data.points[0].data.y[pn];
@@ -191,7 +191,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         type: 'scatter3d',
         name: 'XYZ primaries',
       };
-      Plotly.addTraces('myDiv', [trianglePoints])
+      Plotly.addTraces('myDiv', trianglePoints);
     }
   });
 
@@ -263,25 +263,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   };
 
   Plotly.newPlot('2dDiv', data, layout);
-  //.then(function() {
-  //  Plotly.addFrames('2dDiv', [
-  //  {
-  //    data: [transRgTrace, transXyPoints],
-  //    traces: [0, 1],
-  //    name: 'frame1',
-  //    layout: {
-  //        title: 'CIE 1931 xy-chromaticity plot',
-  //    }
-  //  },
-  //  {
-  //    name: 'frame2',
-  //    layout: {
-  //      xaxis: {range: [0, 1]},
-  //      yaxis: {range: [0, 1]},
-  //    },
-  //  }
-  //  ]);
-  //});
   
 });
 
@@ -292,6 +273,23 @@ function RGB2rgb() {
     traces: [0],
     layout: {
       title: 'Spectral locus in CIE 1931 rgb chromaticity plot',
+      scene: {
+        xaxis: {
+          title: {
+            text: 'r'
+          }
+        },
+        yaxis: {
+          title: {
+            text: 'g'
+          }
+        },
+        zaxis: {
+          title: {
+            text: 'b'
+          }
+        },
+      }
     }
   }, {
     transition: {
@@ -304,20 +302,6 @@ function RGB2rgb() {
 function addXYZPrimaries() {
   Plotly.addTraces('myDiv', [xyzPoints])
 }
-
-//function transform() {
-//  Plotly.animate('2dDiv', ['frame1', 'frame2'], {
-//    //frame: [
-//    //  {duration: 100},
-//    //  {duration: 100},
-//    //],
-//    transition: [
-//      {duration: 500, easing: 'cubic-in-out'},
-//      {duration: 1000, easing: 'linear'},
-//    ],
-//    mode: 'afterall'
-//  });
-//}
 
 function rgb2xyz() {
   Plotly.animate('2dDiv', {
@@ -357,3 +341,132 @@ function zoom() {
     },
   })
 }
+
+function calcTriVals() {
+  var triR = math.dot(y_data_1, CMFR);
+  var triG = math.dot(y_data_1, CMFG);
+  var triB = math.dot(y_data_1, CMFB);
+
+  var point = {
+    x: [triR],
+    y: [triG],
+    z: [triB],
+    mode: 'markers',
+    marker: {
+      size: 4,
+      opacity: 0.8
+    },
+    type: 'scatter3d',
+    name: 'color',
+  };
+
+  Plotly.addTraces('myDiv', point);
+}
+
+// SPD plot
+var x_data = range(380, 780, 5);
+var y_data_1 = Array.apply(0, Array(81)).map(function() { return 0; });
+//var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
+
+function range(start, end, stride) {
+  return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*5)
+}
+
+// globals
+var activePoint = null;
+var canvas = null;
+//var myChart;
+
+// draw a line chart on the canvas context
+window.onload = function () {
+    // Draw a line chart with two data sets
+    var ctx = document.getElementById("canvas").getContext("2d");
+    canvas = document.getElementById("canvas");
+    window.myChart = Chart.Line(ctx, {
+    //myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: x_data,
+            datasets: [
+                {
+                    data: y_data_1,
+                    label: "Data 1",
+                    borderColor: "#3e95cd",
+                    fill: false
+                },
+                //{
+                //    data: y_data_2,
+                //    label: "Data 2",
+                //    borderColor: "#cd953e",
+                //    fill: false
+                //}
+            ]
+        },
+        options: {
+          animation: {
+            duration: 0
+          },
+          tooltips: {
+            mode: 'nearest'
+          },
+          scales: {
+            yAxes: [{
+              ticks: {
+                min: 0,
+                max: 1
+              }
+            }]
+          }
+        }
+    });
+
+    // set pointer event handlers for canvas element
+    canvas.onpointerdown = down_handler;
+    canvas.onpointerup = up_handler;
+    canvas.onpointermove = null;
+};
+
+function down_handler(event) {
+    // check for data point near event location
+    const points = window.myChart.getElementAtEvent(event, {intersect: false});
+    if (points.length > 0) {
+        // grab nearest point, start dragging
+        activePoint = points[0];
+        canvas.onpointermove = move_handler;
+    };
+};
+
+function up_handler(event) {
+    // release grabbed point, stop dragging
+    activePoint = null;
+    canvas.onpointermove = null;
+    //rgb2xyz();
+    calcTriVals();
+};
+
+function move_handler(event)
+{
+    // locate grabbed point in chart data
+    if (activePoint != null) {
+        var data = activePoint._chart.data;
+        var datasetIndex = activePoint._datasetIndex;
+
+        // read mouse position
+        const helpers = Chart.helpers;
+        var position = helpers.getRelativePosition(event, myChart);
+
+        // convert mouse position to chart y axis value 
+        var chartArea = window.myChart.chartArea;
+        var yAxis = window.myChart.scales["y-axis-0"];
+        var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+
+        // update y value of active data point
+        data.datasets[datasetIndex].data[activePoint._index] = yValue;
+        window.myChart.update();
+    };
+};
+
+// map value to other coordinate system
+function map(value, start1, stop1, start2, stop2) {
+    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
+};

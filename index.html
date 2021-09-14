@@ -3,12 +3,18 @@
   <!-- Load plotly.js into the DOM -->
   <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>-->
   <link rel="stylesheet" href="style.css">
 </head>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <body>
+  <div class="wrapper">
+    <canvas id="canvas" width="1600" height="900"></canvas>
+  </div>
+
   <div class="container">
     <div id="myDiv"></div>
   </div>

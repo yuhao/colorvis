@@ -11,3 +11,8 @@
   font-weight: bold;
   font-family: Tahoma;
 }
+
+.wrapper {
+  max-width: 800px;
+  margin: 50px auto;
+}
