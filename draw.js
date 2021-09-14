@@ -1,7 +1,7 @@
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(ConeL, ConeM, ConeS) {
   var layout_update = {
-    title: 'Updated spectral locus in LMS cone space',
+    title: (ConeL == window.dConeL) ? 'Updated spectral locus in LMS cone space' : 'Spectral locus in LMS cone space',
   };
   var data_update = {'x': [ConeL], 'y': [ConeM], 'z': [ConeS]};
 
