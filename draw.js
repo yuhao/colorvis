@@ -107,7 +107,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     width: 1200,
     showlegend: true,
     margin: {
-      l: 150,
+      l: 100,
       r: 0,
       b: 0,
       t: 100
