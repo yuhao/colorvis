@@ -181,6 +181,12 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
       opacity: 0.8,
       color: '#888888'
     },
+    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
+    // <extra> tag to suppress trace name
+    hovertemplate: 'L: %{x}' +
+      '<br>M: %{y}' +
+      '<br>S: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
     type: 'scatter3d',
     name: 'spectral locus',
   };
