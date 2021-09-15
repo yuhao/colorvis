@@ -77,18 +77,21 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
       datasets: [
         {
           data: y_data_1,
+          //yAxisID: 'rightYAxis',
           label: "L Cone",
           borderColor: "#da2500",
           fill: false
         },
         {
           data: y_data_2,
+          //yAxisID: 'rightYAxis',
           label: "M Cone",
           borderColor: "#008f00",
           fill: false
         },
         {
           data: y_data_3,
+          yAxisID: 'rightYAxis',
           label: "S Cone",
           borderColor: "#011993",
           fill: false
@@ -99,8 +102,14 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
       animation: {
         duration: 0
       },
-      tooltips: {
-        mode: 'nearest'
+      //tooltips: {
+      //  mode: 'nearest'
+      //  intersect: false,
+      //},
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
       },
       title: {
         display: true,
@@ -108,12 +117,16 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
         fontSize: 24,
       },
       scales: {
-        yAxes: [{
-          ticks: {
-            min: 0,
-            max: 1
-          }
-        }]
+        yAxes:{
+          min: 0,
+          max: 2,
+          position: 'left',
+        },
+        rightYAxis: {
+          min: 0,
+          max: 0.5,
+          position: 'right',
+        },
       },
       plugins: {
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
@@ -128,11 +141,8 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
           pan: {
             enabled: true,
             modifierKey: 'shift',
+            mode: 'x',
           },
-          limits: {
-            x: {min: 'original', max: 'original'},
-            //minRange: 20
-          }
         }
       }
     }
@@ -142,6 +152,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   canvas.onpointerdown = down_handler;
   canvas.onpointerup = up_handler;
   canvas.onpointermove = null;
+  //canvas.onpointermove = move_handler;
 
   var selectedTrace;
 
@@ -185,6 +196,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
           // convert mouse position to chart y axis value 
           var chartArea = window.myChart.chartArea;
           var yAxis = window.myChart.scales.yAxes;
+          //var yAxis = window.myChart.scales.rightYAxis;
           var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
           // update y value of active data point
@@ -192,7 +204,24 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
           window.myChart.update();
         }
       }
-    };
+    } else {
+      //const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: true});
+      //if (points.length > 0) {
+      //  var activePoint = points[0];
+      //  x = activePoint.element.x;
+      //  topY = window.myChart.legend.bottom;
+      //  bottomY = window.myChart.chartArea.bottom;
+      //  // draw line
+      //  ctx.save();
+      //  ctx.beginPath();
+      //  ctx.moveTo(x, topY);
+      //  ctx.lineTo(x, bottomY);
+      //  ctx.lineWidth = 2;
+      //  ctx.strokeStyle = '#07C';
+      //  ctx.stroke();
+      //  ctx.restore();
+      //};
+    }
   };
 
   // map value to other coordinate system
