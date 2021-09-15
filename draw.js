@@ -70,8 +70,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   // draw a line chart on the canvas context
   var ctx = document.getElementById("canvas").getContext("2d");
   canvas = document.getElementById("canvas");
-  window.myChart = Chart.Line(ctx, {
-  //window.myChart = new Chart(ctx, {
+  window.myChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: x_data,
@@ -116,6 +115,26 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
           }
         }]
       },
+      plugins: {
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1,
+            },
+            mode: 'x',
+          },
+          pan: {
+            enabled: true,
+            modifierKey: 'shift',
+          },
+          limits: {
+            x: {min: 'original', max: 'original'},
+            //minRange: 20
+          }
+        }
+      }
     }
   });
   
@@ -127,12 +146,12 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   var selectedTrace;
 
   function down_handler(event) {
-    // check for data point near event location
-    const points = window.myChart.getElementAtEvent(event, {intersect: false});
+    // get the intersecting data point
+    const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
     if (points.length > 0) {
-      // grab nearest point, start dragging
+      // grab the point, start dragging
       activePoint = points[0];
-      selectedTrace = activePoint._datasetIndex;
+      selectedTrace = activePoint.datasetIndex;
       canvas.onpointermove = move_handler;
     };
   };
@@ -148,14 +167,16 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
  
   function move_handler(event)
   {
-    // locate grabbed point in chart data
+    // if an intersecting data point is grabbed
     if (activePoint != null) {
-      const points = window.myChart.getElementsAtXAxis(event, {intersect: false});
+      // then get the points on the selectedTrace
+      const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false});
       for (var i = 0; i < points.length; i++) {
-        if (points[i]._datasetIndex == selectedTrace) {
+        if (points[i].datasetIndex == selectedTrace) {
           var point = points[i];
-          var data = point._chart.data;
-          var datasetIndex = point._datasetIndex;
+          var data = window.myChart.data;
+          
+          var datasetIndex = point.datasetIndex;
   
           // read mouse position
           const helpers = Chart.helpers;
@@ -163,11 +184,11 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   
           // convert mouse position to chart y axis value 
           var chartArea = window.myChart.chartArea;
-          var yAxis = window.myChart.scales["y-axis-0"];
+          var yAxis = window.myChart.scales.yAxes;
           var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
           // update y value of active data point
-          data.datasets[datasetIndex].data[point._index] = yValue;
+          data.datasets[datasetIndex].data[point.index] = yValue;
           window.myChart.update();
         }
       }
@@ -275,7 +296,9 @@ function lmsReset() {
   window.dConeS = window.myChart.data.datasets[2].data;
 }
 
-
+function resetZoom() {
+  window.myChart.resetZoom();
+}
 
 
 
