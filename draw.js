@@ -127,6 +127,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   function down_handler(event) {
     // check for data point near event location
     const points = window.myChart.getElementAtEvent(event, {intersect: false});
+    //const points = window.myChart.getElementsAtXAxis(event, {intersect: false});
     if (points.length > 0) {
       // grab nearest point, start dragging
       activePoint = points[0];
@@ -136,10 +137,11 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
 
   function up_handler(event) {
     // release grabbed point, stop dragging
-    activePoint = null;
-    canvas.onpointermove = null;
-    //calcTriVals();
-    updateLocus(window.dConeL, window.dConeM, window.dConeS);
+    if (activePoint) {
+      activePoint = null;
+      canvas.onpointermove = null;
+      updateLocus(window.dConeL, window.dConeM, window.dConeS);
+    }
   };
  
   function move_handler(event)
