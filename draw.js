@@ -115,7 +115,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
             max: 1
           }
         }]
-      }
+      },
     }
   });
   
@@ -124,13 +124,15 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   canvas.onpointerup = up_handler;
   canvas.onpointermove = null;
 
+  var selectedTrace;
+
   function down_handler(event) {
     // check for data point near event location
     const points = window.myChart.getElementAtEvent(event, {intersect: false});
-    //const points = window.myChart.getElementsAtXAxis(event, {intersect: false});
     if (points.length > 0) {
       // grab nearest point, start dragging
       activePoint = points[0];
+      selectedTrace = activePoint._datasetIndex;
       canvas.onpointermove = move_handler;
     };
   };
@@ -148,21 +150,27 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   {
     // locate grabbed point in chart data
     if (activePoint != null) {
-      var data = activePoint._chart.data;
-      var datasetIndex = activePoint._datasetIndex;
+      const points = window.myChart.getElementsAtXAxis(event, {intersect: false});
+      for (var i = 0; i < points.length; i++) {
+        if (points[i]._datasetIndex == selectedTrace) {
+          var point = points[i];
+          var data = point._chart.data;
+          var datasetIndex = point._datasetIndex;
   
-      // read mouse position
-      const helpers = Chart.helpers;
-      var position = helpers.getRelativePosition(event, myChart);
+          // read mouse position
+          const helpers = Chart.helpers;
+          var position = helpers.getRelativePosition(event, myChart);
   
-      // convert mouse position to chart y axis value 
-      var chartArea = window.myChart.chartArea;
-      var yAxis = window.myChart.scales["y-axis-0"];
-      var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+          // convert mouse position to chart y axis value 
+          var chartArea = window.myChart.chartArea;
+          var yAxis = window.myChart.scales["y-axis-0"];
+          var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
-      // update y value of active data point
-      data.datasets[datasetIndex].data[activePoint._index] = yValue;
-      window.myChart.update();
+          // update y value of active data point
+          data.datasets[datasetIndex].data[point._index] = yValue;
+          window.myChart.update();
+        }
+      }
     };
   };
 
