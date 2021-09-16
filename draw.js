@@ -671,9 +671,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     k: [dict[590]],
   };
 
-  Plotly.newPlot('lmsDiv', data, layout);
+  Plotly.newPlot('rgbDiv', data, layout);
 
-  var myPlot = document.getElementById('lmsDiv');
+  var myPlot = document.getElementById('rgbDiv');
   myPlot.on('plotly_click', function(data){
     var pn = data.points[0].pointNumber;
     selectX[count] = data.points[0].data.x[pn];
@@ -697,7 +697,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         type: 'scatter3d',
         name: 'XYZ primaries',
       };
-      Plotly.addTraces('lmsDiv', trianglePoints);
+      Plotly.addTraces('rgbDiv', trianglePoints);
     }
   });
 
@@ -774,7 +774,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 
 // will be instantaneous, since animation applies to 2d plots.
 function RGB2rgb() {
-  Plotly.animate('lmsDiv', {
+  Plotly.animate('rgbDiv', {
     data: [cTrace],
     traces: [0],
     layout: {
@@ -806,7 +806,7 @@ function RGB2rgb() {
 }
  
 function addXYZPrimaries() {
-  Plotly.addTraces('lmsDiv', [xyzPoints])
+  Plotly.addTraces('rgbDiv', [xyzPoints])
 }
 
 function rgb2xyz() {
