@@ -17,12 +17,12 @@
 <body>
   <div class="flex-container">
     <div class="flex-child">
-      <button onclick="javascript:resetZoom();">Reset zoom</button>
       <div class="wrapper">
         <canvas id="cursor"></canvas>
         <canvas id="canvasLMS"></canvas>
       </div>
-      <button onclick="javascript:lmsReset();">Reset!</button>
+      <button id="resetChartLMS">Chart reset</button>
+      <button id="resetZoomLMS">Reset zoom</button>
     </div>
     <div class="flex-child">
       <div id="lmsDiv"></div>
@@ -32,10 +32,11 @@
 
   <div class="flex-container">
     <div class="flex-child">
-      <button onclick="javascript:resetZoom();">Reset zoom</button>
       <div class="wrapper">
         <canvas id="canvasCMF"></canvas>
       </div>
+      <button id="resetChartRGB">Chart reset</button>
+      <button id="resetZoomRGB">Reset zoom</button>
     </div>
     <div class="flex-child">
       <div class="container">

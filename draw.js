@@ -5,7 +5,6 @@ function updateLocus(ConeL, ConeM, ConeS, id) {
   };
   var data_update = {'x': [ConeL], 'y': [ConeM], 'z': [ConeS]};
 
-  //var lmsPlot = document.getElementById('lmsDiv');
   var lmsPlot = document.getElementById(id);
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
@@ -54,7 +53,25 @@ function unpack(rows, key) {
 //  Plotly.addTraces('lmsDiv', point);
 //}
 
-// TODO: support any number of data sequences
+function registerResetZoom(id, chart) {
+  $(id).on("click", function(evt) {
+      chart.resetZoom();
+  });
+}
+
+function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, resetData3) {
+  $(buttonId).on("click", function(evt) {
+    // reset chart.js (2d)
+    // do a value copy here so that future updates to the chart won't affect the original data
+    chart.data.datasets[0].data = Array.from(resetData1);
+    chart.data.datasets[1].data = Array.from(resetData2);
+    chart.data.datasets[2].data = Array.from(resetData3);
+    chart.update();
+    // reset plotly.js (3d)
+    updateLocus(resetData1, resetData2, resetData3, plotId);
+  });
+}
+
 function registerDrag(canvas, chart, id) {
   var activePoint = null;
 
@@ -82,10 +99,11 @@ function registerDrag(canvas, chart, id) {
     if (activePoint) {
       activePoint = null;
       canvas.onpointermove = null;
-      var seq1 = chart.data.datasets[0].data;
-      var seq2 = chart.data.datasets[1].data;
-      var seq3 = chart.data.datasets[2].data;
-      updateLocus(seq1, seq2, seq3, id);
+      // TODO: support any number of data sequences
+      var seq0 = chart.data.datasets[0].data;
+      var seq1 = chart.data.datasets[1].data;
+      var seq2 = chart.data.datasets[2].data;
+      updateLocus(seq0, seq1, seq2, id);
     }
   };
 
@@ -260,8 +278,9 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
       }
     });
 
-    //registerDrag(canvas, window.myChart, window.dConeL, window.dConeM, window.dConeS, 'lmsDiv');
     registerDrag(canvas, window.myChart, 'lmsDiv');
+    registerResetZoom("#resetZoomLMS", window.myChart);
+    registerChartReset("#resetChartLMS", 'lmsDiv', window.myChart, window.ConeL, window.ConeM, window.ConeS);
   });
 
   // the spectral locus
@@ -351,23 +370,17 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   Plotly.newPlot('lmsDiv', data, layout);
 });
 
+// TODO: move these two into d3 by using addEventListerner.
+//function lmsReset() {
+//  // do a value copy here!
+//  window.myChart.data.datasets[0].data = Array.from(window.ConeL);
+//  window.myChart.data.datasets[1].data = Array.from(window.ConeM);
+//  window.myChart.data.datasets[2].data = Array.from(window.ConeS);
+//  window.myChart.update();
+//  updateLocus(window.ConeL, window.ConeM, window.ConeS, 'lmsDiv');
+//}
 
-function lmsReset() {
-  // do a value copy here!
-  window.myChart.data.datasets[0].data = Array.from(window.ConeL);
-  window.myChart.data.datasets[1].data = Array.from(window.ConeM);
-  window.myChart.data.datasets[2].data = Array.from(window.ConeS);
-  window.myChart.update();
-  updateLocus(window.ConeL, window.ConeM, window.ConeS, 'lmsDiv');
-  // the window.dXXX arrays must share the same reference as the chart's data arrays
-  //window.dConeL = window.myChart.data.datasets[0].data;
-  //window.dConeM = window.myChart.data.datasets[1].data;
-  //window.dConeS = window.myChart.data.datasets[2].data;
-}
 
-function resetZoom() {
-  window.myChart.resetZoom();
-}
 
 
 
@@ -389,13 +402,13 @@ var count = 0;
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
   // the RGB CMF
   // points to the cone arrays that will be used to plot the chart;
-  window.dCMFR = unpack(rows, 'r');
-  window.dCMFG = unpack(rows, 'g');
-  window.dCMFB = unpack(rows, 'b');
+  dCMFR = unpack(rows, 'r');
+  dCMFG = unpack(rows, 'g');
+  dCMFB = unpack(rows, 'b');
   // contains the original cone data; used in reset;
-  window.CMFR = [...window.dCMFR];
-  window.CMFG = [...window.dCMFG];
-  window.CMFB = [...window.dCMFB];
+  window.CMFR = [...dCMFR];
+  window.CMFG = [...dCMFG];
+  window.CMFB = [...dCMFB];
 
   var stride = 5;
   var wlen = unpack(rows, 'wavelength');
@@ -405,9 +418,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
-  var y_data_1 = window.dCMFR;
-  var y_data_2 = window.dCMFG;
-  var y_data_3 = window.dCMFB;
+  var y_data_1 = dCMFR;
+  var y_data_2 = dCMFG;
+  var y_data_3 = dCMFB;
 
   function range(start, end, stride) {
     return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
@@ -497,8 +510,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     }
   });
 
-  //registerDrag(canvas, window.cmfChart, window.dCMFR, window.dCMFG, window.dCMFB, 'rgbDiv');
   registerDrag(canvas, window.cmfChart, 'rgbDiv');
+  registerResetZoom("#resetZoomRGB", window.cmfChart);
+  registerChartReset("#resetChartRGB", 'rgbDiv', window.cmfChart, window.CMFR, window.CMFG, window.CMFB);
 
   // the RGB spectral locus
   CMFR = unpack(rows, 'r');
@@ -580,9 +594,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var data = [trace];
  
   var layout = {
-    //height: 800,
-    //width: 1200,
+    height: 800,
     showlegend: true,
+    //automargin: true,
     margin: {
       l: 100,
       r: 0,
