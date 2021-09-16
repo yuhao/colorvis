@@ -53,6 +53,92 @@ function unpack(rows, key) {
 //  Plotly.addTraces('lmsDiv', point);
 //}
 
+// TODO: support any number of data sequences
+function registerDrag(canvas, chart, seq1, seq2, seq3) {
+  var activePoint = null;
+
+  // set pointer event handlers for canvas element
+  canvas.onpointerdown = down_handler;
+  canvas.onpointerup = up_handler;
+  canvas.onpointermove = null;
+  //canvas.onpointermove = move_handler;
+
+  var selectedTrace;
+
+  function down_handler(event) {
+    // get the intersecting data point
+    const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
+    if (points.length > 0) {
+      // grab the point, start dragging
+      activePoint = points[0];
+      selectedTrace = activePoint.datasetIndex;
+      canvas.onpointermove = move_handler;
+    };
+  };
+
+  function up_handler(event) {
+    // release grabbed point, stop dragging
+    if (activePoint) {
+      activePoint = null;
+      canvas.onpointermove = null;
+      updateLocus(seq1, seq2, seq3);
+    }
+  };
+
+  function move_handler(event)
+  {
+    // if an intersecting data point is grabbed
+    if (activePoint != null) {
+      // then get the points on the selectedTrace
+      const points = chart.getElementsAtEventForMode(event, 'index', {intersect: false});
+      for (var i = 0; i < points.length; i++) {
+        if (points[i].datasetIndex == selectedTrace) {
+          var point = points[i];
+          var data = chart.data;
+          
+          var datasetIndex = point.datasetIndex;
+  
+          // read mouse position
+          const helpers = Chart.helpers;
+          var position = helpers.getRelativePosition(event, chart);
+  
+          // convert mouse position to chart y axis value 
+          var chartArea = chart.chartArea;
+          var yAxis = chart.scales.yAxes;
+          var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+  
+          // update y value of active data point
+          data.datasets[datasetIndex].data[point.index] = yValue;
+          chart.update();
+        }
+      }
+    } else {
+      //const points = chart.getElementsAtEventForMode(event, 'index', {intersect: false}, true);
+      ////const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: false}, true);
+      //if (points.length > 0) {
+      //  var activePoint = points[0];
+      //  x = activePoint.element.x;
+      //  topY = chart.legend.bottom;
+      //  bottomY = chart.chartArea.bottom;
+      //  // draw line
+      //  ctx.save();
+      //  ctx.beginPath();
+      //  ctx.moveTo(x, topY);
+      //  ctx.lineTo(x, bottomY);
+      //  ctx.lineWidth = 2;
+      //  ctx.strokeStyle = '#07C';
+      //  ctx.stroke();
+      //  ctx.restore();
+      //};
+    }
+  };
+
+  // map value to other coordinate system
+  function map(value, start1, stop1, start2, stop2) {
+    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
+  };
+}
+
 d3.csv('linss2_10e_5.csv', function(err, rows){
   var stride = 5;
 
@@ -77,19 +163,14 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
     var y_data_1 = window.dConeL;
     var y_data_2 = window.dConeM;
     var y_data_3 = window.dConeS;
-    //var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
 
     function range(start, end, stride) {
       return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
     }
 
-    // globals
-    var activePoint = null;
-    var canvas = null;
-
     // draw a line chart on the canvas context
     var ctx = document.getElementById("canvasLMS").getContext("2d");
-    canvas = document.getElementById("canvasLMS");
+    var canvas = document.getElementById("canvasLMS");
     window.myChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -174,87 +255,8 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         }
       }
     });
-    
-    // set pointer event handlers for canvas element
-    canvas.onpointerdown = down_handler;
-    canvas.onpointerup = up_handler;
-    canvas.onpointermove = null;
-    //canvas.onpointermove = move_handler;
 
-    var selectedTrace;
-
-    function down_handler(event) {
-      // get the intersecting data point
-      const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
-      if (points.length > 0) {
-        // grab the point, start dragging
-        activePoint = points[0];
-        selectedTrace = activePoint.datasetIndex;
-        canvas.onpointermove = move_handler;
-      };
-    };
-
-    function up_handler(event) {
-      // release grabbed point, stop dragging
-      if (activePoint) {
-        activePoint = null;
-        canvas.onpointermove = null;
-        updateLocus(window.dConeL, window.dConeM, window.dConeS);
-      }
-    };
- 
-    function move_handler(event)
-    {
-      // if an intersecting data point is grabbed
-      if (activePoint != null) {
-        // then get the points on the selectedTrace
-        const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false});
-        for (var i = 0; i < points.length; i++) {
-          if (points[i].datasetIndex == selectedTrace) {
-            var point = points[i];
-            var data = window.myChart.data;
-            
-            var datasetIndex = point.datasetIndex;
-    
-            // read mouse position
-            const helpers = Chart.helpers;
-            var position = helpers.getRelativePosition(event, window.myChart);
-    
-            // convert mouse position to chart y axis value 
-            var chartArea = window.myChart.chartArea;
-            var yAxis = window.myChart.scales.yAxes;
-            var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
-    
-            // update y value of active data point
-            data.datasets[datasetIndex].data[point.index] = yValue;
-            window.myChart.update();
-          }
-        }
-      } else {
-        //const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false}, true);
-        ////const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: false}, true);
-        //if (points.length > 0) {
-        //  var activePoint = points[0];
-        //  x = activePoint.element.x;
-        //  topY = window.myChart.legend.bottom;
-        //  bottomY = window.myChart.chartArea.bottom;
-        //  // draw line
-        //  ctx.save();
-        //  ctx.beginPath();
-        //  ctx.moveTo(x, topY);
-        //  ctx.lineTo(x, bottomY);
-        //  ctx.lineWidth = 2;
-        //  ctx.strokeStyle = '#07C';
-        //  ctx.stroke();
-        //  ctx.restore();
-        //};
-      }
-    };
-
-    // map value to other coordinate system
-    function map(value, start1, stop1, start2, stop2) {
-      return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
-    };
+    registerDrag(canvas, window.myChart, window.dConeL, window.dConeM, window.dConeS);
   });
 
   // the spectral locus
@@ -352,7 +354,7 @@ function lmsReset() {
   window.myChart.data.datasets[2].data = Array.from(window.ConeS);
   window.myChart.update();
   updateLocus(window.ConeL, window.ConeM, window.ConeS);
-  // the window.dXXX arrays have to be sharing the same reference as the chart's data arrays
+  // the window.dXXX arrays must share the same reference as the chart's data arrays
   window.dConeL = window.myChart.data.datasets[0].data;
   window.dConeM = window.myChart.data.datasets[1].data;
   window.dConeS = window.myChart.data.datasets[2].data;
