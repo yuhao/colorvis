@@ -286,7 +286,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
 
   // the spectral locus
   var lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
-  trace = {
+  var trace = {
     x: dConeL,
     y: dConeM,
     z: dConeS,
@@ -376,15 +376,8 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
 
 
 
-var trace;
-var cTrace;
 var transRgTrace;
 var transXyPoints;
-var xyzPoints;
-
-//var CMFR = [];
-//var CMFG = [];
-//var CMFB = [];
 
 var selectX = [];
 var selectY = [];
@@ -511,7 +504,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
-  trace = {
+  var trace = {
     x: dCMFR, y: dCMFG, z: dCMFB,
     text: wlen,
     mode: 'lines+markers',
@@ -527,15 +520,14 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     type: 'scatter3d',
     name: 'spectral locus',
   };
-  
+
   var data = [trace];
  
   var layout = {
     height: 800,
-    showlegend: true,
-    //automargin: true,
+    //showlegend: true,
     margin: {
-      l: 100,
+      l: 0,
       r: 0,
       b: 0,
       t: 100
@@ -615,10 +607,11 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     }
   });
 
-
-
-  // rgb chromaticity plot
+  // RGB to rgb chromaticity plot
   registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
+
+  // rgb to RGB plot
+  registerrgb2RGB('#rgb2RGB', window.cmfChart, wlen, rgbLocusMarkerColors);
 
   // add XYZ primaries in chromaticities to the rgb chromaticity plot
   registerAddXYZChrm('#addXYZChrm');
@@ -703,8 +696,61 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   
 });
 
-// will be instantaneous, since animation applies to 2d plots.
+function registerrgb2RGB(id, chart, wlen, rgbLocusMarkerColors) {
+  $(id).on('click', function(evt) {
+    $('#addXYZChrm').prop('disabled', true);
+
+    var trace = {
+      x: chart.data.datasets[0].data,
+      y: chart.data.datasets[1].data,
+      z: chart.data.datasets[2].data,
+      text: wlen,
+      mode: 'lines+markers',
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        color: rgbLocusMarkerColors,
+      },
+      type: 'scatter3d',
+      name: 'spectral locus in RGB',
+    };
+
+    // will be instantaneous, since animation applies to 2d plots.
+    // TODO: keep this or switch to update?
+    Plotly.animate('rgbDiv', {
+      data: [trace],
+      traces: [0],
+      layout: {
+        title: 'Spectral locus in CIE 1931 RGB color space',
+        scene: {
+          xaxis: {
+            title: {
+              text: 'R'
+            }
+          },
+          yaxis: {
+            title: {
+              text: 'G'
+            }
+          },
+          zaxis: {
+            title: {
+              text: 'B'
+            }
+          },
+        }
+      }
+    }, {
+      transition: {
+        duration: 500,
+        easing: 'linear'
+      },
+    })
+  });
+}
+
 // will be a nop when in the chromaticity mode, which is good.
+// take whatever CMFs are in |chart|, even if it's adjusted, which is good.
 function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
   $(id).on('click', function(evt) {
     $('#addXYZChrm').prop('disabled', false);
@@ -717,7 +763,7 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
     var cG = math.dotDivide(tCMFG, sumRGB);
     var cB = math.dotDivide(tCMFB, sumRGB);
 
-    cTrace = {
+    var cTrace = {
       x: cR,
       y: cG,
       z: cB,
@@ -732,6 +778,8 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
       name: 'spectral locus in rgb',
     };
 
+    // will be instantaneous, since animation applies to 2d plots.
+    // TODO: keep this or switch to update?
     Plotly.animate('rgbDiv', {
       data: [cTrace],
       traces: [0],
@@ -769,7 +817,7 @@ function registerAddXYZChrm(id) {
   var cY = [-0.28, 2.77, 0.14, -0.28];
   var cZ = [0.0028, -0.028, 1.60, 0.0028];
 
-  xyzPoints = {
+  var xyzPoints = {
     x: cX,
     y: cY,
     z: cZ,
