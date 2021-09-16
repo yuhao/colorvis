@@ -1,13 +1,13 @@
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 // TODO: this needs to adapt to the specific graph
-function updateLocus(ConeL, ConeM, ConeS, id) {
+function updateLocus(seq1, seq2, seq3, newTitle, id) {
   var layout_update = {
-    title: (ConeL == window.ConeL) ? 'Spectral locus in LMS cone space' : 'Updated spectral locus in LMS cone space',
+    title: newTitle,
   };
-  var data_update = {'x': [ConeL], 'y': [ConeM], 'z': [ConeS]};
+  var data_update = {'x': [seq1], 'y': [seq2], 'z': [seq3]};
 
-  var lmsPlot = document.getElementById(id);
-  Plotly.update(lmsPlot, data_update, layout_update, [0]);
+  var plot = document.getElementById(id);
+  Plotly.update(plot, data_update, layout_update, [0]);
 }
 
 function highlightLocus(index, id, baseColors) {
@@ -52,13 +52,13 @@ function unpack(rows, key) {
 //}
 
 function registerResetZoom(id, chart) {
-  $(id).on("click", function(evt) {
+  $(id).on('click', function(evt) {
       chart.resetZoom();
   });
 }
 
 function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, resetData3) {
-  $(buttonId).on("click", function(evt) {
+  $(buttonId).on('click', function(evt) {
     // reset chart.js (2d)
     // do a value copy here so that future updates to the chart won't affect the original data
     chart.data.datasets[0].data = Array.from(resetData1);
@@ -66,7 +66,8 @@ function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, res
     chart.data.datasets[2].data = Array.from(resetData3);
     chart.update();
     // reset plotly.js (3d)
-    updateLocus(resetData1, resetData2, resetData3, plotId);
+    var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in CIE 1931 RGB space';
+    updateLocus(resetData1, resetData2, resetData3, title, plotId);
   });
 }
 
@@ -101,10 +102,14 @@ function registerDrag(canvas, chart, id) {
       var seq0 = chart.data.datasets[0].data;
       var seq1 = chart.data.datasets[1].data;
       var seq2 = chart.data.datasets[2].data;
-      updateLocus(seq0, seq1, seq2, id);
+      var title = (chart.canvas.id == 'canvasLMS') ?
+          'Updated spectral locus in LMS cone space' :
+          'Updated spectral locus in CIE 1931 RGB space';
+      updateLocus(seq0, seq1, seq2, title, id);
     }
   };
 
+  // TODO: sometimes for first drag the spectral locus won't update dynamically until released
   function move_handler(event)
   {
     // if an intersecting data point is grabbed
@@ -174,7 +179,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
-  //var nWavelen = (lastW - firstW)/stride + 1;
 
   d3.csv('ciesi.csv', function(err_sidata, sidata){
     // LMS plot
@@ -277,8 +281,8 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
     });
 
     registerDrag(canvas, window.myChart, 'lmsDiv');
-    registerResetZoom("#resetZoomLMS", window.myChart);
-    registerChartReset("#resetChartLMS", 'lmsDiv', window.myChart, window.ConeL, window.ConeM, window.ConeS);
+    registerResetZoom('#resetZoomLMS', window.myChart);
+    registerChartReset('#resetChartLMS', 'lmsDiv', window.myChart, window.ConeL, window.ConeM, window.ConeS);
   });
 
   // the spectral locus
@@ -379,9 +383,9 @@ var transRgTrace;
 var transXyPoints;
 var xyzPoints;
 
-var CMFR = [];
-var CMFG = [];
-var CMFB = [];
+//var CMFR = [];
+//var CMFG = [];
+//var CMFB = [];
 
 var selectX = [];
 var selectY = [];
@@ -390,11 +394,11 @@ var count = 0;
 
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
   // the RGB CMF
-  // points to the cone arrays that will be used to plot the chart;
+  // points to the cmf arrays that will be used to plot the chart;
   dCMFR = unpack(rows, 'r');
   dCMFG = unpack(rows, 'g');
   dCMFB = unpack(rows, 'b');
-  // contains the original cone data; used in reset;
+  // contains the original cmf data; used in reset;
   window.CMFR = [...dCMFR];
   window.CMFG = [...dCMFG];
   window.CMFB = [...dCMFB];
@@ -403,7 +407,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
-  //var nWavelen = (lastW - firstW)/stride + 1;
 
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
@@ -504,26 +507,10 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   });
 
   registerDrag(canvas, window.cmfChart, 'rgbDiv');
-  registerResetZoom("#resetZoomRGB", window.cmfChart);
-  registerChartReset("#resetChartRGB", 'rgbDiv', window.cmfChart, window.CMFR, window.CMFG, window.CMFB);
+  registerResetZoom('#resetZoomRGB', window.cmfChart);
+  registerChartReset('#resetChartRGB', 'rgbDiv', window.cmfChart, window.CMFR, window.CMFG, window.CMFB);
 
   // the RGB spectral locus
-  var dict = {};
-  var cR = []; // chromaticity
-  var cG = [];
-  var cB = [];
-
-  for (var i = 0; i < rows.length; i++) {
-    dict[rows[i].wavelength] = i;
-    var r = parseFloat(rows[i].r);
-    var g = parseFloat(rows[i].g);
-    var b = parseFloat(rows[i].b);
-  
-    cR[i] = r / (r + g + b);
-    cG[i] = g / (r + g + b);
-    cB[i] = b / (r + g + b);
-  }
- 
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
   trace = {
     x: dCMFR, y: dCMFG, z: dCMFB,
@@ -542,50 +529,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     name: 'spectral locus',
   };
   
-  cTrace = {
-    x: cR,
-    y: cG,
-    z: cB,
-    text: unpack(rows, 'wavelength'),
-    mode: 'lines+markers',
-    marker: {
-      size: 4,
-      //line: {
-      //  color: 'rgba(120, 120, 120, 0.4)',
-      //  width: 0.5
-      //},
-      opacity: 0.8
-    },
-    type: 'scatter3d',
-    name: 'spectral locus',
-  };
-
-  var Cx = [1.27, -1.74, -0.74, 1.27];
-  var Cy = [-0.28, 2.77, 0.14, -0.28];
-  var Cz = [0.0028, -0.028, 1.60, 0.0028];
-  var transM = [[2.767979095, 1.751171684, 1.129776839],
-                [0.9978469789, 4.589269432, 0.05917362973],
-                [-0.00002643740975, 0.05648972672, 5.594123569]];
-  var transRGB = math.multiply(transM, [unpack(rows, 'r'), unpack(rows, 'g'), unpack(rows, 'b')]);
-  var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
-
-  xyzPoints = {
-    x: Cx,
-    y: Cy,
-    z: Cz,
-    mode: 'lines+markers',
-    marker: {
-      size: 8,
-      line: {
-        color: '#000000',
-        width: 1
-      },
-      opacity: 0.8
-    },
-    type: 'scatter3d',
-    name: 'XYZ primaries',
-  };
- 
   var data = [trace];
  
   var layout = {
@@ -643,16 +586,37 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     }
   };
  
-  var triangle = {
-    type: 'mesh3d',
-    x:unpack(rows, 'r'), y: unpack(rows, 'g'), z: unpack(rows, 'b'),
-    i: [dict[425]],
-    j: [dict[510]],
-    k: [dict[590]],
-  };
-
   Plotly.newPlot('rgbDiv', data, layout);
 
+
+
+
+  // rgb chromaticity plot
+  registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
+
+
+
+  // XYZ primaries in chromaticities and add them to rg-chromaticity plot
+  var Cx = [1.27, -1.74, -0.74, 1.27];
+  var Cy = [-0.28, 2.77, 0.14, -0.28];
+  var Cz = [0.0028, -0.028, 1.60, 0.0028];
+
+  xyzPoints = {
+    x: Cx,
+    y: Cy,
+    z: Cz,
+    mode: 'lines+markers',
+    marker: {
+      size: 8,
+      line: {
+        color: '#000000',
+        width: 1
+      },
+      opacity: 0.8
+    },
+    type: 'scatter3d',
+    name: 'XYZ primaries',
+  };
   var myPlot = document.getElementById('rgbDiv');
   myPlot.on('plotly_click', function(data){
     var pn = data.points[0].pointNumber;
@@ -681,7 +645,10 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     }
   });
 
-  // the rg-chromaticity plot
+
+
+
+  // rg-chromaticity plot
   var rgTrace = {
     x: cR,
     y: cG,
@@ -689,9 +656,15 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     mode: 'lines+markers',
     connectgaps: true,
     line: {simplify: false},
-    name: 'spectral locus',
+    name: 'spectral locus in rg',
   };
  
+  var transM = [[2.767979095, 1.751171684, 1.129776839],
+                [0.9978469789, 4.589269432, 0.05917362973],
+                [-0.00002643740975, 0.05648972672, 5.594123569]];
+  var transRGB = math.multiply(transM, [unpack(rows, 'r'), unpack(rows, 'g'), unpack(rows, 'b')]);
+  var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
+
   transRgTrace = {
     x: math.dotDivide(transRGB[0], sumTransRGB),
     y: math.dotDivide(transRGB[1], sumTransRGB),
@@ -753,38 +726,65 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 });
 
 // will be instantaneous, since animation applies to 2d plots.
-function RGB2rgb() {
-  Plotly.animate('rgbDiv', {
-    data: [cTrace],
-    traces: [0],
-    layout: {
-      title: 'Spectral locus in CIE 1931 rgb chromaticity plot',
-      scene: {
-        xaxis: {
-          title: {
-            text: 'r'
-          }
-        },
-        yaxis: {
-          title: {
-            text: 'g'
-          }
-        },
-        zaxis: {
-          title: {
-            text: 'b'
-          }
-        },
+// TODO: disable this when we are in the chromaticity plot
+function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
+  $(id).on("click", function(evt) {
+    var tCMFR = chart.data.datasets[0].data;
+    var tCMFG = chart.data.datasets[1].data;
+    var tCMFB = chart.data.datasets[2].data;
+
+    var sumRGB = math.add(math.add(tCMFR, tCMFG), tCMFB);
+    var cR = math.dotDivide(tCMFR, sumRGB);
+    var cG = math.dotDivide(tCMFG, sumRGB);
+    var cB = math.dotDivide(tCMFB, sumRGB);
+
+    cTrace = {
+      x: cR,
+      y: cG,
+      z: cB,
+      text: wlen,
+      mode: 'lines+markers',
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        color: rgbLocusMarkerColors,
+      },
+      type: 'scatter3d',
+      name: 'spectral locus in rgb',
+    };
+
+    Plotly.animate('rgbDiv', {
+      data: [cTrace],
+      traces: [0],
+      layout: {
+        title: 'Spectral locus in CIE 1931 rgb chromaticity plot',
+        scene: {
+          xaxis: {
+            title: {
+              text: 'r'
+            }
+          },
+          yaxis: {
+            title: {
+              text: 'g'
+            }
+          },
+          zaxis: {
+            title: {
+              text: 'b'
+            }
+          },
+        }
       }
-    }
-  }, {
-    transition: {
-      duration: 500,
-      easing: 'linear'
-    },
-  })
+    }, {
+      transition: {
+        duration: 500,
+        easing: 'linear'
+      },
+    })
+  });
 }
- 
+
 function addXYZPrimaries() {
   Plotly.addTraces('rgbDiv', [xyzPoints])
 }
