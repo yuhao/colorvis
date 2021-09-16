@@ -1,4 +1,5 @@
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
+// TODO: this needs to adapt to the specific graph
 function updateLocus(ConeL, ConeM, ConeS, id) {
   var layout_update = {
     title: (ConeL == window.ConeL) ? 'Spectral locus in LMS cone space' : 'Updated spectral locus in LMS cone space',
@@ -370,15 +371,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   Plotly.newPlot('lmsDiv', data, layout);
 });
 
-// TODO: move these two into d3 by using addEventListerner.
-//function lmsReset() {
-//  // do a value copy here!
-//  window.myChart.data.datasets[0].data = Array.from(window.ConeL);
-//  window.myChart.data.datasets[1].data = Array.from(window.ConeM);
-//  window.myChart.data.datasets[2].data = Array.from(window.ConeS);
-//  window.myChart.update();
-//  updateLocus(window.ConeL, window.ConeM, window.ConeS, 'lmsDiv');
-//}
 
 
 
@@ -426,10 +418,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
   }
 
-  // globals
-  //var activePoint = null;
-  //var canvas = null;
- 
   // draw a line chart on the canvas context
   var ctx = document.getElementById("canvasCMF").getContext("2d");
   var canvas = document.getElementById("canvasCMF");
@@ -515,10 +503,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   registerChartReset("#resetChartRGB", 'rgbDiv', window.cmfChart, window.CMFR, window.CMFG, window.CMFB);
 
   // the RGB spectral locus
-  CMFR = unpack(rows, 'r');
-  CMFG = unpack(rows, 'g');
-  CMFB = unpack(rows, 'b');
-  
   var dict = {};
   var cR = []; // chromaticity
   var cG = [];
