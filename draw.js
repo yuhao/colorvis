@@ -9,6 +9,19 @@ function updateLocus(ConeL, ConeM, ConeS) {
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
 
+function yuhao(index) {
+}
+ 
+//Chart.Interaction.modes.under = function(chart, e, options, useFinalPosition) {
+//  const metas = myChart.getSortedVisibleDatasetMetas();
+//  for(meta of metas) { // loop the metasets from top to bottom
+//    if (meta.dataset.interpolate(e, 'x').y < e.y) { // the line is above mouse position
+//      return [{datasetIndex: meta.index, element: meta.dataset}]; // could return all the points here too
+//    };
+//  }
+//  return [];
+//};
+
 d3.csv('linss2_10e_5.csv', function(err, rows){
   var stride = 5;
   function unpack(rows, key) {
@@ -67,7 +80,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   // globals
   var activePoint = null;
   var canvas = null;
- 
+
   // draw a line chart on the canvas context
   var ctx = document.getElementById("canvasLMS").getContext("2d");
   canvas = document.getElementById("canvasLMS");
@@ -123,6 +136,13 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
           position: 'right',
         },
       },
+      //onHover: function(evt) {
+      //  const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
+      //  //if (points.length) {
+      //  //  //console.log("onHover",item, evt.type);
+      //  //  //console.log(">data", item[0]._index, data.datasets[0].data[item[0]._index]);
+      //  //}
+      //},
       plugins: {
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
         zoom: {
@@ -144,6 +164,14 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
           text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (adjusted to 2-deg; Stockman & Sharpe (2000); normalized)',
           fontSize: 24,
         },
+        tooltip: {
+          callbacks: {
+            labelTextColor: function(context) {
+              yuhao(context.dataIndex);
+              return '#FFFFFF';
+            }
+          },
+        }
       }
     }
   });
@@ -151,8 +179,8 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   // set pointer event handlers for canvas element
   canvas.onpointerdown = down_handler;
   canvas.onpointerup = up_handler;
-  canvas.onpointermove = null;
-  //canvas.onpointermove = move_handler;
+  //canvas.onpointermove = null;
+  canvas.onpointermove = move_handler;
 
   var selectedTrace;
 
@@ -204,7 +232,8 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         }
       }
     } else {
-      //const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: true});
+      //const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false}, true);
+      //const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: false}, true);
       //if (points.length > 0) {
       //  var activePoint = points[0];
       //  x = activePoint.element.x;
@@ -345,7 +374,6 @@ var selectY = [];
 var selectZ = [];
 var count = 0;
 
-//d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/3d-scatter.csv', function(err, rows){
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
   function unpack(rows, key) {
     return rows.map(function(row) {
@@ -662,7 +690,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       },
     }
   };
-  
+ 
   var triangle = {
     type: 'mesh3d',
     x:unpack(rows, 'r'), y: unpack(rows, 'g'), z: unpack(rows, 'b'),
