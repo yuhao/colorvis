@@ -9,7 +9,6 @@ function updateLocus(ConeL, ConeM, ConeS) {
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
 
-// TODO: should trigger this only once although three will fire
 function toggleLocus(index) {
   // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
   // Fx.hover fires only for 2d plots for now...
@@ -182,7 +181,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         tooltip: {
           callbacks: {
             labelTextColor: function(context) {
-              toggleLocus(context.dataIndex);
+              if (context.datasetIndex == 0) toggleLocus(context.dataIndex);
               return '#FFFFFF';
             }
           },
