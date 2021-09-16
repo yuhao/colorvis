@@ -618,14 +618,24 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   // add/remove XYZ primaries in chromaticities to the rgb chromaticity plot
   registerToggleXYZChrm('#addXYZChrm', myPlot);
 
-
+  // RGB to XYZ
+  registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
 
 
   // rg-chromaticity plot
+  plotRgChrm(dCMFR, dCMFG, dCMFB, wlen);
+});
+
+function plotRgChrm(dCMFR, dCMFG, dCMFB, wlen) {
+  var sumRGB = math.add(math.add(dCMFR, dCMFG), dCMFB);
+  var cR = math.dotDivide(dCMFR, sumRGB);
+  var cG = math.dotDivide(dCMFG, sumRGB);
+  //var cB = math.dotDivide(dCMFB, sumRGB);
+
   var rgTrace = {
     x: cR,
     y: cG,
-    text:unpack(rows, 'wavelength'),
+    text: wlen,
     mode: 'lines+markers',
     connectgaps: true,
     line: {simplify: false},
@@ -635,7 +645,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var transM = [[2.767979095, 1.751171684, 1.129776839],
                 [0.9978469789, 4.589269432, 0.05917362973],
                 [-0.00002643740975, 0.05648972672, 5.594123569]];
-  var transRGB = math.multiply(transM, [unpack(rows, 'r'), unpack(rows, 'g'), unpack(rows, 'b')]);
+  var transRGB = math.multiply(transM, [dCMFR, dCMFG, dCMFB]);
   var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
 
   transRgTrace = {
@@ -646,9 +656,12 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     line: {simplify: false},
   };
  
+  var cX = [1.27, -1.74, -0.74, 1.27];
+  var cY = [-0.28, 2.77, 0.14, -0.28];
+
   var xyPoints = {
-    x: Cx,
-    y: Cy,
+    x: cX,
+    y: cY,
     mode: 'lines+markers',
     marker: {
       size: 8,
@@ -695,8 +708,66 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   };
 
   Plotly.newPlot('2dDiv', data, layout);
-  
-});
+}
+
+function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors) {
+  var transM = [[2.767979095, 1.751171684, 1.129776839],
+                [0.9978469789, 4.589269432, 0.05917362973],
+                [-0.00002643740975, 0.05648972672, 5.594123569]];
+  // TODO: some values are negative; most likely a numerical precision issue
+  var transRGB = math.multiply(transM, [dCMFR, dCMFG, dCMFB]);
+
+  $(id).on('click', function(evt) {
+    removeXYZChrm(plot);
+
+    var trace = {
+      x: transRGB[0],
+      y: transRGB[1],
+      z: transRGB[2],
+      text: wlen,
+      mode: 'lines+markers',
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        color: rgbLocusMarkerColors,
+      },
+      type: 'scatter3d',
+      name: 'spectral locus in XYZ',
+    };
+
+    // will be instantaneous, since animation applies to 2d plots.
+    // TODO: keep this or switch to update?
+    Plotly.animate('rgbDiv', {
+      data: [trace],
+      traces: [0],
+      layout: {
+        title: 'Spectral locus in CIE XYZ color space',
+        scene: {
+          xaxis: {
+            title: {
+              text: 'X'
+            }
+          },
+          yaxis: {
+            title: {
+              text: 'Y'
+            }
+          },
+          zaxis: {
+            title: {
+              text: 'Z'
+            }
+          },
+        }
+      }
+    }, {
+      transition: {
+        duration: 500,
+        easing: 'linear'
+      },
+    })
+  });
+}
 
 function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
   $(id).on('click', function(evt) {
@@ -876,6 +947,20 @@ function rgb2xyz() {
       duration: 500,
       easing: 'cubic-in-out'
     },
+  }).then(function() {
+    setTimeout(function() {
+      Plotly.animate('2dDiv', {
+        layout: {
+          xaxis: {range: [0, 1]},
+          yaxis: {range: [0, 1]},
+        }
+      }, {
+        transition: {
+          duration: 500,
+          easing: 'cubic-in-out'
+        },
+      });
+    }, 100);
   });
 }
 
