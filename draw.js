@@ -1,11 +1,12 @@
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
-function updateLocus(ConeL, ConeM, ConeS) {
+function updateLocus(ConeL, ConeM, ConeS, id) {
   var layout_update = {
-    title: (ConeL == window.dConeL) ? 'Updated spectral locus in LMS cone space' : 'Spectral locus in LMS cone space',
+    title: (ConeL == window.ConeL) ? 'Spectral locus in LMS cone space' : 'Updated spectral locus in LMS cone space',
   };
   var data_update = {'x': [ConeL], 'y': [ConeM], 'z': [ConeS]};
 
-  var lmsPlot = document.getElementById('lmsDiv');
+  //var lmsPlot = document.getElementById('lmsDiv');
+  var lmsPlot = document.getElementById(id);
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
 
@@ -54,7 +55,7 @@ function unpack(rows, key) {
 //}
 
 // TODO: support any number of data sequences
-function registerDrag(canvas, chart, seq1, seq2, seq3) {
+function registerDrag(canvas, chart, id) {
   var activePoint = null;
 
   // set pointer event handlers for canvas element
@@ -81,7 +82,10 @@ function registerDrag(canvas, chart, seq1, seq2, seq3) {
     if (activePoint) {
       activePoint = null;
       canvas.onpointermove = null;
-      updateLocus(seq1, seq2, seq3);
+      var seq1 = chart.data.datasets[0].data;
+      var seq2 = chart.data.datasets[1].data;
+      var seq3 = chart.data.datasets[2].data;
+      updateLocus(seq1, seq2, seq3, id);
     }
   };
 
@@ -143,13 +147,13 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var stride = 5;
 
   // points to the cone arrays that will be used to plot the chart;
-  window.dConeL = unpack(rows, 'l');
-  window.dConeM = unpack(rows, 'm');
-  window.dConeS = unpack(rows, 's');
+  var dConeL = unpack(rows, 'l');
+  var dConeM = unpack(rows, 'm');
+  var dConeS = unpack(rows, 's');
   // contains the original cone data; used in reset;
-  window.ConeL = [...window.dConeL];
-  window.ConeM = [...window.dConeM];
-  window.ConeS = [...window.dConeS];
+  window.ConeL = [...dConeL];
+  window.ConeM = [...dConeM];
+  window.ConeS = [...dConeS];
 
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
@@ -160,9 +164,9 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
     // LMS plot
     // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
     var x_data = range(firstW, lastW, stride);
-    var y_data_1 = window.dConeL;
-    var y_data_2 = window.dConeM;
-    var y_data_3 = window.dConeS;
+    var y_data_1 = dConeL;
+    var y_data_2 = dConeM;
+    var y_data_3 = dConeS;
 
     function range(start, end, stride) {
       return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
@@ -256,15 +260,16 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
       }
     });
 
-    registerDrag(canvas, window.myChart, window.dConeL, window.dConeM, window.dConeS);
+    //registerDrag(canvas, window.myChart, window.dConeL, window.dConeM, window.dConeS, 'lmsDiv');
+    registerDrag(canvas, window.myChart, 'lmsDiv');
   });
 
   // the spectral locus
   window.lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
   trace = {
-    x: window.dConeL,
-    y: window.dConeM,
-    z: window.dConeS,
+    x: dConeL,
+    y: dConeM,
+    z: dConeS,
     text: wlen,
     mode: 'lines+markers',
     marker: {
@@ -353,11 +358,11 @@ function lmsReset() {
   window.myChart.data.datasets[1].data = Array.from(window.ConeM);
   window.myChart.data.datasets[2].data = Array.from(window.ConeS);
   window.myChart.update();
-  updateLocus(window.ConeL, window.ConeM, window.ConeS);
+  updateLocus(window.ConeL, window.ConeM, window.ConeS, 'lmsDiv');
   // the window.dXXX arrays must share the same reference as the chart's data arrays
-  window.dConeL = window.myChart.data.datasets[0].data;
-  window.dConeM = window.myChart.data.datasets[1].data;
-  window.dConeS = window.myChart.data.datasets[2].data;
+  //window.dConeL = window.myChart.data.datasets[0].data;
+  //window.dConeM = window.myChart.data.datasets[1].data;
+  //window.dConeS = window.myChart.data.datasets[2].data;
 }
 
 function resetZoom() {
@@ -409,12 +414,12 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   }
 
   // globals
-  var activePoint = null;
-  var canvas = null;
+  //var activePoint = null;
+  //var canvas = null;
  
   // draw a line chart on the canvas context
   var ctx = document.getElementById("canvasCMF").getContext("2d");
-  canvas = document.getElementById("canvasCMF");
+  var canvas = document.getElementById("canvasCMF");
   window.cmfChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -491,72 +496,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       }
     }
   });
-  //Chart.defaults.plugins.title.display = true;
-  //Chart.defaults.plugins.title.text = 'asdf';
-  
-  // set pointer event handlers for canvas element
-  canvas.onpointerdown = down_handler;
-  canvas.onpointerup = up_handler;
-  canvas.onpointermove = null;
-  //canvas.onpointermove = move_handler;
 
-  var selectedTrace;
-
-  function down_handler(event) {
-    // get the intersecting data point
-    const points = window.cmfChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
-    if (points.length > 0) {
-      // grab the point, start dragging
-      activePoint = points[0];
-      selectedTrace = activePoint.datasetIndex;
-      canvas.onpointermove = move_handler;
-    };
-  };
-
-  function up_handler(event) {
-    // release grabbed point, stop dragging
-    if (activePoint) {
-      activePoint = null;
-      canvas.onpointermove = null;
-      updateLocus(window.dConeL, window.dConeM, window.dConeS);
-    }
-  };
- 
-  function move_handler(event)
-  {
-    // if an intersecting data point is grabbed
-    if (activePoint != null) {
-      // then get the points on the selectedTrace
-      const points = window.cmfChart.getElementsAtEventForMode(event, 'index', {intersect: false});
-      for (var i = 0; i < points.length; i++) {
-        if (points[i].datasetIndex == selectedTrace) {
-          var point = points[i];
-          var data = window.cmfChart.data;
-          
-          var datasetIndex = point.datasetIndex;
-  
-          // read mouse position
-          const helpers = Chart.helpers;
-          var position = helpers.getRelativePosition(event, cmfChart);
-  
-          // convert mouse position to chart y axis value 
-          var chartArea = window.cmfChart.chartArea;
-          var yAxis = window.cmfChart.scales.yAxes;
-          var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
-  
-          // update y value of active data point
-          data.datasets[datasetIndex].data[point.index] = yValue;
-          window.cmfChart.update();
-        }
-      }
-    }
-  };
-
-  // map value to other coordinate system
-  function map(value, start1, stop1, start2, stop2) {
-    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
-  };
-
+  //registerDrag(canvas, window.cmfChart, window.dCMFR, window.dCMFG, window.dCMFB, 'rgbDiv');
+  registerDrag(canvas, window.cmfChart, 'rgbDiv');
 
   // the RGB spectral locus
   CMFR = unpack(rows, 'r');
