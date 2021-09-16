@@ -1,5 +1,4 @@
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
-// TODO: this needs to adapt to the specific graph
 function updateLocus(seq1, seq2, seq3, newTitle, id) {
   var layout_update = {
     title: newTitle,
@@ -588,35 +587,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
  
   Plotly.newPlot('rgbDiv', data, layout);
 
-
-
-
-  // rgb chromaticity plot
-  registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
-
-
-
-  // XYZ primaries in chromaticities and add them to rg-chromaticity plot
-  var Cx = [1.27, -1.74, -0.74, 1.27];
-  var Cy = [-0.28, 2.77, 0.14, -0.28];
-  var Cz = [0.0028, -0.028, 1.60, 0.0028];
-
-  xyzPoints = {
-    x: Cx,
-    y: Cy,
-    z: Cz,
-    mode: 'lines+markers',
-    marker: {
-      size: 8,
-      line: {
-        color: '#000000',
-        width: 1
-      },
-      opacity: 0.8
-    },
-    type: 'scatter3d',
-    name: 'XYZ primaries',
-  };
   var myPlot = document.getElementById('rgbDiv');
   myPlot.on('plotly_click', function(data){
     var pn = data.points[0].pointNumber;
@@ -644,6 +614,14 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       Plotly.addTraces('rgbDiv', trianglePoints);
     }
   });
+
+
+
+  // rgb chromaticity plot
+  registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
+
+  // add XYZ primaries in chromaticities to the rgb chromaticity plot
+  registerAddXYZChrm('#addXYZChrm');
 
 
 
@@ -726,9 +704,10 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 });
 
 // will be instantaneous, since animation applies to 2d plots.
-// TODO: disable this when we are in the chromaticity plot
+// will be a nop when in the chromaticity mode, which is good.
 function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
-  $(id).on("click", function(evt) {
+  $(id).on('click', function(evt) {
+    $('#addXYZChrm').prop('disabled', false);
     var tCMFR = chart.data.datasets[0].data;
     var tCMFG = chart.data.datasets[1].data;
     var tCMFB = chart.data.datasets[2].data;
@@ -785,8 +764,34 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
   });
 }
 
-function addXYZPrimaries() {
-  Plotly.addTraces('rgbDiv', [xyzPoints])
+function registerAddXYZChrm(id) {
+  var cX = [1.27, -1.74, -0.74, 1.27];
+  var cY = [-0.28, 2.77, 0.14, -0.28];
+  var cZ = [0.0028, -0.028, 1.60, 0.0028];
+
+  xyzPoints = {
+    x: cX,
+    y: cY,
+    z: cZ,
+    mode: 'lines+markers',
+    marker: {
+      size: 8,
+      line: {
+        color: '#000000',
+        width: 1
+      },
+      opacity: 0.8
+    },
+    type: 'scatter3d',
+    name: 'XYZ primaries',
+  };
+
+  $(id).on('click', function(evt) {
+    // TODO: more general?
+    Plotly.addTraces('rgbDiv', [xyzPoints]);
+    // don't keep adding points
+    $(id).prop('disabled', true);
+  });
 }
 
 function rgb2xyz() {
