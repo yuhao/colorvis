@@ -65,6 +65,8 @@ function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, res
     chart.data.datasets[2].data = Array.from(resetData3);
     chart.update();
     // reset plotly.js (3d)
+    var plot = document.getElementById(plotId);
+    removeXYZChrm(plot);
     var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in CIE 1931 RGB space';
     updateLocus(resetData1, resetData2, resetData3, title, plotId);
   });
@@ -611,10 +613,10 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
 
   // rgb to RGB plot
-  registerrgb2RGB('#rgb2RGB', window.cmfChart, wlen, rgbLocusMarkerColors);
+  registerrgb2RGB('#rgb2RGB', window.cmfChart, myPlot, wlen, rgbLocusMarkerColors);
 
-  // add XYZ primaries in chromaticities to the rgb chromaticity plot
-  registerAddXYZChrm('#addXYZChrm');
+  // add/remove XYZ primaries in chromaticities to the rgb chromaticity plot
+  registerToggleXYZChrm('#addXYZChrm', myPlot);
 
 
 
@@ -696,9 +698,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   
 });
 
-function registerrgb2RGB(id, chart, wlen, rgbLocusMarkerColors) {
+function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
   $(id).on('click', function(evt) {
-    $('#addXYZChrm').prop('disabled', true);
+    removeXYZChrm(plot);
 
     var trace = {
       x: chart.data.datasets[0].data,
@@ -812,7 +814,16 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
   });
 }
 
-function registerAddXYZChrm(id) {
+function removeXYZChrm(plot) {
+  $('#addXYZChrm').prop('disabled', true);
+  if (plot.data.length == 1) return;
+  else {
+    Plotly.deleteTraces(plot, [1]);
+  }
+  $('#addXYZChrm').prop('checked', false);
+}
+
+function registerToggleXYZChrm(id, plot) {
   var cX = [1.27, -1.74, -0.74, 1.27];
   var cY = [-0.28, 2.77, 0.14, -0.28];
   var cZ = [0.0028, -0.028, 1.60, 0.0028];
@@ -835,10 +846,11 @@ function registerAddXYZChrm(id) {
   };
 
   $(id).on('click', function(evt) {
-    // TODO: more general?
-    Plotly.addTraces('rgbDiv', [xyzPoints]);
-    // don't keep adding points
-    $(id).prop('disabled', true);
+    if($(id).prop('checked') == false) {
+      Plotly.deleteTraces(plot, [1]);
+    } else {
+      Plotly.addTraces(plot, [xyzPoints]);
+    }
   });
 }
 
