@@ -3,7 +3,7 @@
   <!-- Load plotly.js into the DOM -->
   <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -13,23 +13,33 @@
 
 <body>
   <div class="flex-container">
-    <div class="flex-child magenta">
+    <div class="flex-child">
       <button onclick="javascript:resetZoom();">Reset zoom</button>
       <div class="wrapper">
-        <canvas id="canvas"></canvas>
+        <canvas id="canvasLMS"></canvas>
       </div>
       <button onclick="javascript:lmsReset();">Reset!</button>
     </div>
-    <div class="flex-child green">
+    <div class="flex-child">
       <div id="lmsDiv"></div>
     </div>
   </div>
 
-  <div class="container">
-    <div id="myDiv"></div>
+  <div class="flex-container">
+    <div class="flex-child">
+      <button onclick="javascript:resetZoom();">Reset zoom</button>
+      <div class="wrapper">
+        <canvas id="canvasCMF"></canvas>
+      </div>
+    </div>
+    <div class="flex-child">
+      <div class="container">
+        <div id="lmsDiv"></div>
+      </div>
+      <button onclick="javascript:RGB2rgb();">RGB to rgb!</button>
+      <button onclick="javascript:addXYZPrimaries();">Add XYZ primaries!</button>
+    </div>
   </div>
-  <button onclick="javascript:RGB2rgb();">RGB to rgb!</button>
-  <button onclick="javascript:addXYZPrimaries();">Add XYZ primaries!</button>
 
   <div class="container">
     <div id="2dDiv"></div>

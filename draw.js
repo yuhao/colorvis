@@ -9,7 +9,8 @@ function updateLocus(ConeL, ConeM, ConeS) {
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
 
-d3.csv('linss2_10e_1.csv', function(err, rows){
+d3.csv('linss2_10e_5.csv', function(err, rows){
+  var stride = 5;
   function unpack(rows, key) {
     return rows.map(function(row) {
         return parseFloat(row[key]);
@@ -34,7 +35,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
       name: 'color',
     };
   
-    Plotly.addTraces('myDiv', point);
+    Plotly.addTraces('lmsDiv', point);
   }
 
   // points to the cone arrays that will be used to plot the chart;
@@ -49,11 +50,11 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
-  var nWavelen = lastW - firstW + 1;
+  var nWavelen = (lastW - firstW)/stride + 1;
 
   // LMS plot
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
-  var x_data = range(firstW, lastW, 1);
+  var x_data = range(firstW, lastW, stride);
   var y_data_1 = window.dConeL;
   var y_data_2 = window.dConeM;
   var y_data_3 = window.dConeS;
@@ -68,8 +69,8 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   var canvas = null;
  
   // draw a line chart on the canvas context
-  var ctx = document.getElementById("canvas").getContext("2d");
-  canvas = document.getElementById("canvas");
+  var ctx = document.getElementById("canvasLMS").getContext("2d");
+  canvas = document.getElementById("canvasLMS");
   window.myChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -80,46 +81,40 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
           //yAxisID: 'rightYAxis',
           label: "L Cone",
           borderColor: "#da2500",
-          fill: false
+          fill: false,
+          pointHoverRadius: 10,
         },
         {
           data: y_data_2,
           //yAxisID: 'rightYAxis',
           label: "M Cone",
           borderColor: "#008f00",
-          fill: false
+          fill: false,
+          pointHoverRadius: 10,
         },
         {
           data: y_data_3,
-          yAxisID: 'rightYAxis',
+          //yAxisID: 'rightYAxis',
           label: "S Cone",
           borderColor: "#011993",
-          fill: false
+          fill: false,
+          pointHoverRadius: 10,
         },
       ]
     },
     options: {
       animation: {
-        duration: 0
+        duration: 10
       },
-      //tooltips: {
-      //  mode: 'nearest'
-      //  intersect: false,
-      //},
       responsive: true,
       interaction: {
         mode: 'index',
         intersect: false,
       },
-      title: {
-        display: true,
-        text: 'LMS cone sensitivity functions (normalized)',
-        fontSize: 24,
-      },
       scales: {
         yAxes:{
           min: 0,
-          max: 2,
+          max: 1,
           position: 'left',
         },
         rightYAxis: {
@@ -143,7 +138,12 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
             modifierKey: 'shift',
             mode: 'x',
           },
-        }
+        },
+        title: {
+          display: true,
+          text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (adjusted to 2-deg; Stockman & Sharpe (2000); normalized)',
+          fontSize: 24,
+        },
       }
     }
   });
@@ -191,12 +191,11 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   
           // read mouse position
           const helpers = Chart.helpers;
-          var position = helpers.getRelativePosition(event, myChart);
+          var position = helpers.getRelativePosition(event, window.myChart);
   
           // convert mouse position to chart y axis value 
           var chartArea = window.myChart.chartArea;
           var yAxis = window.myChart.scales.yAxes;
-          //var yAxis = window.myChart.scales.rightYAxis;
           var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
           // update y value of active data point
@@ -212,14 +211,14 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
       //  topY = window.myChart.legend.bottom;
       //  bottomY = window.myChart.chartArea.bottom;
       //  // draw line
-      //  ctx.save();
+      //  //ctx.save();
       //  ctx.beginPath();
       //  ctx.moveTo(x, topY);
       //  ctx.lineTo(x, bottomY);
       //  ctx.lineWidth = 2;
       //  ctx.strokeStyle = '#07C';
       //  ctx.stroke();
-      //  ctx.restore();
+      //  //ctx.restore();
       //};
     }
   };
@@ -254,7 +253,7 @@ d3.csv('linss2_10e_1.csv', function(err, rows){
   var data = [trace];
  
   var layout = {
-    height: 800,
+    //height: 600,
     //width: 1200,
     showlegend: true,
     margin: {
@@ -350,10 +349,187 @@ var count = 0;
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
   function unpack(rows, key) {
     return rows.map(function(row) {
-        return row[key];
+        return parseFloat(row[key]);
       });
   }
 
+  // the RGB CMF
+  // points to the cone arrays that will be used to plot the chart;
+  window.dCMFR = unpack(rows, 'r');
+  window.dCMFG = unpack(rows, 'g');
+  window.dCMFB = unpack(rows, 'b');
+  // contains the original cone data; used in reset;
+  window.CMFR = [...window.dCMFR];
+  window.CMFG = [...window.dCMFG];
+  window.CMFB = [...window.dCMFB];
+
+  var stride = 5;
+  var wlen = unpack(rows, 'wavelength');
+  var firstW = wlen[0];
+  var lastW = wlen[wlen.length - 1];
+  var nWavelen = (lastW - firstW)/stride + 1;
+
+  // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
+  var x_data = range(firstW, lastW, stride);
+  var y_data_1 = window.dCMFR;
+  var y_data_2 = window.dCMFG;
+  var y_data_3 = window.dCMFB;
+
+  function range(start, end, stride) {
+    return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
+  }
+
+  // globals
+  var activePoint = null;
+  var canvas = null;
+ 
+  // draw a line chart on the canvas context
+  var ctx = document.getElementById("canvasCMF").getContext("2d");
+  canvas = document.getElementById("canvasCMF");
+  window.cmfChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          data: y_data_1,
+          //yAxisID: 'rightYAxis',
+          label: "R",
+          borderColor: "#da2500",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+        {
+          data: y_data_2,
+          //yAxisID: 'rightYAxis',
+          label: "G",
+          borderColor: "#008f00",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+        {
+          data: y_data_3,
+          //yAxisID: 'rightYAxis',
+          label: "B",
+          borderColor: "#011993",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+      ]
+    },
+    options: {
+      animation: {
+        duration: 10
+      },
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+        yAxes:{
+          min: -0.1,
+          max: 0.4,
+          position: 'left',
+        },
+        rightYAxis: {
+          min: 0,
+          max: 0.5,
+          position: 'right',
+        },
+      },
+      plugins: {
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1,
+            },
+            mode: 'x',
+          },
+          pan: {
+            enabled: true,
+            modifierKey: 'shift',
+            mode: 'x',
+          },
+        },
+        title: {
+          display: true,
+          text: 'CIE 1931 RGB Color Matching Functions',
+          fontSize: 24,
+        },
+      }
+    }
+  });
+  //Chart.defaults.plugins.title.display = true;
+  //Chart.defaults.plugins.title.text = 'asdf';
+  
+  // set pointer event handlers for canvas element
+  canvas.onpointerdown = down_handler;
+  canvas.onpointerup = up_handler;
+  canvas.onpointermove = null;
+  //canvas.onpointermove = move_handler;
+
+  var selectedTrace;
+
+  function down_handler(event) {
+    // get the intersecting data point
+    const points = window.cmfChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
+    if (points.length > 0) {
+      // grab the point, start dragging
+      activePoint = points[0];
+      selectedTrace = activePoint.datasetIndex;
+      canvas.onpointermove = move_handler;
+    };
+  };
+
+  function up_handler(event) {
+    // release grabbed point, stop dragging
+    if (activePoint) {
+      activePoint = null;
+      canvas.onpointermove = null;
+      updateLocus(window.dConeL, window.dConeM, window.dConeS);
+    }
+  };
+ 
+  function move_handler(event)
+  {
+    // if an intersecting data point is grabbed
+    if (activePoint != null) {
+      // then get the points on the selectedTrace
+      const points = window.cmfChart.getElementsAtEventForMode(event, 'index', {intersect: false});
+      for (var i = 0; i < points.length; i++) {
+        if (points[i].datasetIndex == selectedTrace) {
+          var point = points[i];
+          var data = window.cmfChart.data;
+          
+          var datasetIndex = point.datasetIndex;
+  
+          // read mouse position
+          const helpers = Chart.helpers;
+          var position = helpers.getRelativePosition(event, cmfChart);
+  
+          // convert mouse position to chart y axis value 
+          var chartArea = window.cmfChart.chartArea;
+          var yAxis = window.cmfChart.scales.yAxes;
+          var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+  
+          // update y value of active data point
+          data.datasets[datasetIndex].data[point.index] = yValue;
+          window.cmfChart.update();
+        }
+      }
+    }
+  };
+
+  // map value to other coordinate system
+  function map(value, start1, stop1, start2, stop2) {
+    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
+  };
+
+
+  // the RGB spectral locus
   CMFR = unpack(rows, 'r');
   CMFG = unpack(rows, 'g');
   CMFB = unpack(rows, 'b');
@@ -414,9 +590,6 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
 
   xyzPoints = {
-    //x: Cx.map(function(item) {return item/(Cx.reduce((a, b) => a + b, 0))}),
-    //y: Cx.map(function(item) {return item/(Cy.reduce((a, b) => a + b, 0))}),
-    //z: Cx.map(function(item) {return item/(Cz.reduce((a, b) => a + b, 0))}),
     x: Cx,
     y: Cy,
     z: Cz,
@@ -436,8 +609,8 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var data = [trace];
  
   var layout = {
-    height: 800,
-    width: 1200,
+    //height: 800,
+    //width: 1200,
     showlegend: true,
     margin: {
       l: 100,
@@ -498,9 +671,9 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     k: [dict[590]],
   };
 
-  Plotly.newPlot('myDiv', data, layout);
+  Plotly.newPlot('lmsDiv', data, layout);
 
-  var myPlot = document.getElementById('myDiv');
+  var myPlot = document.getElementById('lmsDiv');
   myPlot.on('plotly_click', function(data){
     var pn = data.points[0].pointNumber;
     selectX[count] = data.points[0].data.x[pn];
@@ -524,7 +697,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         type: 'scatter3d',
         name: 'XYZ primaries',
       };
-      Plotly.addTraces('myDiv', trianglePoints);
+      Plotly.addTraces('lmsDiv', trianglePoints);
     }
   });
 
@@ -601,7 +774,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 
 // will be instantaneous, since animation applies to 2d plots.
 function RGB2rgb() {
-  Plotly.animate('myDiv', {
+  Plotly.animate('lmsDiv', {
     data: [cTrace],
     traces: [0],
     layout: {
@@ -633,7 +806,7 @@ function RGB2rgb() {
 }
  
 function addXYZPrimaries() {
-  Plotly.addTraces('myDiv', [xyzPoints])
+  Plotly.addTraces('lmsDiv', [xyzPoints])
 }
 
 function rgb2xyz() {
