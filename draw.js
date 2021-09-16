@@ -9,7 +9,22 @@ function updateLocus(ConeL, ConeM, ConeS) {
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
 
-function yuhao(index) {
+// TODO: should trigger this only once although three will fire
+function toggleLocus(index) {
+  // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
+  // Fx.hover fires only for 2d plots for now...
+  //Plotly.Fx.hover(myPlot, [
+  //  {curveNumber:0, pointNumber:index},
+  //]);
+  var myPlot = document.getElementById('lmsDiv');
+  var colors = Array.from(window.lmsLocusMarkerColors);
+  colors[index] = '#fcd303';
+  // rather than 'marker': {color: colors}, which uses defaults for all other parameters
+  var update = {'marker.color': [colors]};
+  Plotly.restyle(myPlot, update, [0]);
+}
+ 
+function test() {
 }
  
 //Chart.Interaction.modes.under = function(chart, e, options, useFinalPosition) {
@@ -167,7 +182,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         tooltip: {
           callbacks: {
             labelTextColor: function(context) {
-              yuhao(context.dataIndex);
+              toggleLocus(context.dataIndex);
               return '#FFFFFF';
             }
           },
@@ -258,6 +273,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   };
 
   // the spectral locus
+  window.lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
   trace = {
     x: window.dConeL,
     y: window.dConeM,
@@ -265,9 +281,13 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
     text: wlen,
     mode: 'lines+markers',
     marker: {
-      size: 4,
+      size: 6,
       opacity: 0.8,
-      color: '#888888'
+      color: window.lmsLocusMarkerColors,
+    },
+    line: {
+      color: 'rgb(120, 120, 120)',
+      width: 2
     },
     // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
     // <extra> tag to suppress trace name
@@ -282,7 +302,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var data = [trace];
  
   var layout = {
-    //height: 600,
+    height: 800,
     //width: 1200,
     showlegend: true,
     margin: {
@@ -337,6 +357,22 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   };
 
   Plotly.newPlot('lmsDiv', data, layout);
+
+  var myPlot = document.getElementById('lmsDiv');
+  myPlot.on('plotly_hover', function(data){
+    //var pn='',
+    //    tn='',
+    //    colors=[];
+    //for(var i=0; i < data.points.length; i++){
+    //  pn = data.points[i].pointNumber;
+    //  tn = data.points[i].curveNumber;
+    //  colors = data.points[i].data.marker.color;
+    //};
+    //colors[pn] = '#C54C82';
+
+    //var update = {'marker':{color: colors, size:16}};
+    //Plotly.update(myPlot, update, {}, [0]);
+  });
 });
 
 
