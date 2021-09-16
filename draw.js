@@ -25,45 +25,36 @@ function toggleLocus(index) {
  
 function test() {
 }
- 
-//Chart.Interaction.modes.under = function(chart, e, options, useFinalPosition) {
-//  const metas = myChart.getSortedVisibleDatasetMetas();
-//  for(meta of metas) { // loop the metasets from top to bottom
-//    if (meta.dataset.interpolate(e, 'x').y < e.y) { // the line is above mouse position
-//      return [{datasetIndex: meta.index, element: meta.dataset}]; // could return all the points here too
-//    };
-//  }
-//  return [];
-//};
+
+function unpack(rows, key) {
+  return rows.map(function(row) {
+      return parseFloat(row[key]);
+    });
+}
+
+//function calcTriVals() {
+//  var triR = math.dot(y_data_1, CMFR);
+//  var triG = math.dot(y_data_1, CMFG);
+//  var triB = math.dot(y_data_1, CMFB);
+//
+//  var point = {
+//    x: [triR],
+//    y: [triG],
+//    z: [triB],
+//    mode: 'markers',
+//    marker: {
+//      size: 4,
+//      opacity: 0.8
+//    },
+//    type: 'scatter3d',
+//    name: 'color',
+//  };
+//
+//  Plotly.addTraces('lmsDiv', point);
+//}
 
 d3.csv('linss2_10e_5.csv', function(err, rows){
   var stride = 5;
-  function unpack(rows, key) {
-    return rows.map(function(row) {
-        return parseFloat(row[key]);
-      });
-  }
-
-  function calcTriVals() {
-    var triR = math.dot(y_data_1, CMFR);
-    var triG = math.dot(y_data_1, CMFG);
-    var triB = math.dot(y_data_1, CMFB);
-  
-    var point = {
-      x: [triR],
-      y: [triG],
-      z: [triB],
-      mode: 'markers',
-      marker: {
-        size: 4,
-        opacity: 0.8
-      },
-      type: 'scatter3d',
-      name: 'color',
-    };
-  
-    Plotly.addTraces('lmsDiv', point);
-  }
 
   // points to the cone arrays that will be used to plot the chart;
   window.dConeL = unpack(rows, 'l');
@@ -79,197 +70,192 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var lastW = wlen[wlen.length - 1];
   var nWavelen = (lastW - firstW)/stride + 1;
 
-  // LMS plot
-  // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
-  var x_data = range(firstW, lastW, stride);
-  var y_data_1 = window.dConeL;
-  var y_data_2 = window.dConeM;
-  var y_data_3 = window.dConeS;
-  //var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
+  d3.csv('ciesi.csv', function(err_sidata, sidata){
+    // LMS plot
+    // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
+    var x_data = range(firstW, lastW, stride);
+    var y_data_1 = window.dConeL;
+    var y_data_2 = window.dConeM;
+    var y_data_3 = window.dConeS;
+    //var y_data_2 = Array.apply(0, Array(81)).map(function() { return 1.1; });
 
-  function range(start, end, stride) {
-    return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
-  }
+    function range(start, end, stride) {
+      return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
+    }
 
-  // globals
-  var activePoint = null;
-  var canvas = null;
+    // globals
+    var activePoint = null;
+    var canvas = null;
 
-  // draw a line chart on the canvas context
-  var ctx = document.getElementById("canvasLMS").getContext("2d");
-  canvas = document.getElementById("canvasLMS");
-  window.myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: x_data,
-      datasets: [
-        {
-          data: y_data_1,
-          //yAxisID: 'rightYAxis',
-          label: "L Cone",
-          borderColor: "#da2500",
-          fill: false,
-          pointHoverRadius: 10,
-        },
-        {
-          data: y_data_2,
-          //yAxisID: 'rightYAxis',
-          label: "M Cone",
-          borderColor: "#008f00",
-          fill: false,
-          pointHoverRadius: 10,
-        },
-        {
-          data: y_data_3,
-          //yAxisID: 'rightYAxis',
-          label: "S Cone",
-          borderColor: "#011993",
-          fill: false,
-          pointHoverRadius: 10,
-        },
-      ]
-    },
-    options: {
-      animation: {
-        duration: 10
+    // draw a line chart on the canvas context
+    var ctx = document.getElementById("canvasLMS").getContext("2d");
+    canvas = document.getElementById("canvasLMS");
+    window.myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: x_data,
+        datasets: [
+          {
+            data: y_data_1,
+            //yAxisID: 'rightYAxis',
+            label: "L Cone",
+            borderColor: "#da2500",
+            fill: false,
+            pointHoverRadius: 10,
+          },
+          {
+            data: y_data_2,
+            //yAxisID: 'rightYAxis',
+            label: "M Cone",
+            borderColor: "#008f00",
+            fill: false,
+            pointHoverRadius: 10,
+          },
+          {
+            data: y_data_3,
+            //yAxisID: 'rightYAxis',
+            label: "S Cone",
+            borderColor: "#011993",
+            fill: false,
+            pointHoverRadius: 10,
+          },
+        ]
       },
-      responsive: true,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      scales: {
-        yAxes:{
-          min: 0,
-          max: 1,
-          position: 'left',
+      options: {
+        animation: {
+          duration: 10
         },
-        rightYAxis: {
-          min: 0,
-          max: 0.5,
-          position: 'right',
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
         },
-      },
-      //onHover: function(evt) {
-      //  const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
-      //  //if (points.length) {
-      //  //  //console.log("onHover",item, evt.type);
-      //  //  //console.log(">data", item[0]._index, data.datasets[0].data[item[0]._index]);
-      //  //}
-      //},
-      plugins: {
-        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
-        zoom: {
+        scales: {
+          yAxes:{
+            min: 0,
+            max: 1,
+            position: 'left',
+          },
+          rightYAxis: {
+            min: 0,
+            max: 0.5,
+            position: 'right',
+          },
+        },
+        plugins: {
+          // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
           zoom: {
-            wheel: {
-              enabled: true,
-              speed: 0.1,
+            zoom: {
+              wheel: {
+                enabled: true,
+                speed: 0.1,
+              },
+              mode: 'x',
             },
-            mode: 'x',
+            pan: {
+              enabled: true,
+              modifierKey: 'shift',
+              mode: 'x',
+            },
           },
-          pan: {
-            enabled: true,
-            modifierKey: 'shift',
-            mode: 'x',
+          title: {
+            display: true,
+            text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (adjusted to 2-deg; Stockman & Sharpe (2000); normalized)',
+            fontSize: 24,
           },
-        },
-        title: {
-          display: true,
-          text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (adjusted to 2-deg; Stockman & Sharpe (2000); normalized)',
-          fontSize: 24,
-        },
-        tooltip: {
-          callbacks: {
-            labelTextColor: function(context) {
-              if (context.datasetIndex == 0) toggleLocus(context.dataIndex);
-              return '#FFFFFF';
-            }
-          },
+          tooltip: {
+            callbacks: {
+              labelTextColor: function(context) {
+                if (context.datasetIndex == 0) toggleLocus(context.dataIndex);
+                return '#FFFFFF';
+              }
+            },
+          }
         }
       }
-    }
-  });
-  
-  // set pointer event handlers for canvas element
-  canvas.onpointerdown = down_handler;
-  canvas.onpointerup = up_handler;
-  //canvas.onpointermove = null;
-  canvas.onpointermove = move_handler;
+    });
+    
+    // set pointer event handlers for canvas element
+    canvas.onpointerdown = down_handler;
+    canvas.onpointerup = up_handler;
+    canvas.onpointermove = null;
+    //canvas.onpointermove = move_handler;
 
-  var selectedTrace;
+    var selectedTrace;
 
-  function down_handler(event) {
-    // get the intersecting data point
-    const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
-    if (points.length > 0) {
-      // grab the point, start dragging
-      activePoint = points[0];
-      selectedTrace = activePoint.datasetIndex;
-      canvas.onpointermove = move_handler;
+    function down_handler(event) {
+      // get the intersecting data point
+      const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
+      if (points.length > 0) {
+        // grab the point, start dragging
+        activePoint = points[0];
+        selectedTrace = activePoint.datasetIndex;
+        canvas.onpointermove = move_handler;
+      };
     };
-  };
 
-  function up_handler(event) {
-    // release grabbed point, stop dragging
-    if (activePoint) {
-      activePoint = null;
-      canvas.onpointermove = null;
-      updateLocus(window.dConeL, window.dConeM, window.dConeS);
-    }
-  };
- 
-  function move_handler(event)
-  {
-    // if an intersecting data point is grabbed
-    if (activePoint != null) {
-      // then get the points on the selectedTrace
-      const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false});
-      for (var i = 0; i < points.length; i++) {
-        if (points[i].datasetIndex == selectedTrace) {
-          var point = points[i];
-          var data = window.myChart.data;
-          
-          var datasetIndex = point.datasetIndex;
-  
-          // read mouse position
-          const helpers = Chart.helpers;
-          var position = helpers.getRelativePosition(event, window.myChart);
-  
-          // convert mouse position to chart y axis value 
-          var chartArea = window.myChart.chartArea;
-          var yAxis = window.myChart.scales.yAxes;
-          var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
-  
-          // update y value of active data point
-          data.datasets[datasetIndex].data[point.index] = yValue;
-          window.myChart.update();
-        }
+    function up_handler(event) {
+      // release grabbed point, stop dragging
+      if (activePoint) {
+        activePoint = null;
+        canvas.onpointermove = null;
+        updateLocus(window.dConeL, window.dConeM, window.dConeS);
       }
-    } else {
-      //const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false}, true);
-      //const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: false}, true);
-      //if (points.length > 0) {
-      //  var activePoint = points[0];
-      //  x = activePoint.element.x;
-      //  topY = window.myChart.legend.bottom;
-      //  bottomY = window.myChart.chartArea.bottom;
-      //  // draw line
-      //  //ctx.save();
-      //  ctx.beginPath();
-      //  ctx.moveTo(x, topY);
-      //  ctx.lineTo(x, bottomY);
-      //  ctx.lineWidth = 2;
-      //  ctx.strokeStyle = '#07C';
-      //  ctx.stroke();
-      //  //ctx.restore();
-      //};
-    }
-  };
+    };
+ 
+    function move_handler(event)
+    {
+      // if an intersecting data point is grabbed
+      if (activePoint != null) {
+        // then get the points on the selectedTrace
+        const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false});
+        for (var i = 0; i < points.length; i++) {
+          if (points[i].datasetIndex == selectedTrace) {
+            var point = points[i];
+            var data = window.myChart.data;
+            
+            var datasetIndex = point.datasetIndex;
+    
+            // read mouse position
+            const helpers = Chart.helpers;
+            var position = helpers.getRelativePosition(event, window.myChart);
+    
+            // convert mouse position to chart y axis value 
+            var chartArea = window.myChart.chartArea;
+            var yAxis = window.myChart.scales.yAxes;
+            var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+    
+            // update y value of active data point
+            data.datasets[datasetIndex].data[point.index] = yValue;
+            window.myChart.update();
+          }
+        }
+      } else {
+        //const points = window.myChart.getElementsAtEventForMode(event, 'index', {intersect: false}, true);
+        ////const points = window.myChart.getElementsAtEventForMode(event, 'nearest', {intersect: false}, true);
+        //if (points.length > 0) {
+        //  var activePoint = points[0];
+        //  x = activePoint.element.x;
+        //  topY = window.myChart.legend.bottom;
+        //  bottomY = window.myChart.chartArea.bottom;
+        //  // draw line
+        //  ctx.save();
+        //  ctx.beginPath();
+        //  ctx.moveTo(x, topY);
+        //  ctx.lineTo(x, bottomY);
+        //  ctx.lineWidth = 2;
+        //  ctx.strokeStyle = '#07C';
+        //  ctx.stroke();
+        //  ctx.restore();
+        //};
+      }
+    };
 
-  // map value to other coordinate system
-  function map(value, start1, stop1, start2, stop2) {
-    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
-  };
+    // map value to other coordinate system
+    function map(value, start1, stop1, start2, stop2) {
+      return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
+    };
+  });
 
   // the spectral locus
   window.lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
@@ -356,22 +342,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   };
 
   Plotly.newPlot('lmsDiv', data, layout);
-
-  var myPlot = document.getElementById('lmsDiv');
-  myPlot.on('plotly_hover', function(data){
-    //var pn='',
-    //    tn='',
-    //    colors=[];
-    //for(var i=0; i < data.points.length; i++){
-    //  pn = data.points[i].pointNumber;
-    //  tn = data.points[i].curveNumber;
-    //  colors = data.points[i].data.marker.color;
-    //};
-    //colors[pn] = '#C54C82';
-
-    //var update = {'marker':{color: colors, size:16}};
-    //Plotly.update(myPlot, update, {}, [0]);
-  });
 });
 
 
@@ -410,12 +380,6 @@ var selectZ = [];
 var count = 0;
 
 d3.csv('cie1931rgbcmf.csv', function(err, rows){
-  function unpack(rows, key) {
-    return rows.map(function(row) {
-        return parseFloat(row[key]);
-      });
-  }
-
   // the RGB CMF
   // points to the cone arrays that will be used to plot the chart;
   window.dCMFR = unpack(rows, 'r');
@@ -911,3 +875,22 @@ function zoom() {
   })
 }
 
+//Vertical line
+//$(document).ready(function(){
+//    $("#canvasLMS").on("mousemove", function(evt) {
+//        var element = $("#cursor"), 
+//        //var element = $("#canvasLMS"), 
+//        offsetLeft = element.offset().left,
+//        domElement = element.get(0),
+//        clientX = parseInt(evt.clientX - offsetLeft),
+//        ctx = element.get(0).getContext('2d');
+//
+//        ctx.clearRect(0, 0, domElement.width, domElement.height),
+//        ctx.beginPath(),
+//        ctx.moveTo(clientX, 0),
+//        ctx.lineTo(clientX, domElement.height),
+//        //ctx.lineWidth = 1;
+//        //ctx.strokeStyle = 'blue';
+//        ctx.stroke()
+//    });
+//});

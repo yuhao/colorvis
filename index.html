@@ -4,9 +4,12 @@
   <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+  <!--
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  -->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -16,6 +19,7 @@
     <div class="flex-child">
       <button onclick="javascript:resetZoom();">Reset zoom</button>
       <div class="wrapper">
+        <canvas id="cursor"></canvas>
         <canvas id="canvasLMS"></canvas>
       </div>
       <button onclick="javascript:lmsReset();">Reset!</button>
