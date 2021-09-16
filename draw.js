@@ -10,14 +10,11 @@ function updateLocus(ConeL, ConeM, ConeS, id) {
   Plotly.update(lmsPlot, data_update, layout_update, [0]);
 }
 
-function toggleLocus(index) {
+function highlightLocus(index, id, baseColors) {
   // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
-  // Fx.hover fires only for 2d plots for now...
-  //Plotly.Fx.hover(myPlot, [
-  //  {curveNumber:0, pointNumber:index},
-  //]);
-  var myPlot = document.getElementById('lmsDiv');
-  var colors = Array.from(window.lmsLocusMarkerColors);
+  // Fx.hover fires only for 2d plots for now, so can't use it
+  var myPlot = document.getElementById(id);
+  var colors = Array.from(baseColors);
   colors[index] = '#fcd303';
   // rather than 'marker': {color: colors}, which uses defaults for all other parameters
   var update = {'marker.color': [colors]};
@@ -177,7 +174,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
-  var nWavelen = (lastW - firstW)/stride + 1;
+  //var nWavelen = (lastW - firstW)/stride + 1;
 
   d3.csv('ciesi.csv', function(err_sidata, sidata){
     // LMS plot
@@ -270,7 +267,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
           tooltip: {
             callbacks: {
               labelTextColor: function(context) {
-                if (context.datasetIndex == 0) toggleLocus(context.dataIndex);
+                if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'lmsDiv', lmsLocusMarkerColors);
                 return '#FFFFFF';
               }
             },
@@ -285,7 +282,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   });
 
   // the spectral locus
-  window.lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
+  var lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
   trace = {
     x: dConeL,
     y: dConeM,
@@ -295,10 +292,10 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
     marker: {
       size: 6,
       opacity: 0.8,
-      color: window.lmsLocusMarkerColors,
+      color: lmsLocusMarkerColors,
     },
     line: {
-      color: 'rgb(120, 120, 120)',
+      color: '#888888',
       width: 2
     },
     // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
@@ -406,7 +403,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
-  var nWavelen = (lastW - firstW)/stride + 1;
+  //var nWavelen = (lastW - firstW)/stride + 1;
 
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
@@ -494,6 +491,14 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
           text: 'CIE 1931 RGB Color Matching Functions',
           fontSize: 24,
         },
+        tooltip: {
+          callbacks: {
+            labelTextColor: function(context) {
+              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'rgbDiv', rgbLocusMarkerColors);
+              return '#FFFFFF';
+            }
+          },
+        }
       }
     }
   });
@@ -519,13 +524,19 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     cB[i] = b / (r + g + b);
   }
  
+  var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
   trace = {
-    x:unpack(rows, 'r'), y: unpack(rows, 'g'), z: unpack(rows, 'b'),
-    text:unpack(rows, 'wavelength'),
+    x: dCMFR, y: dCMFG, z: dCMFB,
+    text: wlen,
     mode: 'lines+markers',
     marker: {
-      size: 4,
-      opacity: 0.8
+      size: 6,
+      opacity: 0.8,
+      color: rgbLocusMarkerColors,
+    },
+    line: {
+      color: '#888888',
+      width: 2
     },
     type: 'scatter3d',
     name: 'spectral locus',
