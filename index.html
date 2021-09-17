@@ -1,15 +1,11 @@
 <html>
 <head>
-  <!-- Load plotly.js into the DOM -->
   <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-  <!--
-  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-  -->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -18,7 +14,6 @@
   <div class="flex-container">
     <div class="flex-child">
       <div class="wrapper">
-        <canvas id="cursor"></canvas>
         <canvas id="canvasLMS"></canvas>
       </div>
       <button id="resetChartLMS">Chart reset</button>
@@ -52,8 +47,8 @@
   <div class="container">
     <div id="2dDiv"></div>
   </div>
-  <button onclick="javascript:rgb2xyz();">rgb to xyz!</button>
-  <button onclick="javascript:zoom();">Zoom!</button>
+  <button id="rg2xy">rg to xy</button>
+  <button id="xy2rg">reset to rg</button>
 
   <script src="draw.js"></script>
 </body>

@@ -1,3 +1,7 @@
+var RGB2XYZ = [[2.767979095, 1.751171684, 1.129776839],
+              [0.9978469789, 4.589269432, 0.05917362973],
+              [-0.00002643740975, 0.05648972672, 5.594123569]];
+
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, id) {
   var layout_update = {
@@ -618,19 +622,22 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   // add/remove XYZ primaries in chromaticities to the rgb chromaticity plot
   registerToggleXYZChrm('#addXYZChrm', myPlot);
 
+  // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
   // RGB to XYZ
   registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
 
-
-  // rg-chromaticity plot
+  // rg-chromaticity plot of the CIE 1931 RGB CMFs
   plotRgChrm(dCMFR, dCMFG, dCMFB, wlen);
+
+  // rg-chromaticity and xy-chromaticity plot switch
+  registerrg2xy('#rg2xy', dCMFR, dCMFG, dCMFB);
+  registerxy2rg('#xy2rg', dCMFR, dCMFG, dCMFB, wlen);
 });
 
 function plotRgChrm(dCMFR, dCMFG, dCMFB, wlen) {
   var sumRGB = math.add(math.add(dCMFR, dCMFG), dCMFB);
   var cR = math.dotDivide(dCMFR, sumRGB);
   var cG = math.dotDivide(dCMFG, sumRGB);
-  //var cB = math.dotDivide(dCMFB, sumRGB);
 
   var rgTrace = {
     x: cR,
@@ -640,20 +647,6 @@ function plotRgChrm(dCMFR, dCMFG, dCMFB, wlen) {
     connectgaps: true,
     line: {simplify: false},
     name: 'spectral locus in rg',
-  };
- 
-  var transM = [[2.767979095, 1.751171684, 1.129776839],
-                [0.9978469789, 4.589269432, 0.05917362973],
-                [-0.00002643740975, 0.05648972672, 5.594123569]];
-  var transRGB = math.multiply(transM, [dCMFR, dCMFG, dCMFB]);
-  var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
-
-  transRgTrace = {
-    x: math.dotDivide(transRGB[0], sumTransRGB),
-    y: math.dotDivide(transRGB[1], sumTransRGB),
-    mode: 'lines+markers',
-    connectgaps: true,
-    line: {simplify: false},
   };
  
   var cX = [1.27, -1.74, -0.74, 1.27];
@@ -672,20 +665,6 @@ function plotRgChrm(dCMFR, dCMFG, dCMFB, wlen) {
       opacity: 0.8
     },
     name: 'XYZ primaries',
-  };
- 
-  transXyPoints = {
-    x: [1, 0, 0, 1],
-    y: [0, 1, 0, 0],
-    mode: 'lines+markers',
-    marker: {
-      size: 8,
-      line: {
-        color: '#000000',
-        width: 1
-      },
-      opacity: 0.8
-    },
   };
  
   data = [rgTrace, xyPoints];
@@ -711,11 +690,8 @@ function plotRgChrm(dCMFR, dCMFG, dCMFB, wlen) {
 }
 
 function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors) {
-  var transM = [[2.767979095, 1.751171684, 1.129776839],
-                [0.9978469789, 4.589269432, 0.05917362973],
-                [-0.00002643740975, 0.05648972672, 5.594123569]];
   // TODO: some values are negative; most likely a numerical precision issue
-  var transRGB = math.multiply(transM, [dCMFR, dCMFG, dCMFB]);
+  var transRGB = math.multiply(window.RGB2XYZ, [dCMFR, dCMFG, dCMFB]);
 
   $(id).on('click', function(evt) {
     removeXYZChrm(plot);
@@ -925,9 +901,48 @@ function registerToggleXYZChrm(id, plot) {
   });
 }
 
-function rgb2xyz() {
+function registerxy2rg(id, dCMFR, dCMFG, dCMFB, wlen) {
+  $(id).on('click', function(evt) {
+    plotRgChrm(dCMFR, dCMFG, dCMFB, wlen);
+  });
+}
+
+function registerrg2xy(id, dCMFR, dCMFG, dCMFB) {
+  var transRGB = math.multiply(window.RGB2XYZ, [dCMFR, dCMFG, dCMFB]);
+  var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
+
+  transRgTrace = {
+    x: math.dotDivide(transRGB[0], sumTransRGB),
+    y: math.dotDivide(transRGB[1], sumTransRGB),
+    mode: 'lines+markers',
+    connectgaps: true,
+    line: {simplify: false},
+  };
+ 
+  transXyPoints = {
+    x: [1, 0, 0, 1],
+    y: [0, 1, 0, 0],
+    mode: 'lines+markers',
+    marker: {
+      size: 8,
+      line: {
+        color: '#000000',
+        width: 1
+      },
+      opacity: 0.8
+    },
+  };
+
+  var traces = [transRgTrace, transXyPoints];
+ 
+  $(id).on('click', function(evt) {
+    rg2xy(traces);
+  });
+}
+
+function rg2xy(traces) {
   Plotly.animate('2dDiv', {
-    data: [transRgTrace, transXyPoints],
+    data: traces,
     traces: [0, 1],
     layout: {
       title: 'Spectral locus in CIE 1931 xy-chromaticity plot',
@@ -948,6 +963,7 @@ function rgb2xyz() {
       easing: 'cubic-in-out'
     },
   }).then(function() {
+    // using frames in plotly has hiccups
     setTimeout(function() {
       Plotly.animate('2dDiv', {
         layout: {
@@ -964,36 +980,3 @@ function rgb2xyz() {
   });
 }
 
-function zoom() {
-  Plotly.animate('2dDiv', {
-    layout: {
-      xaxis: {range: [0, 1]},
-      yaxis: {range: [0, 1]},
-    }
-  }, {
-    transition: {
-      duration: 500,
-      easing: 'cubic-in-out'
-    },
-  })
-}
-
-//Vertical line
-//$(document).ready(function(){
-//    $("#canvasLMS").on("mousemove", function(evt) {
-//        var element = $("#cursor"), 
-//        //var element = $("#canvasLMS"), 
-//        offsetLeft = element.offset().left,
-//        domElement = element.get(0),
-//        clientX = parseInt(evt.clientX - offsetLeft),
-//        ctx = element.get(0).getContext('2d');
-//
-//        ctx.clearRect(0, 0, domElement.width, domElement.height),
-//        ctx.beginPath(),
-//        ctx.moveTo(clientX, 0),
-//        ctx.lineTo(clientX, domElement.height),
-//        //ctx.lineWidth = 1;
-//        //ctx.strokeStyle = 'blue';
-//        ctx.stroke()
-//    });
-//});

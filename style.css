@@ -29,21 +29,3 @@
 .flex-child:first-child {
     margin-right: 20px;
 }
-
-.wrapper {
-  position: relative;
-  width: 800;
-  height: 400;
-}
-#cursor {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 800;
-  height: 400;
-}
-#canvasLMS {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
