@@ -110,6 +110,7 @@ function registerDrag(canvas, chart, id) {
       var title = (chart.canvas.id == 'canvasLMS') ?
           'Updated spectral locus in LMS cone space' :
           'Updated spectral locus in CIE 1931 RGB space';
+      // TODO: should update chromaticities if the 3d plot shows chromaticities
       updateLocus(seq0, seq1, seq2, title, id);
     }
   };
@@ -322,7 +323,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var layout = {
     height: 800,
     //width: 1200,
-    showlegend: true,
+    //showlegend: true,
     margin: {
       l: 100,
       r: 0,
@@ -531,7 +532,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
  
   var layout = {
     height: 800,
-    //showlegend: true,
+    showlegend: false,
     margin: {
       l: 0,
       r: 0,
@@ -587,34 +588,17 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
 
   var myPlot = document.getElementById('rgbDiv');
   myPlot.on('plotly_click', function(data){
-    var pn = data.points[0].pointNumber;
-    selectX[count] = data.points[0].data.x[pn];
-    selectY[count] = data.points[0].data.y[pn];
-    selectZ[count] = data.points[0].data.z[pn];
-    count++;
-    if (count == 3) {
-      var trianglePoints = {
-        x: selectX.concat([selectX[0]]),
-        y: selectY.concat([selectY[0]]),
-        z: selectZ.concat([selectZ[0]]),
-        mode: 'lines+markers',
-        marker: {
-          size: 8,
-          line: {
-            color: '#000000',
-            width: 1
-          },
-          opacity: 0.8
-        },
-        type: 'scatter3d',
-        name: 'XYZ primaries',
-      };
-      Plotly.addTraces('rgbDiv', trianglePoints);
-    }
+    plotGamut(data);
   });
 
   // RGB to rgb chromaticity plot
   registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
+
+  // show lines from the original; all points on the same line have the same chromaticity
+  registerShowChrmLine('#showChrmLine', window.cmfChart, 'rgbDiv');
+
+  // show the gamut under the current primaries
+  //registerGenGamut('#genGamut', window.cmfChart, 'rgbDiv');
 
   // rgb to RGB plot
   registerrgb2RGB('#rgb2RGB', window.cmfChart, myPlot, wlen, rgbLocusMarkerColors);
@@ -858,6 +842,111 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
         easing: 'linear'
       },
     })
+  });
+}
+
+function registerShowChrmLine(id, chart, plot) {
+  $(id).on('click', function(evt) {
+    var len = chart.data.datasets[0].data.length;
+    var traces = [];
+
+    for (i = 0; i < len; i++) {
+      var trace = {
+        x: [0, chart.data.datasets[0].data[i]],
+        y: [0, chart.data.datasets[1].data[i]],
+        z: [0, chart.data.datasets[2].data[i]],
+        mode: 'lines',
+        type: 'scatter3d',
+        line: {
+          color: '#32a852',
+        },
+        hoverinfo: 'skip',
+      };
+      traces.push(trace);
+    }
+    Plotly.addTraces(plot, traces);
+  });
+}
+
+function plotGamut(data) {
+  // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
+  if (count == 3) return;
+
+  var pn = data.points[0].pointNumber;
+  selectX[count] = data.points[0].data.x[pn];
+  selectY[count] = data.points[0].data.y[pn];
+  selectZ[count] = data.points[0].data.z[pn];
+  count++;
+  if (count == 3) {
+    var otherPointsX = [selectX[0] + selectX[1], // r+g
+                        selectX[0] + selectX[2], // r+b
+                        selectX[1] + selectX[2], // g+b
+                        selectX[0] + selectX[1] + selectX[2]]; // r+g+b
+    var otherPointsY = [selectY[0] + selectY[1],
+                        selectY[0] + selectY[2],
+                        selectY[1] + selectY[2],
+                        selectY[0] + selectY[1] + selectY[2]];
+    var otherPointsZ = [selectZ[0] + selectZ[1],
+                        selectZ[0] + selectZ[2],
+                        selectZ[1] + selectZ[2],
+                        selectZ[0] + selectZ[1] + selectZ[2]];
+    var allPointsX = [0].concat(selectX.concat(otherPointsX));
+    var allPointsY = [0].concat(selectY.concat(otherPointsY));
+    var allPointsZ = [0].concat(selectZ.concat(otherPointsZ));
+
+    // add all the lines of the parallelogram
+    var traces = [];
+    // O: 0; R: 1; G: 2: B: 3
+    // RG: 4; RB: 5; GB: 6; RGB: 7
+    var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]]
+    for (var i = 0; i < indices.length; i++) {
+      var start = indices[i][0];
+      var end = indices[i][1];
+      var line = {
+        x: [allPointsX[start], allPointsX[end]],
+        y: [allPointsY[start], allPointsY[end]],
+        z: [allPointsZ[start], allPointsZ[end]],
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        line: {
+          color: '#32a852',
+        },
+        // TODO: customize the tooltip
+        marker: {
+          size: 6,
+          opacity: 0.8,
+          color: '#32a852',
+        },
+        //hoverinfo: 'skip',
+      };
+      traces.push(line);
+    }
+    // https://github.com/plotly/plotly.js/issues/1467
+    // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
+    Plotly.addTraces('rgbDiv', traces);
+  }
+}
+
+function registerGenGamut(id, chart, plot) {
+  $(id).on('click', function(evt) {
+    var len = selectX.length; // should be 3
+    var traces = [];
+
+    for (i = 0; i < len; i++) {
+      var trace = {
+        x: [0, selectX[i]],
+        y: [0, selectY[i]],
+        z: [0, selectZ[i]],
+        mode: 'lines',
+        type: 'scatter3d',
+        line: {
+          color: '#32a852',
+        },
+        hoverinfo: 'skip',
+      };
+      traces.push(trace);
+    }
+    Plotly.addTraces(plot, traces);
   });
 }
 
