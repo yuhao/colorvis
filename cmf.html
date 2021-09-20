@@ -1,0 +1,58 @@
+<html>
+<head>
+  <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+  <!-- LMS -->
+  <div class="flex-container">
+    <div class="flex-child">
+      <div class="wrapper">
+        <canvas id="canvasLMS"></canvas>
+      </div>
+      <button id="resetChartLMS">Chart reset</button>
+      <button id="resetZoomLMS">Reset zoom</button>
+    </div>
+    <div class="flex-child">
+      <div id="lmsDiv"></div>
+    </div>
+  </div>
+
+  <!-- Unscaled RGB CMFs -->
+  <div class="flex-container">
+    <div class="flex-child">
+    <button id="selPrim">Select primaries</button>
+    <p id="primText"></p>
+    <p> show the linear system.</p>
+    </div>
+    <div class="flex-child">
+    </div>
+  </div>
+
+  <!-- Scaled RGB CMFs -->
+  <div class="flex-container">
+    <div class="flex-child">
+      <div class="wrapper">
+        <canvas id="canvasCMF"></canvas>
+      </div>
+      <button id="resetZoomRGB">Reset zoom</button>
+    </div>
+    <div class="flex-child">
+      <div class="container">
+        <div id="rgbDiv"></div>
+      </div>
+      <div><button id="RGB2rgb">rgb</button></div>
+      <div><button id="rgb2RGB">RGB</button></div>
+    </div>
+  </div>
+
+  <script src="cmf.js"></script>
+</body>
+</html>
