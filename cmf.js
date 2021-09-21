@@ -67,6 +67,17 @@ function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, res
     chart.data.datasets[0].data = Array.from(resetData1);
     chart.data.datasets[1].data = Array.from(resetData2);
     chart.data.datasets[2].data = Array.from(resetData3);
+
+    chart.data.datasets[0].borderColor = Array(resetData1.length).fill(redColor);
+    chart.data.datasets[0].pointBackgroundColor = Array(resetData1.length).fill(redColor);
+    chart.data.datasets[0].pointRadius = Array(resetData1.length).fill(3);
+    chart.data.datasets[1].borderColor = Array(resetData1.length).fill(greenColor);
+    chart.data.datasets[1].pointBackgroundColor = Array(resetData1.length).fill(greenColor);
+    chart.data.datasets[1].pointRadius = Array(resetData1.length).fill(3);
+    chart.data.datasets[2].borderColor = Array(resetData1.length).fill(blueColor);
+    chart.data.datasets[2].pointBackgroundColor = Array(resetData1.length).fill(blueColor);
+    chart.data.datasets[2].pointRadius = Array(resetData1.length).fill(3);
+
     chart.update();
     // reset plotly.js (3d)
     var plot = document.getElementById(plotId);
@@ -137,8 +148,8 @@ function registerDrag(canvas, chart, id) {
           var yAxis = chart.scales.yAxes;
           var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
-          // update y value of active data point
-          data.datasets[datasetIndex].data[point.index] = yValue;
+          // update y value of active data point; do not go beyond [0, 1]
+          data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(0, yValue), 1);
           chart.update();
         }
       }
