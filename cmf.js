@@ -9,6 +9,17 @@ var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
 var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
+// https://docs.mathjax.org/en/v2.1-latest/typeset.html
+var QUEUE = MathJax.Hub.queue; // shorthand for the queue
+var lmat, rmat; // the element jax for the math output.
+
+QUEUE.Push(function () {
+  var allJax = MathJax.Hub.getAllJax('primText');
+  lmat = allJax[0];
+  mmat = allJax[1];
+  rmat = allJax[2];
+});
+
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, id) {
   var layout_update = {
@@ -144,6 +155,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     canvas.onpointerup = null;
     canvas.onpointermove = null;
 
+    // dim the LMS curves
     chart.data.datasets[0].borderColor = Array(wlen.length).fill(oRedColor);
     chart.data.datasets[0].pointBackgroundColor = Array(wlen.length).fill(oRedColor);
     chart.data.datasets[0].pointRadius = Array(wlen.length).fill(3);
@@ -155,8 +167,44 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     chart.data.datasets[2].pointRadius = Array(wlen.length).fill(3);
     chart.update();
 
+    // setup the equation
+    var pre = "\\begin{bmatrix}";
+    var post = "\\end{bmatrix}";
+
+    var l1, l2, l3;
+    l1 = "?? & ?? & ?? \\\\";
+    l2 = "?? & ?? & ?? \\\\";
+    l3 = "?? & ?? & ?? \\\\";
+    QUEUE.Push(["Text", lmat, pre+l1+l2+l3+post]);
+
+    var m1, m2, m3;
+    m1 = "380_{\\alpha} & 385_{\\alpha} & \\cdots & 775_{\\alpha} & 780_{\\alpha} \\\\";
+    m2 = "380_{\\beta} & 385_{\\beta} & \\cdots & 775_{\\beta} & 780_{\\beta} \\\\";
+    m3 = "380_{\\gamma} & 385_{\\gamma} & \\cdots & 775_{\\gamma} & 780_{\\gamma} \\\\";
+    QUEUE.Push(["Text", mmat, "\\times"+pre+m1+m2+m3+post+"="]);
+
+    // TODO: use the correct LMS csv file and fix the indices
+    var r1, r2, r3; // show first two and last two
+    r1 = chart.data.datasets[0].data[10].toFixed(3) + "&&" +
+           chart.data.datasets[0].data[11].toFixed(3) + "&&" + "\\cdots &&" +
+           chart.data.datasets[0].data[50].toFixed(3) + "&&" +
+           chart.data.datasets[0].data[51].toFixed(3) + "\\\\";
+    r2 = chart.data.datasets[1].data[10].toFixed(3) + "&&" +
+           chart.data.datasets[1].data[11].toFixed(3) + "&&" + "\\cdots &&" +
+           chart.data.datasets[1].data[50].toFixed(3) + "&&" +
+           chart.data.datasets[1].data[51].toFixed(3) + "\\\\";
+    r3 = chart.data.datasets[2].data[10].toFixed(3) + "&&" +
+           chart.data.datasets[2].data[11].toFixed(3) + "&&" + "\\cdots &&" +
+           chart.data.datasets[2].data[50].toFixed(3) + "&&" +
+           chart.data.datasets[2].data[51].toFixed(3) + "\\\\";
+    QUEUE.Push(["Text", rmat, pre+r1+r2+r3+post]);
+
     // https://www.chartjs.org/docs/latest/configuration/interactions.html
+    var numPoints = 0;
+    var row1 = "", row2 = "", row3 = "";
     chart.options.onClick = function(event) {
+      if (numPoints == 3) return;
+
       const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
       if (points.length > 0) {
         var point = points[0];
@@ -168,11 +216,14 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
         chart.data.datasets[1].pointRadius[point.index] = 10;
         chart.data.datasets[2].pointBackgroundColor[point.index] = blueColor;
         chart.data.datasets[2].pointRadius[point.index] = 10;
-
         chart.update();
-        document.getElementById('primText').innerHTML += "R: " + chart.data.datasets[0].data[point.index] +
-          "G: " + chart.data.datasets[1].data[point.index] +
-          "B: " + chart.data.datasets[2].data[point.index] + "<br>";
+
+        row1 += (((numPoints != 0) ? "&&" : "") + chart.data.datasets[0].data[point.index].toFixed(3));
+        row2 += (((numPoints != 0) ? "&&" : "") + chart.data.datasets[1].data[point.index].toFixed(3));
+        row3 += (((numPoints != 0) ? "&&" : "") + chart.data.datasets[2].data[point.index].toFixed(3));
+        QUEUE.Push(["Text", lmat, pre+row1+"\\\\"+row2+"\\\\"+row3+"\\\\"+post]);
+
+        numPoints++;
       }
     }
   });
@@ -625,69 +676,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
   // RGB to XYZ
   registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
-
-  // rg-chromaticity plot of the CIE 1931 RGB CMFs
-  plotRgChrm(dCMFR, dCMFG, dCMFB, wlen);
-
-  // rg-chromaticity and xy-chromaticity plot switch
-  registerrg2xy('#rg2xy', dCMFR, dCMFG, dCMFB);
-  registerxy2rg('#xy2rg', dCMFR, dCMFG, dCMFB, wlen);
 });
-
-function plotRgChrm(dCMFR, dCMFG, dCMFB, wlen) {
-  var sumRGB = math.add(math.add(dCMFR, dCMFG), dCMFB);
-  var cR = math.dotDivide(dCMFR, sumRGB);
-  var cG = math.dotDivide(dCMFG, sumRGB);
-
-  var rgTrace = {
-    x: cR,
-    y: cG,
-    text: wlen,
-    mode: 'lines+markers',
-    connectgaps: true,
-    line: {simplify: false},
-    name: 'spectral locus in rg',
-  };
- 
-  var cX = [1.27, -1.74, -0.74, 1.27];
-  var cY = [-0.28, 2.77, 0.14, -0.28];
-
-  var xyPoints = {
-    x: cX,
-    y: cY,
-    mode: 'lines+markers',
-    marker: {
-      size: 8,
-      line: {
-        color: '#000000',
-        width: 1
-      },
-      opacity: 0.8
-    },
-    name: 'XYZ primaries',
-  };
- 
-  data = [rgTrace, xyPoints];
- 
-  var layout = {
-    width: 600,
-    height: 600,
-    title: 'Spectral locus in CIE 1931 rg-chromaticity plot',
-    showlegend: true,
-    xaxis: {
-      title: {
-        text: 'r'
-      }
-    },
-    yaxis: {
-      title: {
-        text: 'g'
-      }
-    }
-  };
-
-  Plotly.newPlot('2dDiv', data, layout);
-}
 
 function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors) {
   // TODO: some values are negative; most likely a numerical precision issue
@@ -1003,85 +992,6 @@ function registerToggleXYZChrm(id, plot) {
     } else {
       Plotly.addTraces(plot, [xyzPoints]);
     }
-  });
-}
-
-function registerxy2rg(id, dCMFR, dCMFG, dCMFB, wlen) {
-  $(id).on('click', function(evt) {
-    plotRgChrm(dCMFR, dCMFG, dCMFB, wlen);
-  });
-}
-
-function registerrg2xy(id, dCMFR, dCMFG, dCMFB) {
-  var transRGB = math.multiply(window.RGB2XYZ, [dCMFR, dCMFG, dCMFB]);
-  var sumTransRGB = math.add(math.add(transRGB[0], transRGB[1]), transRGB[2]);
-
-  transRgTrace = {
-    x: math.dotDivide(transRGB[0], sumTransRGB),
-    y: math.dotDivide(transRGB[1], sumTransRGB),
-    mode: 'lines+markers',
-    connectgaps: true,
-    line: {simplify: false},
-  };
- 
-  transXyPoints = {
-    x: [1, 0, 0, 1],
-    y: [0, 1, 0, 0],
-    mode: 'lines+markers',
-    marker: {
-      size: 8,
-      line: {
-        color: '#000000',
-        width: 1
-      },
-      opacity: 0.8
-    },
-  };
-
-  var traces = [transRgTrace, transXyPoints];
- 
-  $(id).on('click', function(evt) {
-    rg2xy(traces);
-  });
-}
-
-function rg2xy(traces) {
-  Plotly.animate('2dDiv', {
-    data: traces,
-    traces: [0, 1],
-    layout: {
-      title: 'Spectral locus in CIE 1931 xy-chromaticity plot',
-      xaxis: {
-        title: {
-          text: 'x'
-        }
-      },
-      yaxis: {
-        title: {
-          text: 'y'
-        }
-      }
-    }
-  }, {
-    transition: {
-      duration: 500,
-      easing: 'cubic-in-out'
-    },
-  }).then(function() {
-    // using frames in plotly has hiccups
-    setTimeout(function() {
-      Plotly.animate('2dDiv', {
-        layout: {
-          xaxis: {range: [0, 1]},
-          yaxis: {range: [0, 1]},
-        }
-      }, {
-        transition: {
-          duration: 500,
-          easing: 'cubic-in-out'
-        },
-      });
-    }, 100);
   });
 }
 
