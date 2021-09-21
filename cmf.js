@@ -786,9 +786,6 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   // rgb to RGB plot
   registerrgb2RGB('#rgb2RGB', window.cmfChart, myPlot, wlen, rgbLocusMarkerColors);
 
-  // add/remove XYZ primaries in chromaticities to the rgb chromaticity plot
-  //registerToggleXYZChrm('#addXYZChrm', myPlot);
-
   // RGB to XYZ
   // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
   //registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
@@ -1080,34 +1077,88 @@ function removeXYZChrm(plot) {
   $('#addXYZChrm').prop('checked', false);
 }
 
-function registerToggleXYZChrm(id, plot) {
-  var cX = [1.27, -1.74, -0.74, 1.27];
-  var cY = [-0.28, 2.77, 0.14, -0.28];
-  var cZ = [0.0028, -0.028, 1.60, 0.0028];
+d3.csv('ciesi.csv', function(err, rows){
+  var stride = 5;
 
-  var xyzPoints = {
-    x: cX,
-    y: cY,
-    z: cZ,
-    mode: 'lines+markers',
-    marker: {
-      size: 8,
-      line: {
-        color: '#000000',
-        width: 1
-      },
-      opacity: 0.8
+  var d65 = unpack(rows, 'D65');
+  var a = unpack(rows, 'A');
+
+  var wlen = unpack(rows, 'wavelength');
+  var firstW = wlen[0];
+  var lastW = wlen[wlen.length - 1];
+
+  var x_data = range(firstW, lastW, stride);
+  var normD65 = math.dotDivide(d65, Math.max(...d65)); // requires ES6 support
+  var normA = math.dotDivide(a, Math.max(...a));
+  var normE = Array(wlen.length).fill(1);
+  var y_data_1 = normD65;
+
+  var ctx = document.getElementById("canvasWhite").getContext("2d");
+  var canvas = document.getElementById("canvasWhite");
+  window.whiteChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          data: y_data_1,
+          label: "W",
+          borderColor: "#000000",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+      ]
     },
-    type: 'scatter3d',
-    name: 'XYZ primaries',
-  };
-
-  $(id).on('click', function(evt) {
-    if($(id).prop('checked') == false) {
-      Plotly.deleteTraces(plot, [1]);
-    } else {
-      Plotly.addTraces(plot, [xyzPoints]);
+    options: {
+      animation: {
+        duration: 10
+      },
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+      },
+      plugins: {
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1,
+            },
+            mode: 'x',
+          },
+          pan: {
+            enabled: true,
+            modifierKey: 'shift',
+            mode: 'x',
+          },
+        },
+        title: {
+          display: true,
+          text: 'White light',
+          fontSize: 24,
+        },
+      }
     }
   });
-}
 
+  registerSelWhite(window.whiteChart, normD65, normA, normE);
+
+});
+
+function registerSelWhite(chart, d65, a, e) {
+  $('#whiteSel').on('change', function(evt) {
+    var val = this.value;
+    if (val == "D65") {
+      chart.data.datasets[0].data = d65;
+    } else if (val == "A") {
+      chart.data.datasets[0].data = a;
+    } else if (val == "E") {
+      chart.data.datasets[0].data = e;
+    }
+    chart.update();
+  });
+}
