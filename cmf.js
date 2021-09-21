@@ -260,7 +260,7 @@ function registerPlotUnscaledCMF(buttonId, wlen) {
           },
           title: {
             display: true,
-            text: 'Unscaled RGB Color Matching Functions; y-axis denotes radiance.',
+            text: 'Unscaled RGB \"Color Matching Functions\"; y-axis denotes radiance.',
             fontSize: 24,
           },
         }
@@ -334,7 +334,9 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     var numPoints = 0;
     var row1 = "", row2 = "", row3 = "";
     chart.options.onClick = function(event) {
-      if (numPoints == 3) return;
+      if (numPoints == 3) {
+        return;
+      }
 
       const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
       if (points.length > 0) {
@@ -376,6 +378,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
                     "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
                     "\\end{matrix} \\Bigg]";
           QUEUE.Push(["Text", lmat3, col]);
+          $('#solLinSys').prop('disabled', false);
         } 
         lMat[0][numPoints] = chart.data.datasets[0].data[point.index];
         lMat[1][numPoints] = chart.data.datasets[1].data[point.index];

@@ -33,8 +33,18 @@
       <div class="wrapper">
         <canvas id="canvasLMS"></canvas>
       </div>
-      <button id="resetChartLMS">Chart reset</button>
-      <button id="resetZoomLMS">Reset zoom</button>
+      <div>
+        <h2>How to interact with this chart:</h2>
+        <p>Move your mouse to hover the chart. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the right chart will be highlighted too as you hover.</p>
+        <p>Point your mouse at a particular point on any of the curves, you can then start dragging the curve to build a set of new, hypothetical LMS cone fundanemtals. Notice that the LMS spectral locus on the right will change too.</p>
+        <p>You can scroll the mouse to zoom the figure. You can horizontally pan through the figure by holding Shift and drag the mouse.</p>
+      </div>
+      <div>
+        <button id="resetChartLMS">Chart reset</button> Reset the chart to the original LMS cone fundamentals and remove primary selections if any.
+      </div>
+      <div>
+        <button id="resetZoomLMS">Reset zoom</button> Reset the zoom of the chart.
+      </div>
     </div>
     <div class="flex-child">
       <div id="lmsDiv"></div>
@@ -44,18 +54,44 @@
   <!-- Unscaled RGB CMFs -->
   <div class="flex-container">
     <div class="flex-child">
-      <button id="selPrim">Select primaries</button>
+      <h2>Step 1: Select primaries</h2>
+      <p>Click <button id="selPrim">Select primaries</button>. Two things will happen; take a moment to understand what's going on before moving on.</p>
+      <p>First, the LMS chart above will dim and lock (no dragging to change the curves). You can then point the mouse at a point on a curve and click it to pick a primary. When you click a point, the L, M, and S responses at the corresponding wavelength are highlighted, indicating that one primary has been selected. The chart will lock once three primaries are selected. Note that the primaries need not be spectral lights, but we limit ourselves to spectral lights in this tutorial for simplicity purposes.</p>
+      <p>Meanwhile, the following system of (three) linear equations will be built as you select the primaries. The system has the form $A_{3\times 3} \times M_{3\times n} = C_{3\times n}$, where $n$ is the number of spectral lights in the LMS chart, which is $81$ in our case, since the chart spans $380~nm$ to $780~nm$ at a $5~nm$ interval. This linear system lies at the heart of building RGB CMFs from the LMS cone fundamentals. Let's unpack it a bit more.</p>
       <div id="primText">
         ${}$ ${}$ ${}$ ${}$ ${}$ ${}$
       </div>
-      <button id="solLinSys">Solve the linear system</button><br>
-      <button id="plotUnscaledCMF" disabled>Plot unscaled CMF</button>
+      <p>This linear system essentially asks the following question: how many radiances of each primary light do we need to match the color of each spectral light under one unit radiance? This information is encoded in matrix $M$, which is what we want to solve for.</p>
+      <p>To solve this equation, recall the key invariant in colorimetry: to match color between two lights <b>their LMS cone responses must match</b>. Therefore, we will first express the LMS cone responeses of each spectral light, which is what matrix $C$ encodes. Each column vector in matrix $C$ corresponds to a spectral light, and represents the L, M, and S cone responses under one unit radiance of that spectral light. Naturally, numbers in each column are exactly the same as the numbers in the tooltip as you hover the mouse over the LMS chart above.</p>
+      <p>Matrix $M$ is what we want to solve for. Each column vector of matrix $M$ corresponds to a spectral light, and represents the amount (in radiances) of the three primary lights needed to match the color of that spectral light under one unit radiance. How do we know how much primary lights we need to match the cone responses of, say, the spectral light at $500~nm$? Well, according to the invariant, the L (and M, S) cone response of the spectral light $500~nm$ must match the total L (and M, S) cone responses contributed by the three primary lights.</p>
+      <p>The cone response contribution of each primary light can be directly read from the LMS chart above. This information is exactly what matrix $A$ encodes. Matrix $A$ is a $3 \times 3$ matrix, where the first row represents the amount of L cone responseses contributed by the three primaries, each with one unit radiance; the second and third rows encode the same information, but for the M cone and the S cone, respectively.</p>
+      <p>Naturally, matrix $A$ depends on what exactly the three primaries are. Before the primaries are selected, matrix $A$ is unknown (thus the question marks in the matrix). As you select your primaries, matrix $A$ will be dymamically updated. If you think about it, each column in matrix $A$ is same as the numbes under the corresponding wavelength. For instance, the first primary you choose is ${}$ and the first column in matrix $A$ is ${}$; if you hover the mouse at wavelength ${}$, you will see the same three numbers.</p>
     </div>
     <div class="flex-child">
+      <h2>Step 2: Solve the linear system</h2>
+      <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" disabled>Solve</button> to solve the linear system and then click <button id="plotUnscaledCMF" disabled>Plot</button> to plot the result.</p>
       <div class="wrapper">
         <canvas id="canvasUnscaledCMF"></canvas>
       </div>
+      <div>
+        <h2>How to interpret the chart above:</h2>
+        <p>The figure above is not quite your color matching functions yet. The triple points at each wavelength tells us how many <b>radiances</b> of the primary lights do we need to mix in order to match the color of <b>one unit radiance</b> (that is, $1 \frac{W}{sr \cdot m^{2}}$) of that spectral light. For instane, to match the color of $1 \frac{W}{sr \cdot m^{2}}$ of spectral light $500~nm$, we need to mix ${}$ $\frac{W}{sr \cdot m^{2}}$ of primary ${}$, ${}$ $\frac{W}{sr \cdot m^{2}}$ of primary ${}$, and ${}$ $\frac{W}{sr \cdot m^{2}}$ of primary ${}$. This is a natural implication of solving the linear system on the left, where matrix $C$ encodes the cone responsese of one unit radiance of each spectral light.</p>
+        <p>In contrast, instead of referring to radiances our familiar CMFs tell us how many <b>units</b> of each primary light to mix. How is one unit of, say red primary, related to the radiance? It <i>could</i> be arbitrary. Nothing prevents us from calling $1 \frac{W}{sr \cdot m^{2}}$ radiance as one unit of red primary, or $19.5 \frac{W}{sr \cdot m^{2}}$ radiance as one unit of green, or $5,000 \frac{W}{sr \cdot m^{2}}$ radiance as one unit of blue. Instead of picking arbitrary numbers, we will define an intuitive unit system: equal units of the primaries light should match the color of the "white light". This is still somewhat arbitrary but certainly intuitive: we naturally expect white to be produced from mixing equal amount of primary lights.</p>
+        <p>Give this understanding, two steps still remain before we can produce the final CMFs from the radiance chart above: 1) picking a light to represent white (step 3), and 2) converting radiance to units based on the chosen white light (step 4).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chooising White-->
+  <div class="flex-container">
+    <div class="flex-child">
+      <h2>Step 3: Pick the white</h2>
+      <div class="wrapper">
+        <canvas id="canvasWhite"></canvas>
+      </div>
       <button id="scaleCMF" style="display: none">Scale and plot CMF</button>
+    </div>
+    <div class="flex-child">
     </div>
   </div>
 
