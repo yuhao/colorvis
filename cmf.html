@@ -45,12 +45,17 @@
   <div class="flex-container">
     <div class="flex-child">
       <button id="selPrim">Select primaries</button>
-      <p> show the linear system.</p>
       <div id="primText">
-        ${}$ ${}$ ${}$
+        ${}$ ${}$ ${}$ ${}$ ${}$ ${}$
       </div>
+      <button id="solLinSys">Solve the linear system</button><br>
+      <button id="plotUnscaledCMF" disabled>Plot unscaled CMF</button>
     </div>
     <div class="flex-child">
+      <div class="wrapper">
+        <canvas id="canvasUnscaledCMF"></canvas>
+      </div>
+      <button id="scaleCMF" style="display: none">Scale and plot CMF</button>
     </div>
   </div>
 

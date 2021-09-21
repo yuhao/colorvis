@@ -15,9 +15,11 @@ var lmat, rmat; // the element jax for the math output.
 
 QUEUE.Push(function () {
   var allJax = MathJax.Hub.getAllJax('primText');
-  lmat = allJax[0];
-  mmat = allJax[1];
-  rmat = allJax[2];
+  lmat1 = allJax[0];
+  lmat2 = allJax[1];
+  lmat3 = allJax[2];
+  mmat = allJax[3];
+  rmat = allJax[4];
 });
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
@@ -42,13 +44,14 @@ function highlightLocus(index, id, baseColors) {
   Plotly.restyle(myPlot, update, [0]);
 }
  
-function test() {
-}
-
 function unpack(rows, key) {
   return rows.map(function(row) {
       return parseFloat(row[key]);
     });
+}
+
+function range(start, end, stride) {
+  return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
 }
 
 function registerResetZoom(id, chart) {
@@ -68,7 +71,7 @@ function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, res
     // reset plotly.js (3d)
     var plot = document.getElementById(plotId);
     removeXYZChrm(plot);
-    var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in CIE 1931 RGB space';
+    var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in RGB space';
     updateLocus(resetData1, resetData2, resetData3, title, plotId);
   });
 }
@@ -80,7 +83,6 @@ function registerDrag(canvas, chart, id) {
   canvas.onpointerdown = down_handler;
   canvas.onpointerup = up_handler;
   canvas.onpointermove = null;
-  //canvas.onpointermove = move_handler;
 
   var selectedTrace;
 
@@ -106,7 +108,7 @@ function registerDrag(canvas, chart, id) {
       var seq2 = chart.data.datasets[2].data;
       var title = (chart.canvas.id == 'canvasLMS') ?
           'Updated spectral locus in LMS cone space' :
-          'Updated spectral locus in CIE 1931 RGB space';
+          'Updated spectral locus in RGB space';
       // TODO: should update chromaticities if the 3d plot shows chromaticities
       updateLocus(seq0, seq1, seq2, title, id);
     }
@@ -149,6 +151,122 @@ function registerDrag(canvas, chart, id) {
   };
 }
 
+var lMat = [[], [], []];
+var resMat;
+
+function registerScaleCMF(buttonId, wlen) {
+  $(buttonId).on('click', function(evt) {
+    var uCMFR = resMat[0];
+    var uCMFG = resMat[1];
+    var uCMFB = resMat[2];
+    var sumR = uCMFR.reduce((a, b) => a + b, 0);
+    var sumG = uCMFG.reduce((a, b) => a + b, 0);
+    var sumB = uCMFB.reduce((a, b) => a + b, 0);
+
+    var sCMFR = math.dotDivide(uCMFR, sumR);
+    var sCMFG = math.dotDivide(uCMFG, sumG);
+    var sCMFB = math.dotDivide(uCMFB, sumB);
+
+    plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen);
+  });
+}
+
+function registerPlotUnscaledCMF(buttonId, wlen) {
+  $(buttonId).on('click', function(evt) {
+    $("#scaleCMF").show();
+
+    var dCMFR = resMat[0];
+    var dCMFG = resMat[1];
+    var dCMFB = resMat[2];
+
+    var stride = 5;
+    var firstW = wlen[0];
+    var lastW = wlen[wlen.length - 1];
+
+    // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
+    var x_data = range(firstW, lastW, stride);
+    var y_data_1 = dCMFR;
+    var y_data_2 = dCMFG;
+    var y_data_3 = dCMFB;
+
+    // draw a line chart on the canvas context
+    var ctx = document.getElementById("canvasUnscaledCMF").getContext("2d");
+    var canvas = document.getElementById("canvasUnscaledCMF");
+    window.cmfChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: x_data,
+        datasets: [
+          {
+            data: y_data_1,
+            label: "B",
+            borderColor: "#011993",
+            fill: false,
+            pointHoverRadius: 10,
+          },
+          {
+            data: y_data_2,
+            label: "G",
+            borderColor: "#008f00",
+            fill: false,
+            pointHoverRadius: 10,
+          },
+          {
+            data: y_data_3,
+            label: "R",
+            borderColor: "#da2500",
+            fill: false,
+            pointHoverRadius: 10,
+          },
+        ]
+      },
+      options: {
+        animation: {
+          duration: 10
+        },
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        scales: {
+        },
+        plugins: {
+          // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+          zoom: {
+            zoom: {
+              wheel: {
+                enabled: true,
+                speed: 0.1,
+              },
+              mode: 'x',
+            },
+            pan: {
+              enabled: true,
+              modifierKey: 'shift',
+              mode: 'x',
+            },
+          },
+          title: {
+            display: true,
+            text: 'Unscaled RGB Color Matching Functions; y-axis denotes radiance.',
+            fontSize: 24,
+          },
+        }
+      }
+    });
+  });
+}
+
+function registerSolLinSys(buttonId, canvas, chart, wlen, plotId) {
+  $(buttonId).on('click', function(evt) {
+    var rMat = [chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data];
+    var lMatInv = math.inv(lMat);
+    resMat = math.multiply(lMatInv, rMat);
+    $('#plotUnscaledCMF').prop('disabled', false);
+  });
+}
+
 function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
   $(buttonId).on('click', function(evt) {
     canvas.onpointerdown = null;
@@ -171,11 +289,13 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     var pre = "\\begin{bmatrix}";
     var post = "\\end{bmatrix}";
 
-    var l1, l2, l3;
-    l1 = "?? & ?? & ?? \\\\";
-    l2 = "?? & ?? & ?? \\\\";
-    l3 = "?? & ?? & ?? \\\\";
-    QUEUE.Push(["Text", lmat, pre+l1+l2+l3+post]);
+    var col1, col2, col3;
+    var col1 = "\\Bigg[ \\begin{matrix}?? \\\\ ?? \\\\ ??\\end{matrix}"
+    QUEUE.Push(["Text", lmat1, col1]);
+    var col2 = "\\begin{matrix}?? \\\\ ?? \\\\ ??\\end{matrix}"
+    QUEUE.Push(["Text", lmat2, col2]);
+    var col3 = "\\begin{matrix}?? \\\\ ?? \\\\ ??\\end{matrix} \\Bigg]"
+    QUEUE.Push(["Text", lmat3, col3]);
 
     var m1, m2, m3;
     m1 = "380_{\\alpha} & 385_{\\alpha} & \\cdots & 775_{\\alpha} & 780_{\\alpha} \\\\";
@@ -185,18 +305,18 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
 
     // TODO: use the correct LMS csv file and fix the indices
     var r1, r2, r3; // show first two and last two
-    r1 = chart.data.datasets[0].data[10].toFixed(3) + "&&" +
-           chart.data.datasets[0].data[11].toFixed(3) + "&&" + "\\cdots &&" +
-           chart.data.datasets[0].data[50].toFixed(3) + "&&" +
-           chart.data.datasets[0].data[51].toFixed(3) + "\\\\";
-    r2 = chart.data.datasets[1].data[10].toFixed(3) + "&&" +
-           chart.data.datasets[1].data[11].toFixed(3) + "&&" + "\\cdots &&" +
-           chart.data.datasets[1].data[50].toFixed(3) + "&&" +
-           chart.data.datasets[1].data[51].toFixed(3) + "\\\\";
-    r3 = chart.data.datasets[2].data[10].toFixed(3) + "&&" +
-           chart.data.datasets[2].data[11].toFixed(3) + "&&" + "\\cdots &&" +
-           chart.data.datasets[2].data[50].toFixed(3) + "&&" +
-           chart.data.datasets[2].data[51].toFixed(3) + "\\\\";
+    r1 = chart.data.datasets[0].data[0].toExponential(3) + "&&" +
+         chart.data.datasets[0].data[1].toExponential(3) + "&&" + "\\cdots &&" +
+         chart.data.datasets[0].data[wlen.length - 2].toExponential(3) + "&&" +
+         chart.data.datasets[0].data[wlen.length - 1].toExponential(3) + "\\\\";
+    r2 = chart.data.datasets[1].data[0].toExponential(3) + "&&" +
+         chart.data.datasets[1].data[1].toExponential(3) + "&&" + "\\cdots &&" +
+         chart.data.datasets[1].data[wlen.length - 2].toExponential(3) + "&&" +
+         chart.data.datasets[1].data[wlen.length - 1].toExponential(3) + "\\\\";
+    r3 = chart.data.datasets[2].data[0].toExponential(3) + "&&" +
+         chart.data.datasets[2].data[1].toExponential(3) + "&&" + "\\cdots &&" +
+         chart.data.datasets[2].data[wlen.length - 2].toExponential(3) + "&&" +
+         chart.data.datasets[2].data[wlen.length - 1].toExponential(3) + "\\\\";
     QUEUE.Push(["Text", rmat, pre+r1+r2+r3+post]);
 
     // https://www.chartjs.org/docs/latest/configuration/interactions.html
@@ -218,10 +338,37 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
         chart.data.datasets[2].pointRadius[point.index] = 10;
         chart.update();
 
-        row1 += (((numPoints != 0) ? "&&" : "") + chart.data.datasets[0].data[point.index].toFixed(3));
-        row2 += (((numPoints != 0) ? "&&" : "") + chart.data.datasets[1].data[point.index].toFixed(3));
-        row3 += (((numPoints != 0) ? "&&" : "") + chart.data.datasets[2].data[point.index].toFixed(3));
-        QUEUE.Push(["Text", lmat, pre+row1+"\\\\"+row2+"\\\\"+row3+"\\\\"+post]);
+        if (numPoints == 0) {
+          var col = "\\Bigg[ \\begin{matrix}" +
+                    "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
+                    "\\\\" +
+                    "\\mathbf{" + chart.data.datasets[1].data[point.index].toExponential(3) + "}" +
+                    "\\\\" +
+                    "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
+                    "\\end{matrix}";
+          QUEUE.Push(["Text", lmat1, col]);
+        } else if (numPoints == 1) {
+          var col = "\\begin{matrix}" +
+                    "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
+                    "\\\\" +
+                    "\\mathbf{" + chart.data.datasets[1].data[point.index].toExponential(3) + "}" +
+                    "\\\\" +
+                    "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
+                    "\\end{matrix}";
+          QUEUE.Push(["Text", lmat2, col]);
+        } else if (numPoints == 2) {
+          var col = "\\begin{matrix}" +
+                    "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
+                    "\\\\" +
+                    "\\mathbf{" + chart.data.datasets[1].data[point.index].toExponential(3) + "}" +
+                    "\\\\" +
+                    "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
+                    "\\end{matrix} \\Bigg]";
+          QUEUE.Push(["Text", lmat3, col]);
+        } 
+        lMat[0][numPoints] = chart.data.datasets[0].data[point.index];
+        lMat[1][numPoints] = chart.data.datasets[1].data[point.index];
+        lMat[2][numPoints] = chart.data.datasets[2].data[point.index];
 
         numPoints++;
       }
@@ -229,7 +376,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
   });
 }
 
-d3.csv('linss2_10e_5.csv', function(err, rows){
+d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   var stride = 5;
 
   // points to the cone arrays that will be used to plot the chart;
@@ -252,10 +399,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   var y_data_2 = dConeM;
   var y_data_3 = dConeS;
 
-  function range(start, end, stride) {
-    return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
-  }
-
   // draw a line chart on the canvas context
   var ctx = document.getElementById("canvasLMS").getContext("2d");
   var canvas = document.getElementById("canvasLMS");
@@ -266,7 +409,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
       datasets: [
         {
           data: y_data_1,
-          //yAxisID: 'rightYAxis',
           label: "L Cone",
           borderColor: "#da2500",
           fill: false,
@@ -277,7 +419,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         },
         {
           data: y_data_2,
-          //yAxisID: 'rightYAxis',
           label: "M Cone",
           borderColor: "#008f00",
           fill: false,
@@ -288,7 +429,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         },
         {
           data: y_data_3,
-          //yAxisID: 'rightYAxis',
           label: "S Cone",
           borderColor: "#011993",
           fill: false,
@@ -314,11 +454,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
           max: 1,
           position: 'left',
         },
-        rightYAxis: {
-          min: 0,
-          max: 0.5,
-          position: 'right',
-        },
       },
       plugins: {
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
@@ -338,7 +473,7 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
         },
         title: {
           display: true,
-          text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (adjusted to 2-deg; Stockman & Sharpe (2000); normalized)',
+          text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (Stockman & Sharpe (2000); [380, 780])',
           fontSize: 24,
         },
         tooltip: {
@@ -355,7 +490,6 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
 
   registerDrag(canvas, window.myChart, 'lmsDiv');
   registerResetZoom('#resetZoomLMS', window.myChart);
-  registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
   registerChartReset('#resetChartLMS', 'lmsDiv', window.myChart, window.ConeL, window.ConeM, window.ConeS);
 
   // the spectral locus
@@ -443,46 +577,24 @@ d3.csv('linss2_10e_5.csv', function(err, rows){
   };
 
   Plotly.newPlot('lmsDiv', data, layout);
+
+  registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
+  registerSolLinSys('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
+  registerPlotUnscaledCMF('#plotUnscaledCMF', wlen);
+  registerScaleCMF('#scaleCMF', wlen);
 });
 
 
-
-
-
-
-var transRgTrace;
-var transXyPoints;
-
-var selectX = [];
-var selectY = [];
-var selectZ = [];
-var count = 0;
-
-d3.csv('cie1931rgbcmf.csv', function(err, rows){
-  // the RGB CMF
-  // points to the cmf arrays that will be used to plot the chart;
-  dCMFR = unpack(rows, 'r');
-  dCMFG = unpack(rows, 'g');
-  dCMFB = unpack(rows, 'b');
-  // contains the original cmf data; used in reset;
-  window.CMFR = [...dCMFR];
-  window.CMFG = [...dCMFG];
-  window.CMFB = [...dCMFB];
-
+function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   var stride = 5;
-  var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
 
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
-  var y_data_1 = dCMFR;
-  var y_data_2 = dCMFG;
-  var y_data_3 = dCMFB;
-
-  function range(start, end, stride) {
-    return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
-  }
+  var y_data_1 = sCMFR;
+  var y_data_2 = sCMFG;
+  var y_data_3 = sCMFB;
 
   // draw a line chart on the canvas context
   var ctx = document.getElementById("canvasCMF").getContext("2d");
@@ -494,15 +606,13 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       datasets: [
         {
           data: y_data_1,
-          //yAxisID: 'rightYAxis',
-          label: "R",
-          borderColor: "#da2500",
+          label: "B",
+          borderColor: "#011993",
           fill: false,
           pointHoverRadius: 10,
         },
         {
           data: y_data_2,
-          //yAxisID: 'rightYAxis',
           label: "G",
           borderColor: "#008f00",
           fill: false,
@@ -510,9 +620,8 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         },
         {
           data: y_data_3,
-          //yAxisID: 'rightYAxis',
-          label: "B",
-          borderColor: "#011993",
+          label: "R",
+          borderColor: "#da2500",
           fill: false,
           pointHoverRadius: 10,
         },
@@ -528,16 +637,11 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         intersect: false,
       },
       scales: {
-        yAxes:{
-          min: -0.1,
-          max: 0.4,
-          position: 'left',
-        },
-        rightYAxis: {
-          min: 0,
-          max: 0.5,
-          position: 'right',
-        },
+        //yAxes:{
+        //  min: -0.1,
+        //  max: 0.4,
+        //  position: 'left',
+        //},
       },
       plugins: {
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
@@ -557,7 +661,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
         },
         title: {
           display: true,
-          text: 'CIE 1931 RGB Color Matching Functions',
+          text: 'RGB Color Matching Functions',
           fontSize: 24,
         },
         tooltip: {
@@ -572,14 +676,12 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
     }
   });
 
-  //registerDrag(canvas, window.cmfChart, 'rgbDiv');
   registerResetZoom('#resetZoomRGB', window.cmfChart);
-  //registerChartReset('#resetChartRGB', 'rgbDiv', window.cmfChart, window.CMFR, window.CMFG, window.CMFB);
 
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
   var trace = {
-    x: dCMFR, y: dCMFG, z: dCMFB,
+    x: sCMFB, y: sCMFG, z: sCMFR,
     text: wlen,
     mode: 'lines+markers',
     marker: {
@@ -606,7 +708,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
       b: 0,
       t: 100
     },
-    title: 'Spectral locus in CIE 1931 RGB color space',
+    title: 'Spectral locus in RGB color space',
     scene: {
       camera: {
         projection: {
@@ -662,7 +764,7 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
 
   // show lines from the original; all points on the same line have the same chromaticity
-  registerShowChrmLine('#showChrmLine', window.cmfChart, 'rgbDiv');
+  //registerShowChrmLine('#showChrmLine', window.cmfChart, 'rgbDiv');
 
   // show the gamut under the current primaries
   //registerGenGamut('#genGamut', window.cmfChart, 'rgbDiv');
@@ -671,12 +773,12 @@ d3.csv('cie1931rgbcmf.csv', function(err, rows){
   registerrgb2RGB('#rgb2RGB', window.cmfChart, myPlot, wlen, rgbLocusMarkerColors);
 
   // add/remove XYZ primaries in chromaticities to the rgb chromaticity plot
-  registerToggleXYZChrm('#addXYZChrm', myPlot);
+  //registerToggleXYZChrm('#addXYZChrm', myPlot);
 
-  // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
   // RGB to XYZ
-  registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
-});
+  // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
+  //registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
+}
 
 function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors) {
   // TODO: some values are negative; most likely a numerical precision issue
@@ -759,7 +861,7 @@ function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
       data: [trace],
       traces: [0],
       layout: {
-        title: 'Spectral locus in CIE 1931 RGB color space',
+        title: 'Spectral locus in RGB color space',
         scene: {
           xaxis: {
             title: {
@@ -822,7 +924,7 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
       data: [cTrace],
       traces: [0],
       layout: {
-        title: 'Spectral locus in CIE 1931 rgb chromaticity plot',
+        title: 'Spectral locus in rgb chromaticity plot',
         scene: {
           xaxis: {
             title: {
