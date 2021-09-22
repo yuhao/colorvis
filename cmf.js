@@ -206,6 +206,7 @@ function registerCalcCMFScale(buttonId, wlen) {
 }
 
 var lMat = [[], [], []];
+var primIdx = [];
 var resMat;
 
 function registerPlotScaleCMF(buttonId, wlen) {
@@ -213,6 +214,10 @@ function registerPlotScaleCMF(buttonId, wlen) {
   var chart, plot;
 
   $(buttonId).on('click', function(evt) {
+    $('#resetZoomRGB').prop('disabled', false);
+    $('#RGB2rgb').prop('disabled', false);
+    $('#rgb2RGB').prop('disabled', false);
+
     var uCMFR = window.cmfUnscaledChart.data.datasets[0].data;
     var uCMFG = window.cmfUnscaledChart.data.datasets[1].data;
     var uCMFB = window.cmfUnscaledChart.data.datasets[2].data;
@@ -270,6 +275,9 @@ function plotUnscaledCMF(wlen) {
           borderColor: "#da2500",
           fill: false,
           pointHoverRadius: 10,
+          pointBackgroundColor: redColor,
+          pointRadius: 3,
+          borderWidth: 1,
         },
         {
           data: y_data_2,
@@ -277,6 +285,9 @@ function plotUnscaledCMF(wlen) {
           borderColor: "#008f00",
           fill: false,
           pointHoverRadius: 10,
+          pointBackgroundColor: greenColor,
+          pointRadius: 3,
+          borderWidth: 1,
         },
         {
           data: y_data_3,
@@ -284,6 +295,9 @@ function plotUnscaledCMF(wlen) {
           borderColor: "#011993",
           fill: false,
           pointHoverRadius: 10,
+          pointBackgroundColor: blueColor,
+          pointRadius: 3,
+          borderWidth: 1,
         },
       ]
     },
@@ -482,6 +496,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
         lMat[0][numPoints] = chart.data.datasets[0].data[point.index];
         lMat[1][numPoints] = chart.data.datasets[1].data[point.index];
         lMat[2][numPoints] = chart.data.datasets[2].data[point.index];
+        primIdx[numPoints] = point.index;
 
         numPoints++;
       }
@@ -720,24 +735,33 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
       datasets: [
         {
           data: y_data_1,
-          label: "R",
+          label: "r\u0305 (\u03BB)",
           borderColor: "#da2500",
           fill: false,
           pointHoverRadius: 10,
+          pointBackgroundColor: redColor,
+          pointRadius: 3,
+          borderWidth: 1,
         },
         {
           data: y_data_2,
-          label: "G",
+          label: "g\u0305 (\u03BB)",
           borderColor: "#008f00",
           fill: false,
           pointHoverRadius: 10,
+          pointBackgroundColor: greenColor,
+          pointRadius: 3,
+          borderWidth: 1,
         },
         {
           data: y_data_3,
-          label: "B",
+          label: "b\u0305 (\u03BB)",
           borderColor: "#011993",
           fill: false,
           pointHoverRadius: 10,
+          pointBackgroundColor: blueColor,
+          pointRadius: 3,
+          borderWidth: 1,
         },
       ]
     },
@@ -890,6 +914,9 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   // rgb to RGB plot
   registerrgb2RGB('#rgb2RGB', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
 
+  // show the selected primaries
+  registerShowPrim('#showPrim', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
+
   // RGB to XYZ
   // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
   //registerRGB2XYZ('#RGB2XYZ', rgbPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
@@ -951,6 +978,9 @@ function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColo
       },
     })
   });
+}
+
+function registerShowPrim(id, chart, plot, wlen, rgbLocusMarkerColors) {
 }
 
 function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {

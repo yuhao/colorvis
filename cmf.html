@@ -127,14 +127,16 @@
       <div class="wrapper">
         <canvas id="canvasCMF"></canvas>
       </div>
-      <button id="resetZoomRGB">Reset zoom</button>
+      <button id="resetZoomRGB" disabled>Reset zoom</button>
+      <h2>How to interpret the chart:</h2>
     </div>
     <div class="flex-child">
       <div class="container">
         <div id="rgbDiv"></div>
       </div>
-      <div><button id="RGB2rgb">rgb</button></div>
-      <div><button id="rgb2RGB">RGB</button></div>
+      <h2>How to interact with the chart:</h2>
+      <p>This plot shows the spectral locus in the RGB color space that you just built. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot locus in chromaticity</button>. In the chromaticity space, all the points on the locus are on the same $r+b+g=1$ plane. You can of course convert it back and <button id="rgb2RGB" disabled>Plot in RGB</button>.</p>
+      <p>You can <button id="showPrim" disabled>Highlight primaries</button> that you chose for this color space.</p>
     </div>
   </div>
 
