@@ -12,6 +12,7 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
 var lmat, rmat; // the element jax for the math output.
+var text1Jax, text2Jax;
 
 QUEUE.Push(function () {
   var allJax = MathJax.Hub.getAllJax('primText');
@@ -20,6 +21,9 @@ QUEUE.Push(function () {
   lmat3 = allJax[2];
   mmat = allJax[3];
   rmat = allJax[4];
+
+  text2Jax = MathJax.Hub.getAllJax('text1');
+  text1Jax = MathJax.Hub.getAllJax('text2');
 });
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
@@ -60,7 +64,7 @@ function registerResetZoom(id, chart) {
   });
 }
 
-function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, resetData3) {
+function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetData2, resetData3) {
   $(buttonId).on('click', function(evt) {
     // reset chart.js (2d)
     // do a value copy here so that future updates to the chart won't affect the original data
@@ -78,6 +82,8 @@ function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, res
     chart.data.datasets[2].pointBackgroundColor = Array(resetData1.length).fill(blueColor);
     chart.data.datasets[2].pointRadius = Array(resetData1.length).fill(3);
 
+    registerDrag(canvas, chart, plotId);
+
     chart.update();
     // reset plotly.js (3d)
     var plot = document.getElementById(plotId);
@@ -88,30 +94,21 @@ function registerChartReset(buttonId, plotId, chart, resetData1, resetData2, res
 }
 
 function registerDrag(canvas, chart, id) {
-  var activePoint = null;
-
-  // set pointer event handlers for canvas element
-  canvas.onpointerdown = down_handler;
-  canvas.onpointerup = up_handler;
-  canvas.onpointermove = null;
-
-  var selectedTrace;
-
   function down_handler(event) {
     // get the intersecting data point
     const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
     if (points.length > 0) {
       // grab the point, start dragging
-      activePoint = points[0];
-      selectedTrace = activePoint.datasetIndex;
+      canvas.activePoint = points[0];
+      canvas.selectedTrace = canvas.activePoint.datasetIndex;
       canvas.onpointermove = move_handler;
     };
   };
 
   function up_handler(event) {
     // release grabbed point, stop dragging
-    if (activePoint) {
-      activePoint = null;
+    if (canvas.activePoint) {
+      canvas.activePoint = null;
       canvas.onpointermove = null;
       // TODO: support any number of data sequences
       var seq0 = chart.data.datasets[0].data;
@@ -121,7 +118,7 @@ function registerDrag(canvas, chart, id) {
           'Updated spectral locus in LMS cone space' :
           'Updated spectral locus in RGB space';
       // TODO: should update chromaticities if the 3d plot shows chromaticities
-      updateLocus(seq0, seq1, seq2, title, id);
+      if (id != '') updateLocus(seq0, seq1, seq2, title, id);
     }
   };
 
@@ -129,11 +126,11 @@ function registerDrag(canvas, chart, id) {
   function move_handler(event)
   {
     // if an intersecting data point is grabbed
-    if (activePoint != null) {
+    if (canvas.activePoint != null) {
       // then get the points on the selectedTrace
       const points = chart.getElementsAtEventForMode(event, 'index', {intersect: false});
       for (var i = 0; i < points.length; i++) {
-        if (points[i].datasetIndex == selectedTrace) {
+        if (points[i].datasetIndex == canvas.selectedTrace) {
           var point = points[i];
           var data = chart.data;
           
@@ -160,6 +157,11 @@ function registerDrag(canvas, chart, id) {
   function map(value, start1, stop1, start2, stop2) {
     return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
   };
+
+  // set pointer event handlers for canvas element
+  canvas.onpointerdown = down_handler;
+  canvas.onpointerup = up_handler;
+  canvas.onpointermove = null;
 }
 
 var lMat = [[], [], []];
@@ -260,12 +262,16 @@ function registerPlotUnscaledCMF(buttonId, wlen) {
           },
           title: {
             display: true,
-            text: 'Unscaled RGB \"Color Matching Functions\"; y-axis denotes radiance.',
+            text: 'Unscaled RGB \"radiance functions\"; y-axis denotes radiance.',
             fontSize: 24,
           },
         }
       }
     });
+
+    QUEUE.Push(["Text", text2Jax[3], window.cmfChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
+    QUEUE.Push(["Text", text2Jax[5], window.cmfChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
+    QUEUE.Push(["Text", text2Jax[7], window.cmfChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
   });
 }
 
@@ -278,11 +284,21 @@ function registerSolLinSys(buttonId, canvas, chart, wlen, plotId) {
   });
 }
 
-function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
-  $(buttonId).on('click', function(evt) {
+function toggleDrag(canvas, enable) {
+  if (enable) {
+    canvas.onpointerdown = canvas.down_handler;
+    canvas.onpointerup = canvas.up_handler;
+    canvas.onpointermove = null;
+  } else{
     canvas.onpointerdown = null;
     canvas.onpointerup = null;
     canvas.onpointermove = null;
+  }
+}
+
+function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
+  $(buttonId).on('click', function(evt) {
+    toggleDrag(canvas, false);
 
     // dim the LMS curves
     chart.data.datasets[0].borderColor = Array(wlen.length).fill(oRedColor);
@@ -309,9 +325,9 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     QUEUE.Push(["Text", lmat3, col3]);
 
     var m1, m2, m3;
-    m1 = "380_{\\alpha} & 385_{\\alpha} & \\cdots & 775_{\\alpha} & 780_{\\alpha} \\\\";
-    m2 = "380_{\\beta} & 385_{\\beta} & \\cdots & 775_{\\beta} & 780_{\\beta} \\\\";
-    m3 = "380_{\\gamma} & 385_{\\gamma} & \\cdots & 775_{\\gamma} & 780_{\\gamma} \\\\";
+    m1 = "380_{b} & 385_{b} & \\cdots & 775_{b} & 780_{b} \\\\";
+    m2 = "380_{g} & 385_{g} & \\cdots & 775_{g} & 780_{g} \\\\";
+    m3 = "380_{r} & 385_{r} & \\cdots & 775_{r} & 780_{r} \\\\";
     QUEUE.Push(["Text", mmat, "\\times"+pre+m1+m2+m3+post+"="]);
 
     // TODO: use the correct LMS csv file and fix the indices
@@ -360,6 +376,9 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
                     "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
                     "\\end{matrix}";
           QUEUE.Push(["Text", lmat1, col]);
+          QUEUE.Push(["Text", text1Jax[4], chart.data.labels[point.index]+"~nm"]);
+          QUEUE.Push(["Text", text1Jax[6], "\\begin{bmatrix}"+chart.data.datasets[0].data[point.index].toExponential(3)+","+chart.data.datasets[1].data[point.index].toExponential(3)+","+chart.data.datasets[2].data[point.index].toExponential(3)+"\\end{bmatrix}^T"]);
+          QUEUE.Push(["Text", text1Jax[7], chart.data.labels[point.index]+"~nm"]);
         } else if (numPoints == 1) {
           var col = "\\begin{matrix}" +
                     "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
@@ -504,7 +523,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   registerDrag(canvas, window.myChart, 'lmsDiv');
   registerResetZoom('#resetZoomLMS', window.myChart);
-  registerChartReset('#resetChartLMS', 'lmsDiv', window.myChart, window.ConeL, window.ConeM, window.ConeS);
+  registerChartReset('#resetChartLMS', 'lmsDiv', window.myChart, canvas, window.ConeL, window.ConeM, window.ConeS);
 
   // the spectral locus
   var lmsLocusMarkerColors = Array(wlen.length).fill('#888888');
@@ -1080,17 +1099,22 @@ function removeXYZChrm(plot) {
 d3.csv('ciesi.csv', function(err, rows){
   var stride = 5;
 
+  // the CIE SIs are normalized such that SPD is 100 at 560 nm
+  // https://www.image-engineering.de/library/technotes/753-cie-standard-illuminants
+  var wlen = unpack(rows, 'wavelength');
   var d65 = unpack(rows, 'D65');
   var a = unpack(rows, 'A');
+  var e = Array(wlen.length).fill(100);
 
-  var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
+  var firstIdx = (380 - firstW) / stride;
+  var lastIdx = (780 - firstW) / stride;
 
-  var x_data = range(firstW, lastW, stride);
-  var normD65 = math.dotDivide(d65, Math.max(...d65)); // requires ES6 support
-  var normA = math.dotDivide(a, Math.max(...a));
-  var normE = Array(wlen.length).fill(1);
+  var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1);
+  var normD65 = math.dotDivide(d65, Math.max(...d65)).slice(firstIdx, lastIdx + 1); // requires ES6 support
+  var normA = math.dotDivide(a, Math.max(...a)).slice(firstIdx, lastIdx + 1);
+  var normE = Array(wlen.length).fill(1).slice(firstIdx, lastIdx + 1);
   var y_data_1 = normD65;
 
   var ctx = document.getElementById("canvasWhite").getContext("2d");
@@ -1104,8 +1128,11 @@ d3.csv('ciesi.csv', function(err, rows){
           data: y_data_1,
           label: "W",
           borderColor: "#000000",
+          pointBackgroundColor: "#000000",
           fill: false,
           pointHoverRadius: 10,
+          pointRadius: 3,
+          borderWidth: 1,
         },
       ]
     },
@@ -1119,6 +1146,11 @@ d3.csv('ciesi.csv', function(err, rows){
         intersect: false,
       },
       scales: {
+        yAxes:{
+          //min: -0.1,
+          //max: 0.4,
+          position: 'left',
+        },
       },
       plugins: {
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
@@ -1137,28 +1169,36 @@ d3.csv('ciesi.csv', function(err, rows){
           },
         },
         title: {
-          display: true,
+          //display: true,
           text: 'White light',
           fontSize: 24,
+        },
+        legend: {
+          display: false,
         },
       }
     }
   });
 
-  registerSelWhite(window.whiteChart, normD65, normA, normE);
-
+  registerResetZoom('#resetZoomWhite', window.whiteChart);
+  registerSelWhite(window.whiteChart, canvas, normD65, normA, normE);
 });
 
-function registerSelWhite(chart, d65, a, e) {
+function registerSelWhite(chart, canvas, d65, a, e) {
   $('#whiteSel').on('change', function(evt) {
     var val = this.value;
-    if (val == "D65") {
-      chart.data.datasets[0].data = d65;
-    } else if (val == "A") {
-      chart.data.datasets[0].data = a;
-    } else if (val == "E") {
-      chart.data.datasets[0].data = e;
+    if (val == "Draw") {
+      registerDrag(canvas, chart, '');
+    } else {
+      toggleDrag(canvas, false);
+      if (val == "D65") {
+        chart.data.datasets[0].data = d65;
+      } else if (val == "A") {
+        chart.data.datasets[0].data = a;
+      } else if (val == "E") {
+        chart.data.datasets[0].data = e;
+      }
+      chart.update();
     }
-    chart.update();
   });
 }
