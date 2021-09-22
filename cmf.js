@@ -12,7 +12,7 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
 var lmat, rmat; // the element jax for the math output.
-var text1Jax, text2Jax;
+var text1Jax, text2Jax, text4Jax;
 
 QUEUE.Push(function () {
   var allJax = MathJax.Hub.getAllJax('primText');
@@ -22,8 +22,9 @@ QUEUE.Push(function () {
   mmat = allJax[3];
   rmat = allJax[4];
 
-  text2Jax = MathJax.Hub.getAllJax('text1');
   text1Jax = MathJax.Hub.getAllJax('text2');
+  text2Jax = MathJax.Hub.getAllJax('text1');
+  text4Jax = MathJax.Hub.getAllJax('text4');
 });
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
@@ -164,29 +165,69 @@ function registerDrag(canvas, chart, id) {
   canvas.onpointermove = null;
 }
 
+var rRad, gRad, bRad;
+
+function registerCalcCMFScale(buttonId, wlen) {
+  $(buttonId).on('click', function(evt) {
+    $('#plotScaleCMF').prop('disabled', false);
+
+    var unscaledB = window.cmfUnscaledChart.data.datasets[0].data;
+    var unscaledG = window.cmfUnscaledChart.data.datasets[1].data;
+    var unscaledR = window.cmfUnscaledChart.data.datasets[2].data;
+    var whiteSPD = window.whiteChart.data.datasets[0].data;
+
+    rRad = math.dot(unscaledR, whiteSPD).toFixed(5);
+    gRad = math.dot(unscaledG, whiteSPD).toFixed(5);
+    bRad = math.dot(unscaledB, whiteSPD).toFixed(5);
+
+    QUEUE.Push(["Text", text4Jax[1], rRad]);
+    QUEUE.Push(["Text", text4Jax[3], gRad]);
+    QUEUE.Push(["Text", text4Jax[5], bRad]);
+
+    QUEUE.Push(["Text", text4Jax[12], rRad]);
+    QUEUE.Push(["Text", text4Jax[14], gRad]);
+    QUEUE.Push(["Text", text4Jax[16], bRad]);
+
+    QUEUE.Push(["Text", text4Jax[19], rRad]);
+    QUEUE.Push(["Text", text4Jax[21], gRad]);
+    QUEUE.Push(["Text", text4Jax[23], bRad]);
+
+    QUEUE.Push(["Text", text4Jax[25], rRad]);
+    QUEUE.Push(["Text", text4Jax[26], gRad]);
+    QUEUE.Push(["Text", text4Jax[27], bRad]);
+
+    QUEUE.Push(["Text", text4Jax[30], rRad]);
+    QUEUE.Push(["Text", text4Jax[33], gRad]);
+    QUEUE.Push(["Text", text4Jax[36], bRad]);
+  });
+}
+
 var lMat = [[], [], []];
 var resMat;
 
-function registerScaleCMF(buttonId, wlen) {
+function registerPlotScaleCMF(buttonId, wlen) {
+  var plotted = false;
   $(buttonId).on('click', function(evt) {
-    var uCMFR = resMat[0];
-    var uCMFG = resMat[1];
-    var uCMFB = resMat[2];
-    var sumR = uCMFR.reduce((a, b) => a + b, 0);
-    var sumG = uCMFG.reduce((a, b) => a + b, 0);
-    var sumB = uCMFB.reduce((a, b) => a + b, 0);
+    var uCMFB = window.cmfUnscaledChart.data.datasets[0].data;
+    var uCMFG = window.cmfUnscaledChart.data.datasets[1].data;
+    var uCMFR = window.cmfUnscaledChart.data.datasets[2].data;
 
-    var sCMFR = math.dotDivide(uCMFR, sumR);
-    var sCMFG = math.dotDivide(uCMFG, sumG);
-    var sCMFB = math.dotDivide(uCMFB, sumB);
+    var sCMFR = math.dotDivide(uCMFR, rRad);
+    var sCMFG = math.dotDivide(uCMFG, gRad);
+    var sCMFB = math.dotDivide(uCMFB, bRad);
 
-    plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen);
+    if (!plotted) {
+      plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen);
+      plotted = true;
+    } else {
+      //TODO: update the chart and the plot
+    }
   });
 }
 
 function registerPlotUnscaledCMF(buttonId, wlen) {
   $(buttonId).on('click', function(evt) {
-    $("#scaleCMF").show();
+    $('#calcCMFScale').prop('disabled', false);
 
     var dCMFR = resMat[0];
     var dCMFG = resMat[1];
@@ -205,7 +246,7 @@ function registerPlotUnscaledCMF(buttonId, wlen) {
     // draw a line chart on the canvas context
     var ctx = document.getElementById("canvasUnscaledCMF").getContext("2d");
     var canvas = document.getElementById("canvasUnscaledCMF");
-    window.cmfChart = new Chart(ctx, {
+    window.cmfUnscaledChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: x_data,
@@ -269,9 +310,9 @@ function registerPlotUnscaledCMF(buttonId, wlen) {
       }
     });
 
-    QUEUE.Push(["Text", text2Jax[3], window.cmfChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
-    QUEUE.Push(["Text", text2Jax[5], window.cmfChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
-    QUEUE.Push(["Text", text2Jax[7], window.cmfChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
+    QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
+    QUEUE.Push(["Text", text2Jax[5], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
+    QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
   });
 }
 
@@ -614,7 +655,8 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
   registerSolLinSys('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
   registerPlotUnscaledCMF('#plotUnscaledCMF', wlen);
-  registerScaleCMF('#scaleCMF', wlen);
+  registerCalcCMFScale('#calcCMFScale', wlen);
+  registerPlotScaleCMF('#plotScaleCMF', wlen);
 });
 
 
@@ -639,8 +681,8 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
       datasets: [
         {
           data: y_data_1,
-          label: "B",
-          borderColor: "#011993",
+          label: "R",
+          borderColor: "#da2500",
           fill: false,
           pointHoverRadius: 10,
         },
@@ -653,8 +695,8 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         },
         {
           data: y_data_3,
-          label: "R",
-          borderColor: "#da2500",
+          label: "B",
+          borderColor: "#011993",
           fill: false,
           pointHoverRadius: 10,
         },
@@ -714,7 +756,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
   var trace = {
-    x: sCMFB, y: sCMFG, z: sCMFR,
+    x: sCMFR, y: sCMFG, z: sCMFB,
     text: wlen,
     mode: 'lines+markers',
     marker: {
@@ -726,6 +768,10 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
       color: '#888888',
       width: 2
     },
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
     type: 'scatter3d',
     name: 'spectral locus',
   };
