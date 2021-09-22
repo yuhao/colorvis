@@ -94,7 +94,7 @@ function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetDa
   });
 }
 
-function registerDrag(canvas, chart, id) {
+function registerDrag(canvas, chart, plotId) {
   function down_handler(event) {
     // get the intersecting data point
     const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
@@ -111,24 +111,13 @@ function registerDrag(canvas, chart, id) {
     if (canvas.activePoint) {
       canvas.activePoint = null;
       canvas.onpointermove = null;
-      // TODO: support any number of data sequences
-      // TODO: deal with drag white SPD, which has only one trace
-      var seq0 = chart.data.datasets[0].data;
-      var seq1 = chart.data.datasets[1].data;
-      var seq2 = chart.data.datasets[2].data;
-      var title = (chart.canvas.id == 'canvasLMS') ?
-          'Updated spectral locus in LMS cone space' :
-          'Updated spectral locus in RGB space';
-      // TODO: should update chromaticities if the 3d plot shows chromaticities
-      if (id != '') updateLocus(seq0, seq1, seq2, title, id);
     }
   };
 
-  // TODO: sometimes for first drag the spectral locus won't update dynamically until released
   function move_handler(event)
   {
     // if an intersecting data point is grabbed
-    if (canvas.activePoint != null) {
+    if (canvas.activePoint) {
       // then get the points on the selectedTrace
       const points = chart.getElementsAtEventForMode(event, 'index', {intersect: false});
       for (var i = 0; i < points.length; i++) {
@@ -151,6 +140,19 @@ function registerDrag(canvas, chart, id) {
           data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(0, yValue), 1);
           chart.update();
         }
+      }
+
+      // TODO: support any number of data sequences
+      // update 3d plot dynamically; do not update 3d plot if none is present
+      if (plotId != '')  {
+        var seq0 = chart.data.datasets[0].data;
+        var seq1 = chart.data.datasets[1].data;
+        var seq2 = chart.data.datasets[2].data;
+        var title = (chart.canvas.id == 'canvasLMS') ?
+            'Updated spectral locus in LMS cone space' :
+            'Updated spectral locus in RGB space';
+        // TODO: should update chromaticities if the 3d plot shows chromaticities
+        updateLocus(seq0, seq1, seq2, title, plotId);
       }
     }
   };
