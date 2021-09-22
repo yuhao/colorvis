@@ -11,16 +11,11 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-var lmat, rmat; // the element jax for the math output.
 var text1Jax, text2Jax, text4Jax;
+var allJax;
 
 QUEUE.Push(function () {
-  var allJax = MathJax.Hub.getAllJax('primText');
-  lmat1 = allJax[0];
-  lmat2 = allJax[1];
-  lmat3 = allJax[2];
-  mmat = allJax[3];
-  rmat = allJax[4];
+  allJax = MathJax.Hub.getAllJax('primText');
 
   text1Jax = MathJax.Hub.getAllJax('text1');
   text2Jax = MathJax.Hub.getAllJax('text2');
@@ -393,6 +388,12 @@ function toggleDrag(canvas, enable) {
 function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
   $(buttonId).on('click', function(evt) {
     toggleDrag(canvas, false);
+
+    lmat1 = allJax[0];
+    lmat2 = allJax[1];
+    lmat3 = allJax[2];
+    mmat = allJax[3];
+    rmat = allJax[4];
 
     // dim the LMS curves
     chart.data.datasets[0].borderColor = Array(wlen.length).fill(oRedColor);
