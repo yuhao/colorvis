@@ -22,8 +22,8 @@ QUEUE.Push(function () {
   mmat = allJax[3];
   rmat = allJax[4];
 
-  text1Jax = MathJax.Hub.getAllJax('text2');
-  text2Jax = MathJax.Hub.getAllJax('text1');
+  text1Jax = MathJax.Hub.getAllJax('text1');
+  text2Jax = MathJax.Hub.getAllJax('text2');
   text4Jax = MathJax.Hub.getAllJax('text4');
 });
 
@@ -207,112 +207,144 @@ var resMat;
 
 function registerPlotScaleCMF(buttonId, wlen) {
   var plotted = false;
+  var chart, plot;
+
   $(buttonId).on('click', function(evt) {
-    var uCMFB = window.cmfUnscaledChart.data.datasets[0].data;
+    var uCMFR = window.cmfUnscaledChart.data.datasets[0].data;
     var uCMFG = window.cmfUnscaledChart.data.datasets[1].data;
-    var uCMFR = window.cmfUnscaledChart.data.datasets[2].data;
+    var uCMFB = window.cmfUnscaledChart.data.datasets[2].data;
 
     var sCMFR = math.dotDivide(uCMFR, rRad);
     var sCMFG = math.dotDivide(uCMFG, gRad);
     var sCMFB = math.dotDivide(uCMFB, bRad);
 
     if (!plotted) {
-      plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen);
+      var val = plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen);
+      chart = val[0];
+      plot = val[1];
       plotted = true;
     } else {
       //TODO: update the chart and the plot
+      updateScaledCMF(chart, plot, sCMFR, sCMFG, sCMFB, wlen);
     }
   });
 }
 
-function registerPlotUnscaledCMF(buttonId, wlen) {
-  $(buttonId).on('click', function(evt) {
-    $('#calcCMFScale').prop('disabled', false);
+function updateScaledCMF(chart, plot, sCMFR, sCMFG, sCMFB, wlen) {
+  chart.data.datasets[0].data = sCMFR;
+  chart.data.datasets[1].data = sCMFG;
+  chart.data.datasets[2].data = sCMFB;
+  chart.update();
 
-    var dCMFR = resMat[0];
-    var dCMFG = resMat[1];
-    var dCMFB = resMat[2];
+  var data_update = {'x': [sCMFR], 'y': [sCMFG], 'z': [sCMFB]};
+  Plotly.update(plot, data_update, {}, [0]);
+}
 
-    var stride = 5;
-    var firstW = wlen[0];
-    var lastW = wlen[wlen.length - 1];
+function plotUnscaledCMF(wlen) {
+  $('#calcCMFScale').prop('disabled', false);
 
-    // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
-    var x_data = range(firstW, lastW, stride);
-    var y_data_1 = dCMFR;
-    var y_data_2 = dCMFG;
-    var y_data_3 = dCMFB;
+  var stride = 5;
+  var firstW = wlen[0];
+  var lastW = wlen[wlen.length - 1];
 
-    // draw a line chart on the canvas context
-    var ctx = document.getElementById("canvasUnscaledCMF").getContext("2d");
-    var canvas = document.getElementById("canvasUnscaledCMF");
-    window.cmfUnscaledChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: x_data,
-        datasets: [
-          {
-            data: y_data_1,
-            label: "B",
-            borderColor: "#011993",
-            fill: false,
-            pointHoverRadius: 10,
-          },
-          {
-            data: y_data_2,
-            label: "G",
-            borderColor: "#008f00",
-            fill: false,
-            pointHoverRadius: 10,
-          },
-          {
-            data: y_data_3,
-            label: "R",
-            borderColor: "#da2500",
-            fill: false,
-            pointHoverRadius: 10,
-          },
-        ]
+  // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
+  var x_data = range(firstW, lastW, stride);
+  var y_data_1 = resMat[2];
+  var y_data_2 = resMat[1];
+  var y_data_3 = resMat[0];
+
+  // draw a line chart on the canvas context
+  var ctx = document.getElementById("canvasUnscaledCMF").getContext("2d");
+  var canvas = document.getElementById("canvasUnscaledCMF");
+  window.cmfUnscaledChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          data: y_data_1,
+          label: "R",
+          borderColor: "#da2500",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+        {
+          data: y_data_2,
+          label: "G",
+          borderColor: "#008f00",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+        {
+          data: y_data_3,
+          label: "B",
+          borderColor: "#011993",
+          fill: false,
+          pointHoverRadius: 10,
+        },
+      ]
+    },
+    options: {
+      animation: {
+        duration: 10
       },
-      options: {
-        animation: {
-          duration: 10
-        },
-        responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        scales: {
-        },
-        plugins: {
-          // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+      },
+      plugins: {
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
           zoom: {
-            zoom: {
-              wheel: {
-                enabled: true,
-                speed: 0.1,
-              },
-              mode: 'x',
-            },
-            pan: {
+            wheel: {
               enabled: true,
-              modifierKey: 'shift',
-              mode: 'x',
+              speed: 0.1,
             },
+            mode: 'x',
           },
-          title: {
-            display: true,
-            text: 'Unscaled RGB \"radiance functions\"; y-axis denotes radiance.',
-            fontSize: 24,
+          pan: {
+            enabled: true,
+            modifierKey: 'shift',
+            mode: 'x',
           },
-        }
+        },
+        title: {
+          display: true,
+          text: 'Unscaled RGB \"radiance functions\"; y-axis denotes radiance.',
+          fontSize: 24,
+        },
       }
-    });
+    }
+  });
 
-    QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
-    QUEUE.Push(["Text", text2Jax[5], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
-    QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[5], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
+
+  return window.cmfUnscaledChart;
+}
+
+function updateUnscaledCMF(chart) {
+  chart.data.datasets[0].data = resMat[2];
+  chart.data.datasets[1].data = resMat[1];
+  chart.data.datasets[2].data = resMat[0];
+  chart.update();
+}
+
+function registerPlotUnscaledCMF(buttonId, wlen) {
+  var plotted = false;
+  var chart;
+
+  $(buttonId).on('click', function(evt) {
+    if (!plotted) {
+      chart = plotUnscaledCMF(wlen);
+      plotted = true;
+    } else {
+      updateUnscaledCMF(chart, wlen);
+    }
   });
 }
 
@@ -834,8 +866,8 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
  
   Plotly.newPlot('rgbDiv', data, layout);
 
-  var myPlot = document.getElementById('rgbDiv');
-  myPlot.on('plotly_click', function(data){
+  var rgbPlot = document.getElementById('rgbDiv');
+  rgbPlot.on('plotly_click', function(data){
     plotGamut(data);
   });
 
@@ -849,11 +881,13 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   //registerGenGamut('#genGamut', window.cmfChart, 'rgbDiv');
 
   // rgb to RGB plot
-  registerrgb2RGB('#rgb2RGB', window.cmfChart, myPlot, wlen, rgbLocusMarkerColors);
+  registerrgb2RGB('#rgb2RGB', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
 
   // RGB to XYZ
   // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
-  //registerRGB2XYZ('#RGB2XYZ', myPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
+  //registerRGB2XYZ('#RGB2XYZ', rgbPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
+
+  return [window.cmfChart, rgbPlot];
 }
 
 function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors) {
