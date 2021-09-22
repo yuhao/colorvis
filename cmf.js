@@ -174,9 +174,9 @@ function registerCalcCMFScale(buttonId, wlen) {
   $(buttonId).on('click', function(evt) {
     $('#plotScaleCMF').prop('disabled', false);
 
-    var unscaledB = window.cmfUnscaledChart.data.datasets[0].data;
+    var unscaledR = window.cmfUnscaledChart.data.datasets[0].data;
     var unscaledG = window.cmfUnscaledChart.data.datasets[1].data;
-    var unscaledR = window.cmfUnscaledChart.data.datasets[2].data;
+    var unscaledB = window.cmfUnscaledChart.data.datasets[2].data;
     var whiteSPD = window.whiteChart.data.datasets[0].data;
 
     rRad = math.dot(unscaledR, whiteSPD).toFixed(5);
@@ -1276,8 +1276,8 @@ function registerSelWhite(chart, canvas, d65, a, e, draw) {
   $('#whiteSel').on('change', function(evt) {
     var val = this.value;
     if (val == "Draw") {
-      chart.data.datasets[0].data = draw;
       registerDrag(canvas, chart, '');
+      chart.data.datasets[0].data = draw;
     } else {
       toggleDrag(canvas, false);
       if (val == "D65") {
