@@ -112,6 +112,7 @@ function registerDrag(canvas, chart, id) {
       canvas.activePoint = null;
       canvas.onpointermove = null;
       // TODO: support any number of data sequences
+      // TODO: deal with drag white SPD, which has only one trace
       var seq0 = chart.data.datasets[0].data;
       var seq1 = chart.data.datasets[1].data;
       var seq2 = chart.data.datasets[2].data;
@@ -320,9 +321,9 @@ function plotUnscaledCMF(wlen) {
     }
   });
 
-  QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
   QUEUE.Push(["Text", text2Jax[5], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
-  QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
 
   return window.cmfUnscaledChart;
 }
@@ -332,6 +333,10 @@ function updateUnscaledCMF(chart) {
   chart.data.datasets[1].data = resMat[1];
   chart.data.datasets[2].data = resMat[0];
   chart.update();
+
+  QUEUE.Push(["Text", text2Jax[3], chart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[5], chart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[7], chart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
 }
 
 function registerPlotUnscaledCMF(buttonId, wlen) {
@@ -1227,8 +1232,8 @@ d3.csv('ciesi.csv', function(err, rows){
       },
       scales: {
         yAxes:{
-          //min: -0.1,
-          //max: 0.4,
+          min: 1.0,
+          max: 0.0,
           position: 'left',
         },
       },
