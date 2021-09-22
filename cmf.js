@@ -1202,6 +1202,7 @@ d3.csv('ciesi.csv', function(err, rows){
   var normD65 = math.dotDivide(d65, Math.max(...d65)).slice(firstIdx, lastIdx + 1); // requires ES6 support
   var normA = math.dotDivide(a, Math.max(...a)).slice(firstIdx, lastIdx + 1);
   var normE = Array(wlen.length).fill(1).slice(firstIdx, lastIdx + 1);
+  var normDraw = Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1);
   var y_data_1 = normD65;
 
   var ctx = document.getElementById("canvasWhite").getContext("2d");
@@ -1268,13 +1269,14 @@ d3.csv('ciesi.csv', function(err, rows){
   });
 
   registerResetZoom('#resetZoomWhite', window.whiteChart);
-  registerSelWhite(window.whiteChart, canvas, normD65, normA, normE);
+  registerSelWhite(window.whiteChart, canvas, normD65, normA, normE, normDraw);
 });
 
-function registerSelWhite(chart, canvas, d65, a, e) {
+function registerSelWhite(chart, canvas, d65, a, e, draw) {
   $('#whiteSel').on('change', function(evt) {
     var val = this.value;
     if (val == "Draw") {
+      chart.data.datasets[0].data = draw;
       registerDrag(canvas, chart, '');
     } else {
       toggleDrag(canvas, false);
@@ -1285,7 +1287,7 @@ function registerSelWhite(chart, canvas, d65, a, e) {
       } else if (val == "E") {
         chart.data.datasets[0].data = e;
       }
-      chart.update();
     }
+    chart.update();
   });
 }
