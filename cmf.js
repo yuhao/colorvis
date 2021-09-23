@@ -1,7 +1,3 @@
-var RGB2XYZ = [[2.767979095, 1.751171684, 1.129776839],
-              [0.9978469789, 4.589269432, 0.05917362973],
-              [-0.00002643740975, 0.05648972672, 5.594123569]];
-
 var redColor = '#da2500';
 var greenColor = '#008f00';
 var blueColor = '#011993';
@@ -85,7 +81,6 @@ function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetDa
     chart.update();
     // reset plotly.js (3d)
     var plot = document.getElementById(plotId);
-    removeXYZChrm(plot);
     var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in RGB space';
     updateLocus(resetData1, resetData2, resetData3, title, plotId);
   });
@@ -909,12 +904,8 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   var rgbPlot = document.getElementById('rgbDiv');
   Plotly.newPlot(rgbPlot, data, layout);
 
-  //rgbPlot.on('plotly_click', function(data){
-  //  plotGamut(data);
-  //});
-
   // RGB to rgb chromaticity plot
-  registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
+  registerRGB2rgb('#RGB2rgb', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
 
   // show lines from the original; all points on the same line have the same chromaticity
   //registerShowChrmLine('#showChrmLine', window.cmfChart, 'rgbDiv');
@@ -922,83 +913,17 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   // rgb to RGB plot
   registerrgb2RGB('#rgb2RGB', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
 
-  // show the selected primaries
-  registerShowPrim('#showPrim', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
+  rgbPlot.mode = 'cmf';
 
-  // RGB to XYZ
-  // all below always show variants of the original RGB CMFs, since not any arbitrary CMF would work
-  //registerRGB2XYZ('#RGB2XYZ', rgbPlot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors);
+  // show the selected primaries
+  registerShowPrim('#showPrim', rgbPlot);
 
   return [window.cmfChart, rgbPlot];
 }
 
-function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColors) {
-  // TODO: some values are negative; most likely a numerical precision issue
-  var transRGB = math.multiply(window.RGB2XYZ, [dCMFR, dCMFG, dCMFB]);
-
-  $(id).on('click', function(evt) {
-    removeXYZChrm(plot);
-
-    var trace = {
-      x: transRGB[0],
-      y: transRGB[1],
-      z: transRGB[2],
-      text: wlen,
-      mode: 'lines+markers',
-      marker: {
-        size: 6,
-        opacity: 0.8,
-        color: rgbLocusMarkerColors,
-      },
-      type: 'scatter3d',
-      name: 'spectral locus in XYZ',
-    };
-
-    // will be instantaneous, since animation applies to 2d plots.
-    // TODO: keep this or switch to update?
-    Plotly.animate('rgbDiv', {
-      data: [trace],
-      traces: [0],
-      layout: {
-        title: 'Spectral locus in CIE XYZ color space',
-        scene: {
-          xaxis: {
-            title: {
-              text: 'X'
-            }
-          },
-          yaxis: {
-            title: {
-              text: 'Y'
-            }
-          },
-          zaxis: {
-            title: {
-              text: 'Z'
-            }
-          },
-        }
-      }
-    }, {
-      transition: {
-        duration: 500,
-        easing: 'linear'
-      },
-    })
-  });
-}
-
-function registerShowPrim(id, chart, plot, wlen, baseColors) {
-  $(id).on('click', function(evt) {
-    if (plot.data.length > 1) return; // prim trace has been added
-
-    //var colors = Array.from(baseColors);
-    //colors[primIdx[0]] = '#da2500';
-    //colors[primIdx[1]] = '#da2500';
-    //colors[primIdx[2]] = '#da2500';
-    //var update = {'marker.color': [colors]};
-    //Plotly.restyle(plot, update, [0]);
-
+function showPrim(plot) {
+  var prims = [];
+  if (plot.mode == 'cmf') {
     var bPrim = [+plot.data[0].x[primIdx[0]].toFixed(6),
                  +plot.data[0].y[primIdx[0]].toFixed(6),
                  +plot.data[0].z[primIdx[0]].toFixed(6)];
@@ -1008,13 +933,17 @@ function registerShowPrim(id, chart, plot, wlen, baseColors) {
     var rPrim = [+plot.data[0].x[primIdx[2]].toFixed(6),
                  +plot.data[0].y[primIdx[2]].toFixed(6),
                  +plot.data[0].z[primIdx[2]].toFixed(6)];
-    var prims = [rPrim, gPrim, bPrim];
+    prims = [rPrim, gPrim, bPrim];
+  } else {
+    prims = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  }
 
+  if (plot.data.length == 1) {
     var trace = {
       x: [prims[0][0], prims[1][0], prims[2][0], prims[0][0]],
       y: [prims[0][1], prims[1][1], prims[2][1], prims[0][1]],
       z: [prims[0][2], prims[1][2], prims[2][2], prims[0][2]],
-      text: wlen,
+      text: [plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[2]], plot.data[0].text[primIdx[0]]],
       mode: 'lines+markers',
       type: 'scatter3d',
       line: {
@@ -1033,8 +962,22 @@ function registerShowPrim(id, chart, plot, wlen, baseColors) {
         '<br>wavelength: %{text}<extra></extra>' ,
     };
     Plotly.addTraces(plot, [trace]);
+  } else {
+    // have to get an array of arrays
+    var data_update = {'x': [[prims[0][0], prims[1][0], prims[2][0], prims[0][0]]],
+                       'y': [[prims[0][1], prims[1][1], prims[2][1], prims[0][1]]],
+                       'z': [[prims[0][2], prims[1][2], prims[2][2], prims[0][2]]]};
+    Plotly.update(plot, data_update, {}, [1]);
+  }
 
-    //showGamut(plot);
+  //showGamut(plot);
+}
+
+function registerShowPrim(id, plot) {
+  $(id).on('click', function(evt) {
+    if (plot.data.length > 1) return; // prim trace has been added
+
+    showPrim(plot);
   });
 }
 
@@ -1099,62 +1042,98 @@ function showGamut(plot) {
 
 function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
   $(id).on('click', function(evt) {
-    removeXYZChrm(plot);
+    plot.mode = 'cmf';
 
-    var trace = {
-      x: chart.data.datasets[0].data,
-      y: chart.data.datasets[1].data,
-      z: chart.data.datasets[2].data,
-      text: wlen,
-      mode: 'lines+markers',
-      marker: {
-        size: 6,
-        opacity: 0.8,
-        color: rgbLocusMarkerColors,
-      },
-      type: 'scatter3d',
-      name: 'spectral locus in RGB',
-    };
+    //var trace = {
+    //  x: chart.data.datasets[0].data,
+    //  y: chart.data.datasets[1].data,
+    //  z: chart.data.datasets[2].data,
+    //  text: wlen,
+    //  mode: 'lines+markers',
+    //  marker: {
+    //    size: 6,
+    //    opacity: 0.8,
+    //    color: rgbLocusMarkerColors,
+    //  },
+    //  type: 'scatter3d',
+    //  name: 'spectral locus in RGB',
+    //};
 
-    // will be instantaneous, since animation applies to 2d plots.
-    // TODO: keep this or switch to update?
-    Plotly.animate('rgbDiv', {
-      data: [trace],
-      traces: [0],
-      layout: {
-        title: 'Spectral locus in RGB color space',
-        scene: {
-          xaxis: {
-            title: {
-              text: 'R'
-            }
+    //// will be instantaneous, since animation applies to 2d plots.
+    //// TODO: keep this or switch to update?
+    //Plotly.animate('rgbDiv', {
+    //  data: [trace],
+    //  traces: [0],
+    //  layout: {
+    //    title: 'Spectral locus in RGB color space',
+    //    scene: {
+    //      xaxis: {
+    //        title: {
+    //          text: 'R'
+    //        }
+    //      },
+    //      yaxis: {
+    //        title: {
+    //          text: 'G'
+    //        }
+    //      },
+    //      zaxis: {
+    //        title: {
+    //          text: 'B'
+    //        }
+    //      },
+    //    }
+    //  }
+    //}, {
+    //  transition: {
+    //    duration: 500,
+    //    easing: 'linear'
+    //  },
+    //});
+
+    var data_update = {'x': [chart.data.datasets[0].data],
+                       'y': [chart.data.datasets[1].data],
+                       'z': [chart.data.datasets[2].data]};
+    var layout_update = {
+      title: 'Spectral locus in RGB color space',
+      scene: {
+        xaxis: {
+          title: {
+            text: 'R'
           },
-          yaxis: {
-            title: {
-              text: 'G'
-            }
+          zerolinecolor: '#000000',
+          zerolinewidth: 5,
+        },
+        yaxis: {
+          title: {
+            text: 'G'
           },
-          zaxis: {
-            title: {
-              text: 'B'
-            }
+          zerolinecolor: '#000000',
+          zerolinewidth: 5,
+        },
+        zaxis: {
+          title: {
+            text: 'B'
           },
-        }
+          zerolinecolor: '#000000',
+          zerolinewidth: 5,
+        },
       }
-    }, {
-      transition: {
-        duration: 500,
-        easing: 'linear'
-      },
-    })
+    };
+    Plotly.update(plot, data_update, layout_update, [0]);
+
+    if (plot.data.length == 2) {
+      showPrim(plot);
+    }
   });
 }
 
 // will be a nop when in the chromaticity mode, which is good.
 // take whatever CMFs are in |chart|, even if it's adjusted, which is good.
-function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
+function registerRGB2rgb(id, chart, plot, wlen, rgbLocusMarkerColors) {
   $(id).on('click', function(evt) {
-    $('#addXYZChrm').prop('disabled', false);
+    plot.mode = 'chrm';
+
     var tCMFR = chart.data.datasets[0].data;
     var tCMFG = chart.data.datasets[1].data;
     var tCMFB = chart.data.datasets[2].data;
@@ -1164,52 +1143,87 @@ function registerRGB2rgb(id, chart, wlen, rgbLocusMarkerColors) {
     var cG = math.dotDivide(tCMFG, sumRGB);
     var cB = math.dotDivide(tCMFB, sumRGB);
 
-    var cTrace = {
-      x: cR,
-      y: cG,
-      z: cB,
-      text: wlen,
-      mode: 'lines+markers',
-      marker: {
-        size: 6,
-        opacity: 0.8,
-        color: rgbLocusMarkerColors,
-      },
-      type: 'scatter3d',
-      name: 'spectral locus in rgb',
-    };
+    //var cTrace = {
+    //  x: cR,
+    //  y: cG,
+    //  z: cB,
+    //  text: wlen,
+    //  mode: 'lines+markers',
+    //  marker: {
+    //    size: 6,
+    //    opacity: 0.8,
+    //    color: rgbLocusMarkerColors,
+    //  },
+    //  type: 'scatter3d',
+    //  name: 'spectral locus in rgb',
+    //};
 
-    // will be instantaneous, since animation applies to 2d plots.
-    // TODO: keep this or switch to update?
-    Plotly.animate('rgbDiv', {
-      data: [cTrace],
-      traces: [0],
-      layout: {
-        title: 'Spectral locus in rgb chromaticity plot',
-        scene: {
-          xaxis: {
-            title: {
-              text: 'r'
-            }
+    //// will be instantaneous, since animation applies to 2d plots.
+    //// TODO: keep this or switch to update?
+    //Plotly.animate('rgbDiv', {
+    //  data: [cTrace],
+    //  traces: [0],
+    //  layout: {
+    //    title: 'Spectral locus in rgb chromaticity plot',
+    //    scene: {
+    //      xaxis: {
+    //        title: {
+    //          text: 'r'
+    //        }
+    //      },
+    //      yaxis: {
+    //        title: {
+    //          text: 'g'
+    //        }
+    //      },
+    //      zaxis: {
+    //        title: {
+    //          text: 'b'
+    //        }
+    //      },
+    //    }
+    //  }
+    //}, {
+    //  transition: {
+    //    duration: 500,
+    //    easing: 'linear'
+    //  },
+    //});
+
+    var data_update = {'x': [cR],
+                       'y': [cG],
+                       'z': [cB]};
+    var layout_update = {
+      title: 'Spectral locus in rgb chromaticity plot',
+      scene: {
+        xaxis: {
+          title: {
+            text: 'r'
           },
-          yaxis: {
-            title: {
-              text: 'g'
-            }
+          zerolinecolor: '#000000',
+          zerolinewidth: 5,
+        },
+        yaxis: {
+          title: {
+            text: 'g'
           },
-          zaxis: {
-            title: {
-              text: 'b'
-            }
+          zerolinecolor: '#000000',
+          zerolinewidth: 5,
+        },
+        zaxis: {
+          title: {
+            text: 'b'
           },
-        }
+          zerolinecolor: '#000000',
+          zerolinewidth: 5,
+        },
       }
-    }, {
-      transition: {
-        duration: 500,
-        easing: 'linear'
-      },
-    })
+    };
+    Plotly.update(plot, data_update, layout_update, [0]);
+
+    if (plot.data.length == 2) {
+      showPrim(plot);
+    }
   });
 }
 
@@ -1234,74 +1248,6 @@ function registerShowChrmLine(id, chart, plot) {
     }
     Plotly.addTraces(plot, traces);
   });
-}
-
-function plotGamut(data) {
-  // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
-  if (count == 3) return;
-
-  var pn = data.points[0].pointNumber;
-  selectX[count] = data.points[0].data.x[pn];
-  selectY[count] = data.points[0].data.y[pn];
-  selectZ[count] = data.points[0].data.z[pn];
-  count++;
-  if (count == 3) {
-    var otherPointsX = [selectX[0] + selectX[1], // r+g
-                        selectX[0] + selectX[2], // r+b
-                        selectX[1] + selectX[2], // g+b
-                        selectX[0] + selectX[1] + selectX[2]]; // r+g+b
-    var otherPointsY = [selectY[0] + selectY[1],
-                        selectY[0] + selectY[2],
-                        selectY[1] + selectY[2],
-                        selectY[0] + selectY[1] + selectY[2]];
-    var otherPointsZ = [selectZ[0] + selectZ[1],
-                        selectZ[0] + selectZ[2],
-                        selectZ[1] + selectZ[2],
-                        selectZ[0] + selectZ[1] + selectZ[2]];
-    var allPointsX = [0].concat(selectX.concat(otherPointsX));
-    var allPointsY = [0].concat(selectY.concat(otherPointsY));
-    var allPointsZ = [0].concat(selectZ.concat(otherPointsZ));
-
-    // add all the lines of the parallelogram
-    var traces = [];
-    // O: 0; R: 1; G: 2: B: 3
-    // RG: 4; RB: 5; GB: 6; RGB: 7
-    var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]]
-    for (var i = 0; i < indices.length; i++) {
-      var start = indices[i][0];
-      var end = indices[i][1];
-      var line = {
-        x: [allPointsX[start], allPointsX[end]],
-        y: [allPointsY[start], allPointsY[end]],
-        z: [allPointsZ[start], allPointsZ[end]],
-        mode: 'lines+markers',
-        type: 'scatter3d',
-        line: {
-          color: '#32a852',
-        },
-        // TODO: customize the tooltip
-        marker: {
-          size: 6,
-          opacity: 0.8,
-          color: '#32a852',
-        },
-        //hoverinfo: 'skip',
-      };
-      traces.push(line);
-    }
-    // https://github.com/plotly/plotly.js/issues/1467
-    // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
-    Plotly.addTraces('rgbDiv', traces);
-  }
-}
-
-function removeXYZChrm(plot) {
-  $('#addXYZChrm').prop('disabled', true);
-  if (plot.data.length == 1) return;
-  else {
-    Plotly.deleteTraces(plot, [1]);
-  }
-  $('#addXYZChrm').prop('checked', false);
 }
 
 d3.csv('ciesi.csv', function(err, rows){
