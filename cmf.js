@@ -10,15 +10,15 @@ var QUEUE = MathJax.Hub.queue; // shorthand for the queue
 var text1Jax, text2Jax, text4Jax;
 var allJax, cmfJax;
 
-QUEUE.Push(function () {
-  allJax = MathJax.Hub.getAllJax('primText');
-
-  text1Jax = MathJax.Hub.getAllJax('text1');
-  text2Jax = MathJax.Hub.getAllJax('text2');
-  text4Jax = MathJax.Hub.getAllJax('text4');
-
-  cmfJax = MathJax.Hub.getAllJax('cmftext');
-});
+//QUEUE.Push(function () {
+//  allJax = MathJax.Hub.getAllJax('primText');
+//
+//  text1Jax = MathJax.Hub.getAllJax('text1');
+//  text2Jax = MathJax.Hub.getAllJax('text2');
+//  text4Jax = MathJax.Hub.getAllJax('text4');
+//
+//  cmfJax = MathJax.Hub.getAllJax('cmftext');
+//});
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, id) {
@@ -387,15 +387,63 @@ function toggleDrag(canvas, enable) {
   }
 }
 
+function setupLinSys(chart, wlen) {
+  allJax = MathJax.Hub.getAllJax('primText');
+
+  text1Jax = MathJax.Hub.getAllJax('text1');
+  text2Jax = MathJax.Hub.getAllJax('text2');
+  text4Jax = MathJax.Hub.getAllJax('text4');
+
+  cmfJax = MathJax.Hub.getAllJax('cmftext');
+
+  var lmat1 = allJax[0];
+  var lmat2 = allJax[1];
+  var lmat3 = allJax[2];
+  var mmat = allJax[3];
+  var rmat = allJax[4];
+
+  var pre = "\\begin{bmatrix}";
+  var post = "\\end{bmatrix}";
+
+  var col1, col2, col3;
+  var col1 = "\\Bigg[ \\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
+  QUEUE.Push(["Text", lmat1, col1]);
+  var col2 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
+  QUEUE.Push(["Text", lmat2, col2]);
+  var col3 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix} \\Bigg]"
+  QUEUE.Push(["Text", lmat3, col3]);
+
+  var m1, m2, m3;
+  m1 = "380_{b} & 385_{b} & \\cdots & 775_{b} & 780_{b} \\\\";
+  m2 = "380_{g} & 385_{g} & \\cdots & 775_{g} & 780_{g} \\\\";
+  m3 = "380_{r} & 385_{r} & \\cdots & 775_{r} & 780_{r} \\\\";
+  QUEUE.Push(["Text", mmat, "\\times"+pre+m1+m2+m3+post+"="]);
+
+  var r1, r2, r3; // show first two and last two
+  r1 = chart.data.datasets[0].data[0].toExponential(3) + "&&" +
+       chart.data.datasets[0].data[1].toExponential(3) + "&&" + "\\cdots &&" +
+       chart.data.datasets[0].data[wlen.length - 2].toExponential(3) + "&&" +
+       chart.data.datasets[0].data[wlen.length - 1].toExponential(3) + "\\\\";
+  r2 = chart.data.datasets[1].data[0].toExponential(3) + "&&" +
+       chart.data.datasets[1].data[1].toExponential(3) + "&&" + "\\cdots &&" +
+       chart.data.datasets[1].data[wlen.length - 2].toExponential(3) + "&&" +
+       chart.data.datasets[1].data[wlen.length - 1].toExponential(3) + "\\\\";
+  r3 = chart.data.datasets[2].data[0].toExponential(3) + "&&" +
+       chart.data.datasets[2].data[1].toExponential(3) + "&&" + "\\cdots &&" +
+       chart.data.datasets[2].data[wlen.length - 2].toExponential(3) + "&&" +
+       chart.data.datasets[2].data[wlen.length - 1].toExponential(3) + "\\\\";
+  QUEUE.Push(["Text", rmat, pre+r1+r2+r3+post]);
+}
+
 function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
   $(buttonId).on('click', function(evt) {
     toggleDrag(canvas, false);
 
-    lmat1 = allJax[0];
-    lmat2 = allJax[1];
-    lmat3 = allJax[2];
-    mmat = allJax[3];
-    rmat = allJax[4];
+    var lmat1 = allJax[0];
+    var lmat2 = allJax[1];
+    var lmat3 = allJax[2];
+    //mmat = allJax[3];
+    //rmat = allJax[4];
 
     // dim the LMS curves
     chart.data.datasets[0].borderColor = Array(wlen.length).fill(oRedColor);
@@ -410,38 +458,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     chart.update();
 
     // setup the equation
-    var pre = "\\begin{bmatrix}";
-    var post = "\\end{bmatrix}";
-
-    var col1, col2, col3;
-    var col1 = "\\Bigg[ \\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
-    QUEUE.Push(["Text", lmat1, col1]);
-    var col2 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
-    QUEUE.Push(["Text", lmat2, col2]);
-    var col3 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix} \\Bigg]"
-    QUEUE.Push(["Text", lmat3, col3]);
-
-    var m1, m2, m3;
-    m1 = "380_{b} & 385_{b} & \\cdots & 775_{b} & 780_{b} \\\\";
-    m2 = "380_{g} & 385_{g} & \\cdots & 775_{g} & 780_{g} \\\\";
-    m3 = "380_{r} & 385_{r} & \\cdots & 775_{r} & 780_{r} \\\\";
-    QUEUE.Push(["Text", mmat, "\\times"+pre+m1+m2+m3+post+"="]);
-
-    // TODO: use the correct LMS csv file and fix the indices
-    var r1, r2, r3; // show first two and last two
-    r1 = chart.data.datasets[0].data[0].toExponential(3) + "&&" +
-         chart.data.datasets[0].data[1].toExponential(3) + "&&" + "\\cdots &&" +
-         chart.data.datasets[0].data[wlen.length - 2].toExponential(3) + "&&" +
-         chart.data.datasets[0].data[wlen.length - 1].toExponential(3) + "\\\\";
-    r2 = chart.data.datasets[1].data[0].toExponential(3) + "&&" +
-         chart.data.datasets[1].data[1].toExponential(3) + "&&" + "\\cdots &&" +
-         chart.data.datasets[1].data[wlen.length - 2].toExponential(3) + "&&" +
-         chart.data.datasets[1].data[wlen.length - 1].toExponential(3) + "\\\\";
-    r3 = chart.data.datasets[2].data[0].toExponential(3) + "&&" +
-         chart.data.datasets[2].data[1].toExponential(3) + "&&" + "\\cdots &&" +
-         chart.data.datasets[2].data[wlen.length - 2].toExponential(3) + "&&" +
-         chart.data.datasets[2].data[wlen.length - 1].toExponential(3) + "\\\\";
-    QUEUE.Push(["Text", rmat, pre+r1+r2+r3+post]);
+    //setupLinSys();
 
     // https://www.chartjs.org/docs/latest/configuration/interactions.html
     var numPoints = 0;
@@ -720,6 +737,10 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   Plotly.newPlot('lmsDiv', data, layout);
 
+  // has to push this rather than sync calling it.
+  QUEUE.Push(function () {
+    setupLinSys(window.myChart, wlen);
+  });
   registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
   registerSolLinSys('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
   registerPlotUnscaledCMF('#plotUnscaledCMF', wlen);
