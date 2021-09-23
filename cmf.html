@@ -83,7 +83,7 @@
       </div>
       <div>
         <h2>How to Interpret the Chart:</h2>
-        <p id="text2">The figure above is not quite your color matching functions yet. The triple points at each wavelength tells us how many <b>radiances</b> of the primary lights we need to mix in order to match the color of <b>one unit radiance</b> (that is, $1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. For instance, to match the color of $1 \frac{W}{m^{2} \cdot sr}$ of spectral light $500~nm$, we need to mix ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the blue primary. Hover your mouse over the chart above at $500~nm$ to confirm this. This is a natural implication of solving the linear system on the left, where matrix $C$ encodes the cone responsese of one unit radiance of each spectral light.</p>
+        <p id="text2">The figure above is not quite your color matching functions yet. The triple points at each wavelength tells us how much <b>radiance</b> of the primary lights we need to mix in order to match the color of <b>one unit radiance</b> (that is, $1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. For instance, to match the color of $1 \frac{W}{m^{2} \cdot sr}$ of spectral light $500~nm$, we need to mix ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the blue primary. Hover your mouse over the chart above at $500~nm$ to confirm this. This is a natural implication of solving the linear system on the left, where matrix $C$ encodes the cone responsese of one unit radiance of each spectral light.</p>
         <p>In contrast, instead of referring to radiances our familiar CMFs tell us how many <b>units</b> of each primary light to mix. How is one unit of, say red primary, related to the radiance? It <i>could</i> be arbitrary. Nothing prevents us from calling $1 \frac{W}{m^{2} \cdot sr}$ radiance as one unit of red primary, or $19.5 \frac{W}{m^{2} \cdot sr}$ radiance as one unit of green, or $5,000 \frac{W}{m^{2} \cdot sr}$ radiance as one unit of blue. Instead of picking arbitrary numbers, we will define an intuitive unit system: equal units of the primaries light should match the color of the "white light". This is still somewhat arbitrary but certainly intuitive: we naturally expect white to be produced from mixing equal amount of primary lights.</p>
         <p>Give this understanding, two steps still remain before we can produce the final CMFs from the radiance chart above: 1) picking a light to represent white (step 3), and 2) converting radiance to units based on the chosen white light (step 4).</p>
       </div>
@@ -138,8 +138,24 @@
       <h2>How to Interpret the Chart:</h2>
       <div id="cmftext">
         <p>This is our color matching function plot. The triple points at each wavelength tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in your color space.</p>
-        <p>Naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; hover you mouse to that wavelength you will see that the tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ --- the first two values being 0. Note that the value for the blue primary isn't 0. Nothing wrong with that; it just means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$. You should confirm this for the other two primaries.</p>
-        <p>If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around.</p>
+        <p>Naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; hover you mouse to that wavelength you will see that the tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ --- the first two values being 0. Note that the value for the blue primary isn't 0. Nothing wrong with that; it just means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$. You should confirm this for the other two primaries. If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around.</p>
+        <p>Every (spectral) light has a set of tristimulus values in the LMS chart (the cone responses) and another set of tristimulus values in your RGB color space. These two sets of values are related by one linear transformation, which combines a linear transformation in Step 1 and another linear transformation (scaling) in Step 4. More specifically, we have:</p>
+        $\begin{bmatrix}
+        \end{bmatrix} \times$
+        $\begin{bmatrix}
+        \end{bmatrix} \times$
+        $\begin{bmatrix}
+          \bar{r}(\lambda) \\
+          \bar{g}(\lambda) \\
+          \bar{b}(\lambda)
+        \end{bmatrix} =$
+        $\begin{bmatrix}
+          L(\lambda) \\
+          M(\lambda) \\
+          S(\lambda)
+        \end{bmatrix}$
+        
+        <p>In this sense, you can think of LMS as a color space, too. The primaries in the LMS space are imaginary lights, each of which stimulates exclusively only one cone type.</p>
       </div>
     </div>
     <div class="flex-child">
