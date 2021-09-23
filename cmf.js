@@ -23,7 +23,7 @@ QUEUE.Push(function () {
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, id) {
   var layout_update = {
-    title: newTitle,
+    //title: newTitle,
   };
   var data_update = {'x': [seq1], 'y': [seq2], 'z': [seq3]};
 
@@ -604,8 +604,11 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         },
         title: {
           display: true,
-          text: '2-deg fundamentals based on the Stiles & Burch 10-deg CMFs (Stockman & Sharpe (2000); [380, 780])',
-          fontSize: 24,
+          text: 'Cone Fundamentals (Stockman & Sharpe, 2000)',
+          font: {
+            size: 20,
+            family: 'Helvetica Neue',
+          },
         },
         tooltip: {
           callbacks: {
@@ -647,22 +650,30 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
       '<br>S: %{z}' +
       '<br>wavelength: %{text}<extra></extra>' ,
     type: 'scatter3d',
-    name: 'spectral locus',
+    name: 'Spectral locus',
   };
 
   var data = [trace];
  
   var layout = {
-    height: 800,
+    //height: 600,
     //width: 1200,
-    //showlegend: true,
+    name: 'Spectral locus',
+    showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.5,
+    },
     margin: {
-      l: 100,
+      l: 0,
       r: 0,
       b: 0,
-      t: 100
+      t: 0
     },
-    title: 'Spectral locus in LMS cone space',
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    //plot_bgcolor: 'rgba(0, 0, 0, 0)',
+    //title: 'Spectral locus in LMS cone space',
     scene: {
       camera: {
         projection: {
@@ -847,21 +858,28 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
       '<br>B: %{z}' +
       '<br>wavelength: %{text}<extra></extra>' ,
     type: 'scatter3d',
-    name: 'spectral locus',
+    name: 'Spectral locus',
   };
 
   var data = [trace];
  
   var layout = {
-    height: 800,
-    showlegend: false,
+    //height: 800,
     margin: {
       l: 0,
       r: 0,
       b: 0,
-      t: 100
+      t: 0
     },
-    title: 'Spectral locus in RGB color space',
+    name: 'Spectral locus',
+    showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.5,
+    },
+    //title: 'Spectral locus in RGB color space',
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
     scene: {
       camera: {
         projection: {
@@ -956,6 +974,7 @@ function showPrim(plot, hide) {
       text: [plot.data[0].text[primIdx[2]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[2]]],
       mode: 'lines+markers',
       type: 'scatter3d',
+      name: 'Primaries',
       line: {
         color: '#fc8c03',
         width: 2,
@@ -1064,7 +1083,8 @@ function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
     var data_update = {'x': [chart.data.datasets[0].data],
                        'y': [chart.data.datasets[1].data],
                        'z': [chart.data.datasets[2].data]};
-    var layout_update = {'title': 'Spectral locus in RGB color space',
+    var layout_update = {
+                         //'title': 'Spectral locus in RGB color space',
                          'scene.xaxis.title.text': 'R',
                          'scene.yaxis.title.text': 'G',
                          'scene.zaxis.title.text': 'B',
@@ -1095,7 +1115,8 @@ function registerRGB2rgb(id, chart, plot, wlen, rgbLocusMarkerColors) {
     var data_update = {'x': [cR],
                        'y': [cG],
                        'z': [cB]};
-    var layout_update = {'title': 'Spectral locus in rgb chromaticity plot',
+    var layout_update = {
+                         //'title': 'Spectral locus in rgb chromaticity plot',
                          'scene.xaxis.title.text': 'r',
                          'scene.yaxis.title.text': 'g',
                          'scene.zaxis.title.text': 'b',

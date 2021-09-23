@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>Headers · Bootstrap v5.1</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/headers/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="headers.css" rel="stylesheet">
+
+    <!-- JavaScript -->
+    <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [ ['$$','$$'], ['\[','\]'] ]
+          }
+        });
+        MathJax.Hub.Register.StartupHook("End",function () {
+          console.log("Mathjax loaded");
+          console.log(typeof MathJax);
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, "TFS"]);
+        });
+    </script>
+  </head>
+  <body>
+
+<main>
+  <div class="container">
+    <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+        <h2>Tutorial 1: Deriving Color Matching Functions From Cone Fundamentals</h2>
+      </a>
+    </header>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Introduction</h3>
+        <p>This is an interactive tutorial showing how to derive the Color Matching Functions (CMFs) from the cone fundamentals. It demonstratres the linear transformation between the cone fundamentals and the CMFs. You will get to appreciate the difference between absolute quantity of light (e.g., radiance) and relative units used in a particular color space, and the importance of the reference white in a color space.</p>
+        <p>The tutorial is interactive, which means you get to build the CMFs step by step yourself! You get to pick the primaries and the reference white, and can even build your own exotic LMS cone fundamentals to drive the rest of the tutorial. You will see some of the fields in the texts are initially ${\boxed{??}}$. They are numbers that depend on your actions, e.g., the selection of the primaries, and will be dynamically updated as you go.</p>
+        <p><b>Caveats</b>: this is not how the CIE 1931 RGB CMFs are derived. We describe that process in this <a href="http://yuhaozhu.com/blog/cmf.html">post</a>. Among many differences, CIE 1931 RGB CMFs did not make use of the cone fundamentals; they started from earlier color matching experiments that provided the chromaticity coordinates, adjusted the primaries and the reference white, and used the CIE 1924 photopic lumininous efficiency function to convert the chromaticity coordinates to absolute quantities.</p>
+        <p>Modern-day research usually experimentally obtain both the cone fundamentals and the CMFs and calibrate the results with each other to derive a best-fit linear transformation, which is then applied to the CMFs to derive a "clean" set of cone fundamentals. In fact, the cone fundamentals that we will use in this tutorial are derived that way. See, for instance, <a href="https://www.osapublishing.org/josaa/fulltext.cfm?uri=josaa-10-12-2491&id=4871">Stockman et al. (1993)</a> and <a href="https://www.sciencedirect.com/science/article/pii/S0042698900000213">Stockman and Sharpe (2000)</a>.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 0: Understanding the LMS Cone Fundamentals</h3>
+        <p>The chart above shows the spectral sensitivities of the three cone types (L, M, and S), which are also called the cone fundamentals. The plot on the right is just the 3D version of it. The sensitivity chart tells us the amount of cone responses (y-axis) stimulated from different spectral lights (x-axis) of equal energy/power/radiance. The absolute values of the responses don't matter, and they are customarily normalized to peak at unity.</p>
+        <p>The specific cone fundamentals we use are the <a href="http://cvrl.ioo.ucl.ac.uk/cones.htm">2-deg fundamentals by Stockman and Sharpe (2000)</a>, which is originally given between $390~nm$ and $830~nm$ at a $5~nm$ inverval. We clip anything beyond $780~nm$ and replicate the data at $390~nm$ for $380~nm$ and $385~nm$. You might sometimes see <a href="http://cvrl.ioo.ucl.ac.uk/conerequest_ss2.php">a different version</a> of the cone sensitivities, where the y-axis is in log-scale and the x-axis is equal-quantal rather than equal-energy. "Equal quantal" means the cone responses are shown for spectral lights of the same amount of photons.</p>
+      </div>
+      <div class="row">
+        <div class="col-sm-7">
+          <canvas id="canvasLMS"></canvas>
+          <div>
+            <br>
+            <div><button id="resetChartLMS">Chart Reset</button> Reset the chart to the original LMS cone fundamentals and remove primary selections if any.</div>
+            <br>
+            <div><button id="resetZoomLMS">Reset Zoom</button> Reset the zoom of the chart.</div>
+          </div>
+        </div>
+        <div class="col-sm-5">
+          <div id="lmsDiv"></div>
+        </div>
+      </div>
+      <div class="row pt-2">
+        <h4>How to Interact With the Charts:</h4>
+        <p>Move your mouse to <b>hover the chart</b>. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the right chart will be highlighted too as you hover.</p>
+        <p>Point your mouse at a particular point on any of the curves, you can then start <b>dragging the curve</b> to build a set of new, hypothetical LMS cone fundanemtals. Notice that the LMS spectral locus on the right will change too. If you do so, the rest of the steps in this tutorial will assume the new set of cone fundamentals.</p>
+        <p>You can scroll the mouse to <b>zoom</b> the figure. You can horizontally pan through the figure by holding Shift and drag the mouse.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h2>Step 1: Pick the Primaries</h2>
+        <p>Click <button id="selPrim">Pick Primaries</button>. Two things will happen; take a moment to understand what's going on before moving on.</p>
+        <p>First, the LMS chart above will dim and lock (no dragging to change the curves). You can then point the mouse at a point on a curve and click it to pick a primary. When you click a point, the L, M, and S responses at the corresponding wavelength are highlighted, indicating that one primary has been selected. The chart will lock once three primaries are selected.</p>
+        <p>The tool assumes that the first primary selected is the blue primary, the second one is green, and the last one is red. Of course R, G, and B are just names, but if you want the colors of the charts later to match your intuition, select the primaries from <b>left to right</b>. The primaries need not be spectral lights, but we limit ourselves to spectral lights in this tutorial for simplicity purposes.</p>
+        <p>Meanwhile, the following system of (three) linear equations will be built as you select the primaries. The system has the form $A_{3\times 3} \times M_{3\times n} = C_{3\times n}$, where $n$ is the number of spectral lights in the LMS chart, which is $81$ in our case, since the chart spans $380~nm$ to $780~nm$ at a $5~nm$ interval. This linear system lies at the heart of building RGB CMFs from the LMS cone fundamentals. Let's unpack it a bit more.</p>
+        <div id="primText">
+          ${}$ ${}$ ${}$ ${}$ ${}$ ${}$
+        </div>
+        <p>This linear system essentially asks the following question: how much primary light each, in radiance, do we need to match the color of each spectral light under one unit radiance? This information is encoded in matrix $M$, which is what we want to solve for.</p>
+        <p>To solve this question, recall the key invariant in colorimetry: to match color between two lights <b>their LMS cone responses must match</b>. Therefore, we will first express the LMS cone responeses of each spectral light, which is what matrix $C$ encodes. Each column vector in matrix $C$ corresponds to a spectral light, and represents the L, M, and S cone responses under one unit radiance of that spectral light. Naturally, numbers in each column are exactly the same as the numbers in the tooltip as you hover the mouse over the LMS chart above.</p>
+        <p>Matrix $M$ is what we want to solve for. Each column vector of matrix $M$ corresponds to a spectral light, and represents the amount (in radiances) of the three primary lights needed to match the color of that spectral light under one unit radiance. Without losing generality, let's take L cone as an example and ask: how much primary lights do we need to match the L cone response of the spectral light at, say, $500~nm$? Well, according to the <a href="https://en.wikipedia.org/wiki/Grassmann%27s_laws_(color_science)">linearity of light</a>, the L cone response of the spectral light $500~nm$ must match the <i>total</i> L cone responses contributed by the three primary lights.</p>
+        <p>The L cone response contribution of a primary light is: the radiance of the primary $\times$ L cone response per unit radiance of that primary. The former is what we solve for, and the latter can be directly read from the LMS chart above and is exactly what matrix $A$ encodes. Matrix $A$ is a $3 \times 3$ matrix, where the first row represents the amount of L cone responseses contributed by the three primaries per unit radiance; the second and third rows encode the same information, but for the M cone and the S cone, respectively.</p>
+        <p id="text1">Naturally, matrix $A$ depends on what exactly the three primaries are. Before the primaries are selected, matrix $A$ is unknown (thus the question marks in the matrix). As you select your primaries, matrix $A$ will be dymamically updated. If you think about it, each column in matrix $A$ is same as the LMS cone responses of the corresponding wavelength in the LMS chart above. For instance, the first primary you choose is ${\boxed{??}}$ and the first column in matrix $A$ is ${\boxed{??}}$; if you hover the mouse at wavelength ${\boxed{??}}$, you will see the same three numbers.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3" style="grid-template-columns: 2fr 2fr;">
+      <div class="bg-light border rounded-3 pt-3 mb-4 px-4">
+        <div class="row">
+          <h2>Step 2: Solve the Linear System</h2>
+          <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" disabled>Solve</button> to solve the linear system and then click <button id="plotUnscaledCMF" disabled>Plot</button> to plot the result. If you change your primary selection or the LMS cone fundamentals, simply click the two buttons again; the results will be updated.</p>
+          <canvas id="canvasUnscaledCMF"></canvas>
+        </div>
+        <div class="row pt-4">
+          <h4>How to Interpret the Chart:</h4>
+          <p id="text2">The figure above is not quite your color matching functions yet. The triple points at each wavelength tells us how much <b>radiance</b> of the primary lights we need to mix in order to match the color of <b>one unit radiance</b> (that is, $1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. For instance, to match the color of $1 \frac{W}{m^{2} \cdot sr}$ of spectral light $500~nm$, we need to mix ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$ $\frac{W}{m^{2} \cdot sr}$ of the blue primary. Hover your mouse over the chart above at $500~nm$ to confirm this. This is a natural implication of solving the linear system on the left, where matrix $C$ encodes the cone responsese of one unit radiance of each spectral light.</p>
+          <p>In contrast, instead of referring to radiances our familiar CMFs tell us how many <b>units</b> of each primary light to mix. How is one unit of, say red primary, related to the radiance? It <i>could</i> be arbitrary. Nothing prevents us from calling $1 \frac{W}{m^{2} \cdot sr}$ radiance as one unit of red primary, or $19.5 \frac{W}{m^{2} \cdot sr}$ radiance as one unit of green, or $5,000 \frac{W}{m^{2} \cdot sr}$ radiance as one unit of blue. Instead of picking arbitrary numbers, we will define an intuitive unit system: equal units of the primaries light should match the color of the "white light". This is still somewhat arbitrary but certainly intuitive: we naturally expect white to be produced from mixing equal amount of primary lights.</p>
+          <p>Give this understanding, two steps still remain before we can produce the final CMFs from the radiance chart above: 1) picking a light to represent white (step 3), and 2) converting radiance to units based on the chosen white light (step 4).</p>
+        </div>
+      </div>
+      <div class="bg-light border rounded-3 pt-3 mb-4 px-4">
+        <div class="row">
+          <h2>Step 3: Pick the White</h2>
+          <select id="whiteSel" style="width: 150px" class="my-2">
+            <option value="D65">D65</option>
+            <option value="A">A</option>
+            <option value="E">E</option>
+            <option value="Draw">Draw white</option>
+          </select>
+        </div>
+        <div class="row">
+          <canvas id="canvasWhite"></canvas>
+          <div><button id="resetZoomWhite" class="my-2">Reset Zoom</button> Reset the zoom of the chart.</div>
+        </div>
+        <div class="row pt-4">
+          <h4>What is White?</h4>
+          <p>White, as common as it is, does not refer to a specific light. Instead, many different light spectra are perceived "white-ish" and can be used as the reference white. CIE publishes a set of so-called <a href="https://en.wikipedia.org/wiki/Standard_illuminant">Standard Illuminants</a>, which are commonly used as reference whites for color spaces. For instance, Standard Illuminant D65 resembles noon daylight and is used in the sRGB color space among others; Standard Illuminant A resembles incandescent light. A special Standard Illuminant E, a.k.a., Equal-Energy White, has a flat SPD; it is used as the reference white in the CIE 1931 RGB color space and the CMFs.</p>
+          <p>Use the select box above to choose between D65, A, and E. You can also draw your own reference white. The original SPDs in the CIE standard are normalized to a value of 100 at the wavelength of $560~nm$. For simplicity, we normalize the SPDs such that the peak is 1.0. That is, the maximum radiance of each illuminant is $1 \frac{W}{m^{2} \cdot sr}$.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h2>Step 4: Generate Color Matching Functions!</h2>
+        <div id = "text4">
+          <p>Given the specific white, we can now convert the radiance chart above to the CMFs. Here is the process. We first calculate how many primary lights in terms of <i>radiance</i> are needed to match the color of the given white. We can <button id="calcCMFScale" disabled>Calculate</button> this by:</p>
+            <p>$\sum_{380}^{780}W(\lambda)R(\lambda)$ = ${\boxed{??}}$,</p>
+            <p>$\sum_{380}^{780}W(\lambda)G(\lambda)$ = ${\boxed{??}}$,</p>
+            <p>$\sum_{380}^{780}W(\lambda)B(\lambda)$ = ${\boxed{??}}$,</p>
+          <p>for $\lambda\in[380~nm, 780~nm]$ at a $5~nm$ interval; $W(\lambda)$ is the SPD of the white you choose on the left; and $R(\lambda)$, $G(\lambda)$, and $B(\lambda)$ are the spectral radiance curves plotted above.</p>
+          <p>Under the white and the primaries that you selected, the calculation shows that we need to mix ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of blue primary, in order to match the color of $1 \frac{W}{m^{2} \cdot sr}$ of the chosen white.</p>
+          <p>As established earlier, the unit system is so defined that white color is produced by mixing <i>equal units of the primary lights</i>. Therefore, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the blue primary must correspond to the same unit of the three primaries, respectively. Whether they correspond to 1 unit each, 10 units each, or 1 million units each depends on the exact radiance of the reference white we match, but is also not important as we usually just care about the ratio of the primary quantities.</p>
+          <p>Therefore, to convert from radiance to units, we would simply divide each red radiance value in the chart above by ${\boxed{??}}$, each green radiance value by ${\boxed{??}}$, and each blue radiance value by ${\boxed{??}}$, essentially assuming that $1 \frac{W}{m^{2} \cdot sr}$ reference white is matched with exactly 1 unit of the three primaries:</p>
+          <p>$\bar{r}(\lambda) = R(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
+          <p>$\bar{g}(\lambda) = G(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
+          <p>$\bar{b}(\lambda) = B(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
+          <p>where $\bar{r}$, $\bar{g}$, and $\bar{b}$ are our CMFs. Let's <button id="plotScaleCMF" disabled>Plot</button> them. If you change the white light on the left, simply click the calculate and the plot buttons again; the new CMFs will be updated.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h2>Interpreting the Results</h2>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-7">
+          <canvas id="canvasCMF"></canvas>
+          <br>
+          <div><button id="resetZoomRGB" disabled>Reset Zoom</button> Reset the zoom of the chart.</div>
+        </div>
+        <div class="col-sm-5">
+          <div id="rgbDiv"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h4>How to Interact With the Charts:</h4>
+        <p>The chart on the left plots the color matching functions of the RGB color space that you just built. The chart on the right plots the spectral locus in that color space. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot Locus in Chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course go back and <button id="rgb2RGB" disabled>Plot Locus in RGB</button>. Finally, you can <button id="showPrim" disabled>Highlight Primaries</button> that you chose for this color space.</p>
+      </div>
+
+      <div class="row">
+        <h4>How to Interpret the Chart:</h4>
+        <div id="cmftext">
+          <p>The triple points at each wavelength tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in your color space.</p>
+          <p>Naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; hover you mouse to that wavelength you will see that the tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ --- the first two values being 0. Note that the value for the blue primary isn't 0. Nothing wrong with that; it just means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$. You should confirm this for the other two primaries. If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around.</p>
+          <p>Every (spectral) light has a set of tristimulus values in the LMS chart (the cone responses) and another set of tristimulus values in your RGB color space. These two sets of values are related by one linear transformation, which combines a linear transformation in Step 1 and another linear transformation (scaling) in Step 4. In this sense, you can think of LMS as a color space, too. The primaries in the LMS space are imaginary lights, each of which stimulates exclusively only one cone type.</p>
+          <p>If you use the original cone fundamentals (i.e., did not drive this experiment using your own exotic cone fundamentals) and the primaries are nicely spread across the spectrum, you will likely see, in the chromaticity plot, that the gamut of your color space (the triangle formed by the primaries) does <i>not</i> include any other spectral light except the primaries. This shows that no other spectral light can be produced from your RGB color space, which is generally true for any RGB color space.</p>
+        </div>
+      </div>
+
+    </div>
+
+  <div class="b-example-divider"></div>
+  </div>
+
+
+</main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+
+    <script src="cmf.js"></script>
+  </body>
+</html>
