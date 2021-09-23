@@ -28,7 +28,10 @@
 
 <body>
   <div>
-    <h1>Deriving Color Matching Functions From Cone Fundamentals</h1>
+    <h1>Tutorial 1: Deriving Color Matching Functions From Cone Fundamentals</h1>
+    <p>This is an interactive tutorial showing how to derive the Color Matching Functions (CMFs) from the cone fundamentals. It demonstratres the linear transformation between the cone fundamentals and the CMFs. You will get to appreciate the difference between absolute quantity of light (e.g., radiance) and relative units used in a particular color space, and the importance of the reference white in a color space.</p>
+    <p>The tutorial is interactive, which means you get to build the CMFs step by step yourself! You get to pick the primaries and the reference white, and can even build your own exotic LMS cone fundamentals to drive the rest of the tutorial. You will see some of the fields in the texts are initially ${\boxed{??}}$. They are numbers that depend on your actions, e.g., the selection of the primaries, and will be dynamically updated as you go.</p>
+    <p><b>Caveats</b>: this is not how the CIE 1931 RGB CMFs are derived. We describe that process in this <a href="http://yuhaozhu.com/blog/cmf.html">post</a>. Among many differences, CIE 1931 RGB CMFs did not make use of the cone fundamentals; they started from earlier color matching experiments that provided the chromaticity coordinates, adjusted the primaries and the reference white, and used the CIE 1924 photopic lumininous efficiency function to convert the chromaticity coordinates to absolute quantities. Modern-day research usually experimentally obtain both the cone fundamentals and the CMFs and calibrate the results with each other to derive a best-fit linear transformation, which is then applied to the CMFs to derive a "clean" set of cone fundamentals. In fact, the cone fundamentals that we will use in this tutorial are derived that way. See, for instance, <a href="https://www.osapublishing.org/josaa/fulltext.cfm?uri=josaa-10-12-2491&id=4871">Stockman et al. (1993)</a> and <a href="https://www.sciencedirect.com/science/article/pii/S0042698900000213">Stockman and Sharpe (2000)</a>.</p>
   </div>
   <!-- LMS -->
   <div class="flex-container">
@@ -37,15 +40,18 @@
         <canvas id="canvasLMS"></canvas>
       </div>
       <div>
+        <div><button id="resetChartLMS">Chart Reset</button> Reset the chart to the original LMS cone fundamentals and remove primary selections if any.</div>
+        <div><button id="resetZoomLMS">Reset Zoom</button> Reset the zoom of the chart.</div>
+      </div>
+      <div>
+        <h2>Step 0: Understanding the LMS Cone Fundamentals</h2>
+        <p>The chart above shows the spectral sensitivities of the three cone types (L, M, and S), which are also called the cone fundamentals. The plot on the right is just the 3D version of it. The sensitivity chart tells us the amount of cone responses (y-axis) stimulated from different spectral lights (x-axis) of equal energy/power/radiance. The absolute values of the responses don't matter, and they are customarily normalized to peak at unity.</p>
+        <p>The specific cone fundamentals we use are the <a href="http://cvrl.ioo.ucl.ac.uk/cones.htm">2-deg fundamentals by Stockman and Sharpe (2000)</a>, which is originally given between $390~nm$ and $830~nm$ at a $5~nm$ inverval. We clip anything beyond $780~nm$ and replicate the data at $390~nm$ for $380~nm$ and $385~nm$. You might sometimes see <a href="http://cvrl.ioo.ucl.ac.uk/conerequest_ss2.php">a different version</a> of the cone sensitivities, where the y-axis is in log-scale and the x-axis is equal-quantal rather than equal-energy. "Equal quantal" means the cone responses are shown for spectral lights of the same amount of photons.</p>
         <h2>How to Interact With the Chart:</h2>
         <p>Move your mouse to <b>hover the chart</b>. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the right chart will be highlighted too as you hover.</p>
         <p>Point your mouse at a particular point on any of the curves, you can then start <b>dragging the curve</b> to build a set of new, hypothetical LMS cone fundanemtals. Notice that the LMS spectral locus on the right will change too. If you do so, the rest of the steps in this tutorial will assume the new set of cone fundamentals.</p>
-        <p>You can scroll the mouse to zoom the figure. You can horizontally pan through the figure by holding Shift and drag the mouse.</p>
+        <p>You can scroll the mouse to <b>zoom</b> the figure. You can horizontally pan through the figure by holding Shift and drag the mouse.</p>
       </div>
-      <div>
-        <button id="resetChartLMS">Chart Reset</button> Reset the chart to the original LMS cone fundamentals and remove primary selections if any.
-      </div>
-      <div><button id="resetZoomLMS">Reset Zoom</button> Reset the zoom of the chart.</div>
     </div>
     <div class="flex-child">
       <div id="lmsDiv"></div>
@@ -142,6 +148,7 @@
       </div>
       <h2>How to Interact With the Chart:</h2>
       <p>This plot shows the spectral locus in the RGB color space that you just built. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot Locus in Chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course go back and <button id="rgb2RGB" disabled>Plot Locus in RGB</button>. Finally, you can <button id="showPrim" disabled>Highlight Primaries</button> that you chose for this color space.</p>
+      <p>If you use the original cone fundamentals (i.e., did not build your own exotic cone fundamentals) and the primaries are nicely spread across the spectrum, you will likely see, in the chromaticity plot, that the gamut your color space, i.e., the triangle formed by the primaries, does <i>not</i> include any other spectral light except the primaries. This shows that no other spectral light can be produced from your RGB color space, which is generally true for any RGB color space.</p>
     </div>
   </div>
 
