@@ -198,7 +198,7 @@ function registerCalcCMFScale(buttonId, wlen) {
 }
 
 var lMat = [[], [], []];
-var primIdx = [];
+var primIdx = []; // in the BGR order since that's the order we expect users to select the primaryes
 var resMat;
 
 function registerPlotScaleCMF(buttonId, wlen) {
@@ -238,6 +238,7 @@ function updateScaledCMF(chart, plot, sCMFR, sCMFG, sCMFB, wlen) {
 
   var data_update = {'x': [sCMFR], 'y': [sCMFG], 'z': [sCMFB]};
   Plotly.update(plot, data_update, {}, [0]);
+  plot.mode = 'cmf';
 
   if (plot.data.length == 2) {
     showPrim(plot);
@@ -824,7 +825,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   QUEUE.Push(["Text", cmfJax[4], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
   QUEUE.Push(["Text", cmfJax[5], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
   QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
-  QUEUE.Push(["Text", cmfJax[7], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[8], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
 
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
@@ -926,7 +927,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
 }
 
 function showPrim(plot) {
-  var prims = [];
+  var prims = []; // in the RGB order (different from primIdx!)
   if (plot.mode == 'cmf') {
     var bPrim = [+plot.data[0].x[primIdx[0]].toFixed(6),
                  +plot.data[0].y[primIdx[0]].toFixed(6),
@@ -947,7 +948,7 @@ function showPrim(plot) {
       x: [prims[0][0], prims[1][0], prims[2][0], prims[0][0]],
       y: [prims[0][1], prims[1][1], prims[2][1], prims[0][1]],
       z: [prims[0][2], prims[1][2], prims[2][2], prims[0][2]],
-      text: [plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[2]], plot.data[0].text[primIdx[0]]],
+      text: [plot.data[0].text[primIdx[2]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[2]]],
       mode: 'lines+markers',
       type: 'scatter3d',
       line: {
@@ -970,7 +971,9 @@ function showPrim(plot) {
     // have to get an array of arrays
     var data_update = {'x': [[prims[0][0], prims[1][0], prims[2][0], prims[0][0]]],
                        'y': [[prims[0][1], prims[1][1], prims[2][1], prims[0][1]]],
-                       'z': [[prims[0][2], prims[1][2], prims[2][2], prims[0][2]]]};
+                       'z': [[prims[0][2], prims[1][2], prims[2][2], prims[0][2]]],
+                       'text': [[plot.data[0].text[primIdx[2]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[2]]]],
+                      };
     Plotly.update(plot, data_update, {}, [1]);
   }
 
@@ -1048,57 +1051,14 @@ function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
   $(id).on('click', function(evt) {
     plot.mode = 'cmf';
 
-    //var trace = {
-    //  x: chart.data.datasets[0].data,
-    //  y: chart.data.datasets[1].data,
-    //  z: chart.data.datasets[2].data,
-    //  text: wlen,
-    //  mode: 'lines+markers',
-    //  marker: {
-    //    size: 6,
-    //    opacity: 0.8,
-    //    color: rgbLocusMarkerColors,
-    //  },
-    //  type: 'scatter3d',
-    //  name: 'spectral locus in RGB',
-    //};
-
-    //// will be instantaneous, since animation applies to 2d plots.
-    //// TODO: keep this or switch to update?
-    //Plotly.animate('rgbDiv', {
-    //  data: [trace],
-    //  traces: [0],
-    //  layout: {
-    //    title: 'Spectral locus in RGB color space',
-    //    scene: {
-    //      xaxis: {
-    //        title: {
-    //          text: 'R'
-    //        }
-    //      },
-    //      yaxis: {
-    //        title: {
-    //          text: 'G'
-    //        }
-    //      },
-    //      zaxis: {
-    //        title: {
-    //          text: 'B'
-    //        }
-    //      },
-    //    }
-    //  }
-    //}, {
-    //  transition: {
-    //    duration: 500,
-    //    easing: 'linear'
-    //  },
-    //});
-
     var data_update = {'x': [chart.data.datasets[0].data],
                        'y': [chart.data.datasets[1].data],
                        'z': [chart.data.datasets[2].data]};
-    var layout_update = {'title': 'Spectral locus in RGB color space'};
+    var layout_update = {'title': 'Spectral locus in RGB color space',
+                         'scene.xaxis.title.text': 'R',
+                         'scene.yaxis.title.text': 'G',
+                         'scene.zaxis.title.text': 'B',
+                        };
     Plotly.update(plot, data_update, layout_update, [0]);
 
     if (plot.data.length == 2) {
@@ -1122,57 +1082,14 @@ function registerRGB2rgb(id, chart, plot, wlen, rgbLocusMarkerColors) {
     var cG = math.dotDivide(tCMFG, sumRGB);
     var cB = math.dotDivide(tCMFB, sumRGB);
 
-    //var cTrace = {
-    //  x: cR,
-    //  y: cG,
-    //  z: cB,
-    //  text: wlen,
-    //  mode: 'lines+markers',
-    //  marker: {
-    //    size: 6,
-    //    opacity: 0.8,
-    //    color: rgbLocusMarkerColors,
-    //  },
-    //  type: 'scatter3d',
-    //  name: 'spectral locus in rgb',
-    //};
-
-    //// will be instantaneous, since animation applies to 2d plots.
-    //// TODO: keep this or switch to update?
-    //Plotly.animate('rgbDiv', {
-    //  data: [cTrace],
-    //  traces: [0],
-    //  layout: {
-    //    title: 'Spectral locus in rgb chromaticity plot',
-    //    scene: {
-    //      xaxis: {
-    //        title: {
-    //          text: 'r'
-    //        }
-    //      },
-    //      yaxis: {
-    //        title: {
-    //          text: 'g'
-    //        }
-    //      },
-    //      zaxis: {
-    //        title: {
-    //          text: 'b'
-    //        }
-    //      },
-    //    }
-    //  }
-    //}, {
-    //  transition: {
-    //    duration: 500,
-    //    easing: 'linear'
-    //  },
-    //});
-
     var data_update = {'x': [cR],
                        'y': [cG],
                        'z': [cB]};
-    var layout_update = {'title': 'Spectral locus in rgb chromaticity plot'};
+    var layout_update = {'title': 'Spectral locus in rgb chromaticity plot',
+                         'scene.xaxis.title.text': 'r',
+                         'scene.yaxis.title.text': 'g',
+                         'scene.zaxis.title.text': 'b',
+                        };
     Plotly.update(plot, data_update, layout_update, [0]);
 
     if (plot.data.length == 2) {
