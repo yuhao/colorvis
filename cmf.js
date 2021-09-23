@@ -164,8 +164,6 @@ var rRad, gRad, bRad;
 
 function registerCalcCMFScale(buttonId, wlen) {
   $(buttonId).on('click', function(evt) {
-    $('#plotScaleCMF').prop('disabled', false);
-
     var unscaledR = window.cmfUnscaledChart.data.datasets[0].data;
     var unscaledG = window.cmfUnscaledChart.data.datasets[1].data;
     var unscaledB = window.cmfUnscaledChart.data.datasets[2].data;
@@ -194,6 +192,10 @@ function registerCalcCMFScale(buttonId, wlen) {
     QUEUE.Push(["Text", text4Jax[30], rRad]);
     QUEUE.Push(["Text", text4Jax[33], gRad]);
     QUEUE.Push(["Text", text4Jax[36], bRad]);
+
+    QUEUE.Push(function () {
+      $('#plotScaleCMF').prop('disabled', false);
+    });
   });
 }
 
