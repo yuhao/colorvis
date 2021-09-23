@@ -27,6 +27,9 @@
 
 
 <body>
+  <div>
+    <h1>Deriving Color Matching Functions From Cone Fundamentals</h1>
+  </div>
   <!-- LMS -->
   <div class="flex-container">
     <div class="flex-child">
@@ -35,8 +38,8 @@
       </div>
       <div>
         <h2>How to interact with this chart:</h2>
-        <p>Move your mouse to hover the chart. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the right chart will be highlighted too as you hover.</p>
-        <p>Point your mouse at a particular point on any of the curves, you can then start dragging the curve to build a set of new, hypothetical LMS cone fundanemtals. Notice that the LMS spectral locus on the right will change too.</p>
+        <p>Move your mouse to <b>hover the chart</b>. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the right chart will be highlighted too as you hover.</p>
+        <p>Point your mouse at a particular point on any of the curves, you can then start <b>dragging the curve</b> to build a set of new, hypothetical LMS cone fundanemtals. Notice that the LMS spectral locus on the right will change too. If you do so, the rest of the steps in this tutorial will assume the new set of cone fundamentals.</p>
         <p>You can scroll the mouse to zoom the figure. You can horizontally pan through the figure by holding Shift and drag the mouse.</p>
       </div>
       <div>
@@ -70,7 +73,7 @@
     </div>
     <div class="flex-child">
       <h2>Step 2: Solve the linear system</h2>
-      <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" disabled>Solve</button> to solve the linear system and then click <button id="plotUnscaledCMF" disabled>Plot</button> to plot the result.</p>
+      <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" disabled>Solve</button> to solve the linear system and then click <button id="plotUnscaledCMF" disabled>Plot</button> to plot the result. If you change your primary selection or the LMS cone fundamentals, simply click the two buttons again; the results will be updated.</p>
       <div class="wrapper">
         <canvas id="canvasUnscaledCMF"></canvas>
       </div>
@@ -116,7 +119,7 @@
         <p>$\bar{r}(\lambda) = R(\lambda)/$${}$$,\lambda \in [380~nm, 780~nm]$</p>
         <p>$\bar{g}(\lambda) = G(\lambda)/$${}$$,\lambda \in [380~nm, 780~nm]$</p>
         <p>$\bar{b}(\lambda) = B(\lambda)/$${}$$,\lambda \in [380~nm, 780~nm]$</p>
-        <p>where $\bar{r}$, $\bar{g}$, and $\bar{b}$ are our CMFs. Let's <button id="plotScaleCMF" disabled>plot</button> them.</p>
+        <p>where $\bar{r}$, $\bar{g}$, and $\bar{b}$ are our CMFs. Let's <button id="plotScaleCMF" disabled>plot</button> them. If you change the white light on the left, simply click the calculate and the plot buttons again; the new CMFs will be updated.</p>
       </div>
     </div>
   </div>
@@ -140,8 +143,7 @@
         <div id="rgbDiv"></div>
       </div>
       <h2>How to interact with the chart:</h2>
-      <p>This plot shows the spectral locus in the RGB color space that you just built. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot locus in chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course convert it back and <button id="rgb2RGB" disabled>Plot in RGB</button>.</p>
-      <p>You can <button id="showPrim" disabled>Highlight primaries</button> that you chose for this color space and <button id="showGamut" disabled>Show gamut</button> of the color space.</p>
+      <p>This plot shows the spectral locus in the RGB color space that you just built. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot locus in chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course convert it back and <button id="rgb2RGB" disabled>Plot in RGB</button>. Finally, you can <button id="showPrim" disabled>Highlight primaries</button> that you chose for this color space.</p>
     </div>
   </div>
 
