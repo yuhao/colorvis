@@ -12,7 +12,7 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
 var text1Jax, text2Jax, text4Jax;
-var allJax;
+var allJax, cmfJax;
 
 QUEUE.Push(function () {
   allJax = MathJax.Hub.getAllJax('primText');
@@ -20,6 +20,8 @@ QUEUE.Push(function () {
   text1Jax = MathJax.Hub.getAllJax('text1');
   text2Jax = MathJax.Hub.getAllJax('text2');
   text4Jax = MathJax.Hub.getAllJax('text4');
+
+  cmfJax = MathJax.Hub.getAllJax('cmftext');
 });
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
@@ -212,6 +214,7 @@ function registerPlotScaleCMF(buttonId, wlen) {
     $('#resetZoomRGB').prop('disabled', false);
     $('#RGB2rgb').prop('disabled', false);
     $('#rgb2RGB').prop('disabled', false);
+    $('#showPrim').prop('disabled', false);
 
     var uCMFR = window.cmfUnscaledChart.data.datasets[0].data;
     var uCMFG = window.cmfUnscaledChart.data.datasets[1].data;
@@ -412,11 +415,11 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     var post = "\\end{bmatrix}";
 
     var col1, col2, col3;
-    var col1 = "\\Bigg[ \\begin{matrix}?? \\\\ ?? \\\\ ??\\end{matrix}"
+    var col1 = "\\Bigg[ \\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
     QUEUE.Push(["Text", lmat1, col1]);
-    var col2 = "\\begin{matrix}?? \\\\ ?? \\\\ ??\\end{matrix}"
+    var col2 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
     QUEUE.Push(["Text", lmat2, col2]);
-    var col3 = "\\begin{matrix}?? \\\\ ?? \\\\ ??\\end{matrix} \\Bigg]"
+    var col3 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix} \\Bigg]"
     QUEUE.Push(["Text", lmat3, col3]);
 
     var m1, m2, m3;
@@ -673,7 +676,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         autorange: true,
         //range: [0, 1],
         zeroline: true,
-        zerolinecolor: '#DA2500',
+        zerolinecolor: '#000000',
         zerolinewidth: 5,
         showspikes: false,
         title: {
@@ -684,7 +687,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         autorange: true,
         //range: [0, 1],
         zeroline: true,
-        zerolinecolor: '#DA2500',
+        zerolinecolor: '#000000',
         zerolinewidth: 5,
         showspikes: false,
         title: {
@@ -695,7 +698,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         autorange: true,
         //range: [0, 1],
         zeroline: true,
-        zerolinecolor: '#DA2500',
+        zerolinecolor: '#000000',
         zerolinewidth: 5,
         showspikes: false,
         title: {
@@ -817,6 +820,13 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
 
   registerResetZoom('#resetZoomRGB', window.cmfChart);
 
+  QUEUE.Push(["Text", cmfJax[1], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[2], window.cmfChart.data.datasets[0].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[3], window.cmfChart.data.datasets[1].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[4], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[5], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
   var trace = {
@@ -864,7 +874,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         autorange: true,
         //range: [0, 1],
         zeroline: true,
-        zerolinecolor: '#DA2500',
+        zerolinecolor: '#000000',
         zerolinewidth: 5,
         showspikes: false,
         title: {
@@ -875,7 +885,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         autorange: true,
         //range: [0, 1],
         zeroline: true,
-        zerolinecolor: '#DA2500',
+        zerolinecolor: '#000000',
         zerolinewidth: 5,
         showspikes: false,
         title: {
@@ -886,7 +896,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         autorange: true,
         //range: [0, 1],
         zeroline: true,
-        zerolinecolor: '#DA2500',
+        zerolinecolor: '#000000',
         zerolinewidth: 5,
         showspikes: false,
         title: {
@@ -896,12 +906,12 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
     }
   };
  
-  Plotly.newPlot('rgbDiv', data, layout);
-
   var rgbPlot = document.getElementById('rgbDiv');
-  rgbPlot.on('plotly_click', function(data){
-    plotGamut(data);
-  });
+  Plotly.newPlot(rgbPlot, data, layout);
+
+  //rgbPlot.on('plotly_click', function(data){
+  //  plotGamut(data);
+  //});
 
   // RGB to rgb chromaticity plot
   registerRGB2rgb('#RGB2rgb', window.cmfChart, wlen, rgbLocusMarkerColors);
@@ -981,7 +991,76 @@ function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColo
   });
 }
 
-function registerShowPrim(id, chart, plot, wlen, rgbLocusMarkerColors) {
+function registerShowPrim(id, chart, plot, wlen, baseColors) {
+  $(id).on('click', function(evt) {
+    var colors = Array.from(baseColors);
+    colors[primIdx[0]] = '#da2500';
+    colors[primIdx[1]] = '#da2500';
+    colors[primIdx[2]] = '#da2500';
+    var update = {'marker.color': [colors]};
+    Plotly.restyle(plot, update, [0]);
+
+    showGamut(plot);
+  });
+}
+
+function showGamut(plot) {
+  var bPrim = [+plot.data[0].x[primIdx[0]].toFixed(6),
+               +plot.data[0].y[primIdx[0]].toFixed(6),
+               +plot.data[0].z[primIdx[0]].toFixed(6)];
+  var gPrim = [+plot.data[0].x[primIdx[1]].toFixed(6),
+               +plot.data[0].y[primIdx[1]].toFixed(6),
+               +plot.data[0].z[primIdx[1]].toFixed(6)];
+  var rPrim = [+plot.data[0].x[primIdx[2]].toFixed(6),
+               +plot.data[0].y[primIdx[2]].toFixed(6),
+               +plot.data[0].z[primIdx[2]].toFixed(6)];
+
+  var otherPointsX = [rPrim[0] + gPrim[0], // r+g
+                      rPrim[0] + bPrim[0], // r+b
+                      gPrim[0] + bPrim[0], // g+b
+                      rPrim[0] + gPrim[0] + bPrim[0]]; // r+g+b
+  var otherPointsY = [rPrim[1] + gPrim[1], // r+g
+                      rPrim[1] + bPrim[1], // r+b
+                      gPrim[1] + bPrim[1], // g+b
+                      rPrim[1] + gPrim[1] + bPrim[1]]; // r+g+b
+  var otherPointsZ = [rPrim[2] + gPrim[2], // r+g
+                      rPrim[2] + bPrim[2], // r+b
+                      gPrim[2] + bPrim[2], // g+b
+                      rPrim[2] + gPrim[2] + bPrim[2]]; // r+g+b
+  var allPointsX = [0].concat([rPrim[0], gPrim[0], bPrim[0]].concat(otherPointsX));
+  var allPointsY = [0].concat([rPrim[1], gPrim[1], bPrim[1]].concat(otherPointsY));
+  var allPointsZ = [0].concat([rPrim[2], gPrim[2], bPrim[2]].concat(otherPointsZ));
+
+  // add all the lines of the parallelogram
+  var traces = [];
+  // O: 0; R: 1; G: 2: B: 3
+  // RG: 4; RB: 5; GB: 6; RGB: 7
+  var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]]
+  for (var i = 0; i < indices.length; i++) {
+    var start = indices[i][0];
+    var end = indices[i][1];
+    var line = {
+      x: [allPointsX[start], allPointsX[end]],
+      y: [allPointsY[start], allPointsY[end]],
+      z: [allPointsZ[start], allPointsZ[end]],
+      mode: 'lines+markers',
+      type: 'scatter3d',
+      line: {
+        color: '#32a852',
+      },
+      // TODO: customize the tooltip
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        color: '#32a852',
+      },
+      //hoverinfo: 'skip',
+    };
+    traces.push(line);
+  }
+  // https://github.com/plotly/plotly.js/issues/1467
+  // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
+  Plotly.addTraces('rgbDiv', traces);
 }
 
 function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {

@@ -129,14 +129,19 @@
       </div>
       <button id="resetZoomRGB" disabled>Reset zoom</button>
       <h2>How to interpret the chart:</h2>
+      <div id="cmftext">
+        <p>This is our color matching function plot. The triple points at each wavelength tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{sr \cdot m^{2}}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in your color space.</p>
+        <p>Naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${}$; hover you mouse to that wavelength you will see that the tristimulus values of that light are ${}$, ${}$, and ${}$ --- the first two values being 0. Note that the value for the blue primary isn't 0. Nothing wrong with that; it just means you need ${}$ units of ${}$ to match $1 \frac{W}{sr \cdot m^{2}}$ of ${}$. You should confirm this for the other two primaries.</p>
+        <p>If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around.</p>
+      </div>
     </div>
     <div class="flex-child">
       <div class="container">
         <div id="rgbDiv"></div>
       </div>
       <h2>How to interact with the chart:</h2>
-      <p>This plot shows the spectral locus in the RGB color space that you just built. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot locus in chromaticity</button>. In the chromaticity space, all the points on the locus are on the same $r+b+g=1$ plane. You can of course convert it back and <button id="rgb2RGB" disabled>Plot in RGB</button>.</p>
-      <p>You can <button id="showPrim" disabled>Highlight primaries</button> that you chose for this color space.</p>
+      <p>This plot shows the spectral locus in the RGB color space that you just built. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" disabled>Plot locus in chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course convert it back and <button id="rgb2RGB" disabled>Plot in RGB</button>.</p>
+      <p>You can <button id="showPrim" disabled>Highlight primaries</button> that you chose for this color space and <button id="showGamut" disabled>Show gamut</button> of the color space.</p>
     </div>
   </div>
 
