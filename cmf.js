@@ -919,9 +919,6 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   // show lines from the original; all points on the same line have the same chromaticity
   //registerShowChrmLine('#showChrmLine', window.cmfChart, 'rgbDiv');
 
-  // show the gamut under the current primaries
-  //registerGenGamut('#genGamut', window.cmfChart, 'rgbDiv');
-
   // rgb to RGB plot
   registerrgb2RGB('#rgb2RGB', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
 
@@ -993,14 +990,51 @@ function registerRGB2XYZ(id, plot, dCMFR, dCMFG, dCMFB, wlen, rgbLocusMarkerColo
 
 function registerShowPrim(id, chart, plot, wlen, baseColors) {
   $(id).on('click', function(evt) {
-    var colors = Array.from(baseColors);
-    colors[primIdx[0]] = '#da2500';
-    colors[primIdx[1]] = '#da2500';
-    colors[primIdx[2]] = '#da2500';
-    var update = {'marker.color': [colors]};
-    Plotly.restyle(plot, update, [0]);
+    if (plot.data.length > 1) return; // prim trace has been added
 
-    showGamut(plot);
+    //var colors = Array.from(baseColors);
+    //colors[primIdx[0]] = '#da2500';
+    //colors[primIdx[1]] = '#da2500';
+    //colors[primIdx[2]] = '#da2500';
+    //var update = {'marker.color': [colors]};
+    //Plotly.restyle(plot, update, [0]);
+
+    var bPrim = [+plot.data[0].x[primIdx[0]].toFixed(6),
+                 +plot.data[0].y[primIdx[0]].toFixed(6),
+                 +plot.data[0].z[primIdx[0]].toFixed(6)];
+    var gPrim = [+plot.data[0].x[primIdx[1]].toFixed(6),
+                 +plot.data[0].y[primIdx[1]].toFixed(6),
+                 +plot.data[0].z[primIdx[1]].toFixed(6)];
+    var rPrim = [+plot.data[0].x[primIdx[2]].toFixed(6),
+                 +plot.data[0].y[primIdx[2]].toFixed(6),
+                 +plot.data[0].z[primIdx[2]].toFixed(6)];
+    var prims = [rPrim, gPrim, bPrim];
+
+    var trace = {
+      x: [prims[0][0], prims[1][0], prims[2][0], prims[0][0]],
+      y: [prims[0][1], prims[1][1], prims[2][1], prims[0][1]],
+      z: [prims[0][2], prims[1][2], prims[2][2], prims[0][2]],
+      text: wlen,
+      mode: 'lines+markers',
+      type: 'scatter3d',
+      line: {
+        color: '#fc8c03',
+        width: 2,
+      },
+      marker: {
+        size: 8,
+        opacity: 0.8,
+        color: '#fc8c03',
+      },
+      //hoverinfo: 'skip',
+      hovertemplate: 'R: %{x}' +
+        '<br>G: %{y}' +
+        '<br>B: %{z}' +
+        '<br>wavelength: %{text}<extra></extra>' ,
+    };
+    Plotly.addTraces(plot, [trace]);
+
+    //showGamut(plot);
   });
 }
 
@@ -1259,29 +1293,6 @@ function plotGamut(data) {
     // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
     Plotly.addTraces('rgbDiv', traces);
   }
-}
-
-function registerGenGamut(id, chart, plot) {
-  $(id).on('click', function(evt) {
-    var len = selectX.length; // should be 3
-    var traces = [];
-
-    for (i = 0; i < len; i++) {
-      var trace = {
-        x: [0, selectX[i]],
-        y: [0, selectY[i]],
-        z: [0, selectZ[i]],
-        mode: 'lines',
-        type: 'scatter3d',
-        line: {
-          color: '#32a852',
-        },
-        hoverinfo: 'skip',
-      };
-      traces.push(trace);
-    }
-    Plotly.addTraces(plot, traces);
-  });
 }
 
 function removeXYZChrm(plot) {
