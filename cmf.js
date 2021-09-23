@@ -164,6 +164,9 @@ var rRad, gRad, bRad;
 
 function registerCalcCMFScale(buttonId, wlen) {
   $(buttonId).on('click', function(evt) {
+    // always disable this; more of a progress cue that we can plot now.
+    $('#plotScaleCMF').prop('disabled', true);
+
     var unscaledR = window.cmfUnscaledChart.data.datasets[0].data;
     var unscaledG = window.cmfUnscaledChart.data.datasets[1].data;
     var unscaledB = window.cmfUnscaledChart.data.datasets[2].data;
