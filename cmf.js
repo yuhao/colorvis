@@ -225,7 +225,6 @@ function registerPlotScaleCMF(buttonId, wlen) {
       plot = val[1];
       plotted = true;
     } else {
-      //TODO: update the chart and the plot
       updateScaledCMF(chart, plot, sCMFR, sCMFG, sCMFB, wlen);
     }
   });
@@ -239,6 +238,10 @@ function updateScaledCMF(chart, plot, sCMFR, sCMFG, sCMFB, wlen) {
 
   var data_update = {'x': [sCMFR], 'y': [sCMFG], 'z': [sCMFB]};
   Plotly.update(plot, data_update, {}, [0]);
+
+  if (plot.data.length == 2) {
+    showPrim(plot);
+  }
 }
 
 function plotUnscaledCMF(wlen) {
@@ -821,6 +824,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   QUEUE.Push(["Text", cmfJax[4], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
   QUEUE.Push(["Text", cmfJax[5], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
   QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[7], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
 
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
@@ -1094,32 +1098,7 @@ function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
     var data_update = {'x': [chart.data.datasets[0].data],
                        'y': [chart.data.datasets[1].data],
                        'z': [chart.data.datasets[2].data]};
-    var layout_update = {
-      title: 'Spectral locus in RGB color space',
-      scene: {
-        xaxis: {
-          title: {
-            text: 'R'
-          },
-          zerolinecolor: '#000000',
-          zerolinewidth: 5,
-        },
-        yaxis: {
-          title: {
-            text: 'G'
-          },
-          zerolinecolor: '#000000',
-          zerolinewidth: 5,
-        },
-        zaxis: {
-          title: {
-            text: 'B'
-          },
-          zerolinecolor: '#000000',
-          zerolinewidth: 5,
-        },
-      }
-    };
+    var layout_update = {'title': 'Spectral locus in RGB color space'};
     Plotly.update(plot, data_update, layout_update, [0]);
 
     if (plot.data.length == 2) {
@@ -1193,32 +1172,7 @@ function registerRGB2rgb(id, chart, plot, wlen, rgbLocusMarkerColors) {
     var data_update = {'x': [cR],
                        'y': [cG],
                        'z': [cB]};
-    var layout_update = {
-      title: 'Spectral locus in rgb chromaticity plot',
-      scene: {
-        xaxis: {
-          title: {
-            text: 'r'
-          },
-          zerolinecolor: '#000000',
-          zerolinewidth: 5,
-        },
-        yaxis: {
-          title: {
-            text: 'g'
-          },
-          zerolinecolor: '#000000',
-          zerolinewidth: 5,
-        },
-        zaxis: {
-          title: {
-            text: 'b'
-          },
-          zerolinecolor: '#000000',
-          zerolinewidth: 5,
-        },
-      }
-    };
+    var layout_update = {'title': 'Spectral locus in rgb chromaticity plot'};
     Plotly.update(plot, data_update, layout_update, [0]);
 
     if (plot.data.length == 2) {
