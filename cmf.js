@@ -926,7 +926,12 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   return [window.cmfChart, rgbPlot];
 }
 
-function showPrim(plot) {
+function showPrim(plot, hide) {
+  if (hide) {
+    Plotly.deleteTraces(plot, [1]);
+    return;
+  }
+
   var prims = []; // in the RGB order (different from primIdx!)
   if (plot.mode == 'cmf') {
     var bPrim = [+plot.data[0].x[primIdx[0]].toFixed(6),
@@ -982,9 +987,14 @@ function showPrim(plot) {
 
 function registerShowPrim(id, plot) {
   $(id).on('click', function(evt) {
-    if (plot.data.length > 1) return; // prim trace has been added
-
-    showPrim(plot);
+    if ($(id).text() == 'Highlight Primaries') {
+      //if (plot.data.length > 1) return; // prim trace has been added
+      showPrim(plot, false);
+      $(id).text('Hide Primaries');
+    } else {
+      showPrim(plot, true);
+      $(id).text('Highlight Primaries');
+    }
   });
 }
 
