@@ -10,16 +10,6 @@ var QUEUE = MathJax.Hub.queue; // shorthand for the queue
 var text1Jax, text2Jax, text4Jax;
 var allJax, cmfJax;
 
-//QUEUE.Push(function () {
-//  allJax = MathJax.Hub.getAllJax('primText');
-//
-//  text1Jax = MathJax.Hub.getAllJax('text1');
-//  text2Jax = MathJax.Hub.getAllJax('text2');
-//  text4Jax = MathJax.Hub.getAllJax('text4');
-//
-//  cmfJax = MathJax.Hub.getAllJax('cmftext');
-//});
-
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, id) {
   var layout_update = {
@@ -419,25 +409,37 @@ function setupLinSys(chart, wlen) {
   QUEUE.Push(["Text", lmat3, col3]);
 
   var m1, m2, m3;
-  m1 = "380_{b} & 385_{b} & \\cdots & 775_{b} & 780_{b} \\\\";
-  m2 = "380_{g} & 385_{g} & \\cdots & 775_{g} & 780_{g} \\\\";
-  m3 = "380_{r} & 385_{r} & \\cdots & 775_{r} & 780_{r} \\\\";
+  m1 = "B_{380} & \\cdots & B_{500} & \\cdots & B_{780} \\\\";
+  m2 = "G_{380} & \\cdots & G_{500} & \\cdots & G_{780} \\\\";
+  m3 = "R_{380} & \\cdots & R_{500} & \\cdots & R_{780} \\\\";
   QUEUE.Push(["Text", mmat, "\\times"+pre+m1+m2+m3+post+"="]);
 
   var r1, r2, r3; // show first two and last two
+  var idx500 = (500-380)/5;
   r1 = chart.data.datasets[0].data[0].toExponential(3) + "&&" +
-       chart.data.datasets[0].data[1].toExponential(3) + "&&" + "\\cdots &&" +
-       chart.data.datasets[0].data[wlen.length - 2].toExponential(3) + "&&" +
+       //chart.data.datasets[0].data[1].toExponential(3) + "&&" +
+       "\\cdots &&" +
+       chart.data.datasets[0].data[idx500].toExponential(3) + "&&" +
+       "\\cdots &&" +
+       //chart.data.datasets[0].data[wlen.length - 2].toExponential(3) + "&&" +
        chart.data.datasets[0].data[wlen.length - 1].toExponential(3) + "\\\\";
   r2 = chart.data.datasets[1].data[0].toExponential(3) + "&&" +
-       chart.data.datasets[1].data[1].toExponential(3) + "&&" + "\\cdots &&" +
-       chart.data.datasets[1].data[wlen.length - 2].toExponential(3) + "&&" +
+       //chart.data.datasets[1].data[1].toExponential(3) + "&&" +
+       "\\cdots &&" +
+       chart.data.datasets[1].data[idx500].toExponential(3) + "&&" +
+       "\\cdots &&" +
+       //chart.data.datasets[1].data[wlen.length - 2].toExponential(3) + "&&" +
        chart.data.datasets[1].data[wlen.length - 1].toExponential(3) + "\\\\";
   r3 = chart.data.datasets[2].data[0].toExponential(3) + "&&" +
-       chart.data.datasets[2].data[1].toExponential(3) + "&&" + "\\cdots &&" +
-       chart.data.datasets[2].data[wlen.length - 2].toExponential(3) + "&&" +
+       //chart.data.datasets[2].data[1].toExponential(3) + "&&" +
+       "\\cdots &&" +
+       chart.data.datasets[2].data[idx500].toExponential(3) + "&&" +
+       "\\cdots &&" +
+       //chart.data.datasets[2].data[wlen.length - 2].toExponential(3) + "&&" +
        chart.data.datasets[2].data[wlen.length - 1].toExponential(3) + "\\\\";
   QUEUE.Push(["Text", rmat, pre+r1+r2+r3+post]);
+
+  QUEUE.Push(["Text", text1Jax[3], chart.data.datasets[0].data[idx500].toExponential(3)]);
 }
 
 function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
@@ -462,7 +464,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     chart.data.datasets[2].pointRadius = Array(wlen.length).fill(3);
     chart.update();
 
-    // setup the equation
+    // setup the equation again, erasing the prior selections.
     //setupLinSys();
 
     // https://www.chartjs.org/docs/latest/configuration/interactions.html
@@ -488,32 +490,32 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
 
         if (numPoints == 0) {
           var col = "\\Bigg[ \\begin{matrix}" +
-                    "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[0].data[point.index].toExponential(3) +
                     "\\\\" +
-                    "\\mathbf{" + chart.data.datasets[1].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[1].data[point.index].toExponential(3) +
                     "\\\\" +
-                    "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[2].data[point.index].toExponential(3) +
                     "\\end{matrix}";
           QUEUE.Push(["Text", lmat1, col]);
-          QUEUE.Push(["Text", text1Jax[4], chart.data.labels[point.index]+"~nm"]);
-          QUEUE.Push(["Text", text1Jax[6], "\\begin{bmatrix}"+chart.data.datasets[0].data[point.index].toExponential(3)+","+chart.data.datasets[1].data[point.index].toExponential(3)+","+chart.data.datasets[2].data[point.index].toExponential(3)+"\\end{bmatrix}^T"]);
-          QUEUE.Push(["Text", text1Jax[7], chart.data.labels[point.index]+"~nm"]);
+          QUEUE.Push(["Text", text1Jax[15], chart.data.labels[point.index]+"~nm"]);
+          QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[point.index].toExponential(3)+","+chart.data.datasets[1].data[point.index].toExponential(3)+","+chart.data.datasets[2].data[point.index].toExponential(3)+"\\end{bmatrix}^T"]);
+          QUEUE.Push(["Text", text1Jax[18], chart.data.labels[point.index]+"~nm"]);
         } else if (numPoints == 1) {
           var col = "\\begin{matrix}" +
-                    "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[0].data[point.index].toExponential(3) +
                     "\\\\" +
-                    "\\mathbf{" + chart.data.datasets[1].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[1].data[point.index].toExponential(3) +
                     "\\\\" +
-                    "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[2].data[point.index].toExponential(3) +
                     "\\end{matrix}";
           QUEUE.Push(["Text", lmat2, col]);
         } else if (numPoints == 2) {
           var col = "\\begin{matrix}" +
-                    "\\mathbf{" + chart.data.datasets[0].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[0].data[point.index].toExponential(3) +
                     "\\\\" +
-                    "\\mathbf{" + chart.data.datasets[1].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[1].data[point.index].toExponential(3) +
                     "\\\\" +
-                    "\\mathbf{" + chart.data.datasets[2].data[point.index].toExponential(3) + "}" +
+                    chart.data.datasets[2].data[point.index].toExponential(3) +
                     "\\end{matrix} \\Bigg]";
           QUEUE.Push(["Text", lmat3, col]);
           $('#solLinSys').prop('disabled', false);
