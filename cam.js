@@ -2,6 +2,7 @@ var redColor = '#da2500';
 var greenColor = '#008f00';
 var blueColor = '#011993';
 var greyColor = '#888888';
+var purpleColor = '#5c32a8';
 var brightYellowColor = '#fcd303'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
@@ -76,13 +77,12 @@ function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetDa
     chart.data.datasets[2].pointRadius = Array(resetData1.length).fill(3);
 
     registerDrag(canvas, chart, plotId);
-
     chart.update();
+
     // reset plotly.js (3d)
-    var plot = document.getElementById(plotId);
-    var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in RGB space';
-    var plot = document.getElementById(plotId);
-    updateLocus(resetData1, resetData2, resetData3, title, plotId);
+    //var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in RGB space';
+    //var plot = document.getElementById(plotId);
+    updateLocus(resetData1, resetData2, resetData3, '', plotId);
   });
 }
 
@@ -98,7 +98,7 @@ function toggleDrag(canvas, enable) {
   }
 }
 
-function registerDrag(canvas, chart, plotId) {
+function registerDrag(canvas, chart, plotId, disableTT) {
   function down_handler(event) {
     // get the intersecting data point
     const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
@@ -108,6 +108,11 @@ function registerDrag(canvas, chart, plotId) {
       canvas.selectedTrace = canvas.activePoint.datasetIndex;
       canvas.onpointermove = move_handler;
     };
+
+    if (disableTT == true) {
+      chart.options.plugins.tooltip.enabled = false;
+      chart.update();
+    }
   };
 
   function up_handler(event) {
@@ -115,6 +120,11 @@ function registerDrag(canvas, chart, plotId) {
     if (canvas.activePoint) {
       canvas.activePoint = null;
       canvas.onpointermove = null;
+    }
+
+    if (disableTT == true) {
+      chart.options.plugins.tooltip.enabled = true;
+      chart.update();
     }
   };
 
@@ -148,7 +158,7 @@ function registerDrag(canvas, chart, plotId) {
 
       // TODO: support any number of data sequences
       // update 3d plot dynamically; do not update 3d plot if none is present
-      if (plotId != '')  {
+      if (plotId != undefined)  {
         var seq0 = chart.data.datasets[0].data;
         var seq1 = chart.data.datasets[1].data;
         var seq2 = chart.data.datasets[2].data;
@@ -156,8 +166,8 @@ function registerDrag(canvas, chart, plotId) {
             'Updated spectral locus in LMS cone space' :
             'Updated spectral locus in RGB space';
         // TODO: should update chromaticities if the 3d plot shows chromaticities
-        var plot = document.getElementById(plotId);
-        updateLocus(seq0, seq1, seq2, title, plot);
+        //var plot = document.getElementById(plotId);
+        updateLocus(seq0, seq1, seq2, title, plotId);
       }
     }
   };
@@ -310,6 +320,11 @@ function genSelectBox(values) {
     option.text = val;
     select.appendChild(option);
   }
+
+  var option = document.createElement("option");
+  option.value = 'Draw';
+  option.text = 'Draw';
+  select.appendChild(option);
 }
 
 d3.csv('camspec.csv', function(err, rows){
@@ -324,6 +339,9 @@ d3.csv('camspec.csv', function(err, rows){
   var rCamSpec = rows.slice(0, wlen.length);
   var gCamSpec = rows.slice(wlen.length, 2 * wlen.length);
   var bCamSpec = rows.slice(2 * wlen.length, 3 * wlen.length);
+  var drawSpec = [Array(wlen.length).fill(0.6),
+                  Array(wlen.length).fill(0.9),
+                  Array(wlen.length).fill(0.8)];
 
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
@@ -336,9 +354,9 @@ d3.csv('camspec.csv', function(err, rows){
     fill: false,
     pointHoverRadius: 10,
     pointBackgroundColor: redColor,
-    borderColor: 'rgba(0, 0, 0, 0.3)',
+    borderColor: redColor,
     backgroundColor: oRedColor,
-    pointRadius: 5,
+    pointRadius: 3,
     borderWidth: 1,
   }
   var gTrace = {
@@ -347,9 +365,9 @@ d3.csv('camspec.csv', function(err, rows){
     fill: false,
     pointHoverRadius: 10,
     pointBackgroundColor: greenColor,
-    borderColor: 'rgba(0, 0, 0, 0.3)',
+    borderColor: greenColor,
     backgroundColor: oGreenColor,
-    pointRadius: 5,
+    pointRadius: 3,
     borderWidth: 1,
   }
   var bTrace = {
@@ -358,9 +376,9 @@ d3.csv('camspec.csv', function(err, rows){
     fill: false,
     pointHoverRadius: 10,
     pointBackgroundColor: blueColor,
-    borderColor: 'rgba(0, 0, 0, 0.3)',
+    borderColor: blueColor,
     backgroundColor: oBlueColor,
-    pointRadius: 5,
+    pointRadius: 3,
     borderWidth: 1,
   }
   chartTraces.push(rTrace, gTrace, bTrace);
@@ -424,7 +442,7 @@ d3.csv('camspec.csv', function(err, rows){
     chartTraces.push(lTrace, mTrace, sTrace);
 
     var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
-    var rgbLocusMarkerColors = Array(wlen.length).fill(redColor);
+    var rgbLocusMarkerColors = Array(wlen.length).fill(purpleColor);
 
     var canvas = document.getElementById("canvasCamSpace");
     var ctx = canvas.getContext("2d");
@@ -497,8 +515,9 @@ d3.csv('camspec.csv', function(err, rows){
         unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]));
 
     genSelectBox(cams.slice(1));
-    registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec);
-
+    registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec);
+    registerChartReset('#resetChartCam', plot, window.camSenChart, canvas,
+        Array(wlen.length).fill(0.6), Array(wlen.length).fill(0.9), Array(wlen.length).fill(0.8));
   });
 });
 
@@ -529,7 +548,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
     name: 'Spectral Locus in LMS',
   };
 
-  var rgbLocusMarkerColors = Array(wlen.length).fill(redColor);
+  var rgbLocusMarkerColors = Array(wlen.length).fill(purpleColor);
   var rgbTrace = {
     x: rCam,
     y: gCam,
@@ -543,7 +562,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
       symbol: Array(wlen.length).fill('diamond'),
     },
     line: {
-      color: redColor,
+      color: purpleColor,
       width: 2
     },
     // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
@@ -625,20 +644,23 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
   return plot;
 }
 
-function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec) {
+function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec) {
   $('#camSel').on('change', function(evt) {
     var val = this.value;
     if (val == "Draw") {
-      registerDrag(canvas, chart, '');
-      chart.data.datasets[0].data = draw;
+      $('#resetChartCam').prop('disabled', false);
+      chart.data.datasets[0].data = drawSpec[0];
+      chart.data.datasets[1].data = drawSpec[1];
+      chart.data.datasets[2].data = drawSpec[2];
+      registerDrag(canvas, chart, plot, true);
     } else {
-      toggleDrag(canvas, false);
+      $('#resetChartCam').prop('disabled', true);
       chart.data.datasets[0].data = unpack(rCamSpec, val);
       chart.data.datasets[1].data = unpack(gCamSpec, val);
       chart.data.datasets[2].data = unpack(bCamSpec, val);
-
-      updateLocus(chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data, '', plot);
+      toggleDrag(canvas, false);
     }
+    updateLocus(chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data, '', plot);
     chart.update();
   });
 }
