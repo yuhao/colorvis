@@ -58,10 +58,12 @@ function registerResetZoom(id, chart) {
   });
 }
 
-function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetData2, resetData3) {
+// TODO: a quick hack right now. support any number of traces
+function registerChartReset(buttonId, plotId, chart, canvas, num, resetData1, resetData2, resetData3) {
   $(buttonId).on('click', function(evt) {
     // reset chart.js (2d)
     // do a value copy here so that future updates to the chart won't affect the original data
+
     chart.data.datasets[0].data = Array.from(resetData1);
     chart.data.datasets[1].data = Array.from(resetData2);
     chart.data.datasets[2].data = Array.from(resetData3);
@@ -80,9 +82,7 @@ function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetDa
     chart.update();
 
     // reset plotly.js (3d)
-    //var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in RGB space';
-    //var plot = document.getElementById(plotId);
-    updateLocus(resetData1, resetData2, resetData3, '', plotId);
+    if (plotId != undefined) updateLocus(resetData1, resetData2, resetData3, '', plotId);
   });
 }
 
@@ -215,6 +215,8 @@ function formatRGB(rgb) {
   return 'rgba('+ rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + '1)';
 }
 
+var ccPatchNames;
+
 d3.csv('ccspec.csv', function(err, rows){
   var stride = 10;
 
@@ -222,16 +224,19 @@ d3.csv('ccspec.csv', function(err, rows){
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
   var patches = Object.keys(rows[0]);
+  ccPatchNames = patches.slice(1);
+  var firstIdx = (400 - firstW) / stride;
+  var lastIdx = (720 - firstW) / stride;
 
-  var specR = [];
+  var colorCheckerSpecR = [];
   var chartTraces = [];
 
-  var x_data = range(firstW, lastW, stride);
+  var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1);
 
   for (var i = 1; i < patches.length; i++) {
-    specR[i-1] = unpack(rows, patches[i]);
+    colorCheckerSpecR[i-1] = unpack(rows, patches[i]).slice(firstIdx, lastIdx + 1);
     var trace = {
-      data: specR[i-1],
+      data: colorCheckerSpecR[i-1],
       label: patches[i],
       fill: false,
       pointHoverRadius: 10,
@@ -310,8 +315,8 @@ d3.csv('ccspec.csv', function(err, rows){
   registerResetZoom('#resetZoomSpecR', window.ccSpecChart);
 });
 
-function genSelectBox(values) {
-  var select = document.getElementById("camSel");
+function genSelectBox(values, id) {
+  var select = document.getElementById(id);
 
   for (const val of values)
   {
@@ -389,17 +394,20 @@ d3.csv('camspec.csv', function(err, rows){
     var wlen = unpack(rows, 'wavelength');
     var firstW = wlen[0];
     var lastW = wlen[wlen.length - 1];
+    var firstIdx = (400 - firstW) / stride;
+    var lastIdx = (720 - firstW) / stride;
 
-    var lCone = unpack(rows, 'l').slice((400-firstW)/stride, (720-firstW)/stride+1).filter((element, index) => {
+    // LMS cone fundamentals are given at 5 nm intervals
+    var lCone = unpack(rows, 'l').slice(firstIdx, lastIdx + 1).filter((element, index) => {
       return index % 2 === 0;
     });
-    var mCone = unpack(rows, 'm').slice((400-firstW)/stride, (720-firstW)/stride+1).filter((element, index) => {
+    var mCone = unpack(rows, 'm').slice(firstIdx, lastIdx + 1).filter((element, index) => {
       return index % 2 === 0;
     });
-    var sCone = unpack(rows, 's').slice((400-firstW)/stride, (720-firstW)/stride+1).filter((element, index) => {
+    var sCone = unpack(rows, 's').slice(firstIdx, lastIdx + 1).filter((element, index) => {
       return index % 2 === 0;
     });
-    wlen = wlen.slice((400-firstW)/stride, (720-firstW)/stride+1).filter((element, index) => {
+    wlen = wlen.slice(firstIdx, lastIdx + 1).filter((element, index) => {
       return index % 2 === 0;
     });
 
@@ -454,7 +462,10 @@ d3.csv('camspec.csv', function(err, rows){
       },
       options: {
         animation: {
-          duration: 10
+          duration: 0,
+          onComplete: function() {
+            plotTargetColors(window.ccSpecChart, this, window.whiteChart);
+         }
         },
         responsive: true,
         interaction: {
@@ -495,7 +506,7 @@ d3.csv('camspec.csv', function(err, rows){
           },
           legend: {
             position: 'top',
-            display: false,
+            display: true,
           },
           tooltip: {
             callbacks: {
@@ -514,9 +525,9 @@ d3.csv('camspec.csv', function(err, rows){
     var plot = plotSpectralLocus(lCone, mCone, sCone, wlen,
         unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]));
 
-    genSelectBox(cams.slice(1));
+    genSelectBox(cams.slice(1), "camSel");
     registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec);
-    registerChartReset('#resetChartCam', plot, window.camSenChart, canvas,
+    registerChartReset('#resetChartCam', plot, window.camSenChart, canvas, 3,
         Array(wlen.length).fill(0.6), Array(wlen.length).fill(0.9), Array(wlen.length).fill(0.8));
   });
 });
@@ -610,7 +621,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'L'
+          text: 'L/R'
         }
       },
       yaxis: {
@@ -621,7 +632,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'M'
+          text: 'M/G'
         }
       },
       zaxis: {
@@ -632,7 +643,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'S'
+          text: 'S/B'
         }
       },
     }
@@ -664,3 +675,280 @@ function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawS
     chart.update();
   });
 }
+
+d3.csv('ciesi.csv', function(err, rows){
+  var stride = 5;
+
+  // the CIE SIs are normalized such that SPD is 100 at 560 nm
+  // https://www.image-engineering.de/library/technotes/753-cie-standard-illuminants
+  var wlen = unpack(rows, 'wavelength');
+  var firstW = wlen[0];
+  var lastW = wlen[wlen.length - 1];
+  var firstIdx = (400 - firstW) / stride;
+  var lastIdx = (720 - firstW) / stride;
+
+  // SI data are given at 5 nm intervals
+  var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+    return index % 2 === 0;
+  });
+
+  //var e = Array(wlen.length).fill(100);
+  var StdIllu = Object.keys(rows[0]); // real lluminants start from 1 (0 is wavelength)
+
+  //var normE = Array(wlen.length).fill(1).slice(firstIdx, lastIdx + 1);
+  var DrawIllu = Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+    return index % 2 === 0;
+  });
+  var t = unpack(rows, StdIllu[1]);
+  var y_data_1 = math.dotDivide(t, Math.max(...t)).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+    return index % 2 === 0;
+  });
+
+  var canvas = document.getElementById("canvasWhite");
+  var ctx = canvas.getContext("2d");
+  window.whiteChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          data: y_data_1,
+          label: "W",
+          borderColor: "#000000",
+          pointBackgroundColor: "#000000",
+          fill: false,
+          pointHoverRadius: 10,
+          pointRadius: 3,
+          borderWidth: 1,
+        },
+      ]
+    },
+    options: {
+      animation: {
+        duration: 10
+      },
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+        yAxes:{
+          min: 1.0,
+          max: 0.0,
+          position: 'left',
+        },
+      },
+      plugins: {
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1,
+            },
+            mode: 'x',
+          },
+          pan: {
+            enabled: true,
+            modifierKey: 'shift',
+            mode: 'x',
+          },
+        },
+        title: {
+          //display: true,
+          text: 'White light',
+          fontSize: 24,
+        },
+        legend: {
+          display: false,
+        },
+      }
+    }
+  });
+
+  genSelectBox(StdIllu.slice(1), "whiteSel");
+
+  registerSelWhite(window.whiteChart, canvas, rows, DrawIllu, firstIdx, lastIdx);
+  registerResetZoom('#resetZoomWhite', window.whiteChart);
+  // TODO: fix this
+  //registerChartReset('#resetWhite', undefined, window.whiteChart, canvas, 1,
+  //    Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1)).filter((element, index) => {
+  //        return index % 2 === 0;
+  //      });
+
+  //plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart);
+
+});
+
+function calcTriVal(a, b, c) {
+  var s = [];
+  for (var i = 0; i < a.length; s[i] = a[i] * b[i], i++);
+  return math.dot(s, c);
+}
+
+function plotTargetColors(ccSpec, camSen, stdIllu) {
+  var numPatches = ccSpec.data.datasets.length;
+  var patchRGB = [[], [], []];
+  var patchLMS = [[], [], []];
+  for (var i = 0; i < numPatches; i++) {
+    var R = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[0].data);
+    var G = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[1].data);
+    var B = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[2].data);
+    patchRGB[0].push(R);
+    patchRGB[1].push(G);
+    patchRGB[2].push(B);
+
+    var L = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[3].data);
+    var M = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[4].data);
+    var S = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[5].data);
+    patchLMS[0].push(L);
+    patchLMS[1].push(M);
+    patchLMS[2].push(S);
+  }
+
+  var lmsTrace = {
+    x: patchLMS[0],
+    y: patchLMS[1],
+    z: patchLMS[2],
+    text: window.ccPatchNames,
+    mode: 'markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: greyColor,
+      //symbol: Array(window.ccPatchNames.length).fill('diamond'),
+    },
+    //line: {
+    //  color: greyColor,
+    //  width: 2
+    //},
+    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
+    // <extra> tag to suppress trace name
+    hovertemplate: 'L: %{x}' +
+      '<br>M: %{y}' +
+      '<br>S: %{z}' +
+      '<br>name: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'ColorChecker LMS',
+  };
+
+  var rgbTrace = {
+    x: patchRGB[0],
+    y: patchRGB[1],
+    z: patchRGB[2],
+    text: window.ccPatchNames,
+    mode: 'markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: purpleColor,
+      symbol: Array(window.ccPatchNames.length).fill('diamond'),
+    },
+    //line: {
+    //  color: purpleColor,
+    //  width: 2
+    //},
+    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
+    // <extra> tag to suppress trace name
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>name: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'ColorChecker RGB',
+  };
+
+  var data = [rgbTrace, lmsTrace];
+
+  var layout = {
+    name: 'ColorChecker RGB',
+    showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.9,
+    },
+    margin: {
+      l: 0,
+      r: 0,
+      b: 0,
+      t: 0
+    },
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    //plot_bgcolor: 'rgba(0, 0, 0, 0)',
+    //title: 'Spectral locus in LMS cone space',
+    scene: {
+      camera: {
+        projection: {
+          type: 'orthographic'
+        }
+      },
+      // https://plotly.com/javascript/3d-axes/
+      //aspectmode: 'cube',
+      xaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'L/R'
+        }
+      },
+      yaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'M/G'
+        }
+      },
+      zaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'S/B'
+        }
+      },
+    }
+  };
+
+  var plot = document.getElementById('targetDiv');
+  Plotly.newPlot(plot, data, layout);
+
+  return plot;
+}
+
+
+function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
+  $('#whiteSel').on('change', function(evt) {
+    var val = this.value;
+    if (val == "Draw") {
+      $('#resetWhite').prop('disabled', false);
+
+      chart.data.datasets[0].data = drawIllu;
+      registerDrag(canvas, chart, undefined, true);
+    } else {
+      $('#resetWhite').prop('disabled', true);
+
+      var illu = unpack(rows, val);
+      var normIllu = math.dotDivide(illu, Math.max(...illu)).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+        return index % 2 === 0;
+      });
+      chart.data.datasets[0].data = normIllu;
+
+      toggleDrag(canvas, false);
+    }
+    chart.update();
+  });
+}
+

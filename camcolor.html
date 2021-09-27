@@ -78,8 +78,8 @@
           <select id="camSel" style="width: 150px" class="my-2">
           </select>
           <canvas id="canvasCamSpace"></canvas>
-          <div><button id="resetChartCam" disabled>Draw Reset</button> Reset the camera sensitivity chart.</div>
-          <div><button id="resetZoomCamSpece" class="my-2">Reset Zoom</button> Reset the zoom of the chart.</div>
+          <div class="mt-4"><button id="resetChartCam" disabled>Draw Reset</button> Reset the camera sensitivity chart.</div>
+          <div class="my-2"><button id="resetZoomCamSpece">Reset Zoom</button> Reset the zoom of the chart.</div>
         </div>
         <div class="col-sm-5">
           <div id="locusDiv"></div>
@@ -94,13 +94,26 @@
 
       <div class="row">
         <canvas id="canvasCCSpec"></canvas>
-          <div><button id="resetZoomSpecR" class="my-2">Reset Zoom</button> Reset the zoom of the chart.</div>
+        <div class="my-4"><button id="resetZoomSpecR">Reset Zoom</button> Reset the zoom of the chart.</div>
+      </div>
+
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 3: Pick Illuminant</h3>
       </div>
 
       <div class="row pt-2">
         <div class="col-sm-7">
+          <select id="whiteSel" style="width: 150px" class="my-2">
+          </select>
+          <canvas id="canvasWhite"></canvas>
+          <div class="mt-4"><button id="resetWhite" disabled>Reset Illuminant</button> Reset the Illuminant drawing.</div>
+          <div class="my-2"><button id="resetZoomWhite">Reset Zoom</button> Reset the zoom of the chart.</div>
         </div>
         <div class="col-sm-5">
+          <div id="targetDiv"></div>
         </div>
       </div>
     </div>
