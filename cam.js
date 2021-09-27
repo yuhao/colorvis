@@ -1,6 +1,8 @@
 var redColor = '#da2500';
 var greenColor = '#008f00';
 var blueColor = '#011993';
+var greyColor = '#888888';
+var brightYellowColor = '#fcd303'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
 var oBlueColor = 'rgba(1, 25, 147, 0.3)';
@@ -10,15 +12,32 @@ var QUEUE = MathJax.Hub.queue; // shorthand for the queue
 var text1Jax, text2Jax, text4Jax;
 var allJax, cmfJax;
 
-function highlightLocus(index, id, baseColors) {
+// https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
+function updateLocus(seq1, seq2, seq3, newTitle, plot) {
+  var layout_update = {
+    //title: newTitle,
+  };
+  var data_update = {'x': [seq1], 'y': [seq2], 'z': [seq3]};
+
+  //var plot = document.getElementById(id);
+  Plotly.update(plot, data_update, layout_update, [0]);
+}
+
+function highlightLocus(index, id, baseColors, baseColors2) {
   // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
   // Fx.hover fires only for 2d plots for now, so can't use it
-  var myPlot = document.getElementById(id);
+  var plot = document.getElementById(id);
   var colors = Array.from(baseColors);
-  colors[index] = '#fcd303';
+  colors[index] = brightYellowColor;
   // rather than 'marker': {color: colors}, which uses defaults for all other parameters
   var update = {'marker.color': [colors]};
-  Plotly.restyle(myPlot, update, [0]);
+  Plotly.restyle(plot, update, [1]);
+
+  colors = Array.from(baseColors2);
+  colors[index] = brightYellowColor;
+  // rather than 'marker': {color: colors}, which uses defaults for all other parameters
+  var update = {'marker.color': [colors]};
+  Plotly.restyle(plot, update, [0]);
 }
  
 function unpack(rows, key, toNum) {
@@ -62,6 +81,7 @@ function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetDa
     // reset plotly.js (3d)
     var plot = document.getElementById(plotId);
     var title = (buttonId == '#resetChartLMS') ? 'Spectral locus in LMS cone space' : 'Spectral locus in RGB space';
+    var plot = document.getElementById(plotId);
     updateLocus(resetData1, resetData2, resetData3, title, plotId);
   });
 }
@@ -136,7 +156,8 @@ function registerDrag(canvas, chart, plotId) {
             'Updated spectral locus in LMS cone space' :
             'Updated spectral locus in RGB space';
         // TODO: should update chromaticities if the 3d plot shows chromaticities
-        updateLocus(seq0, seq1, seq2, title, plotId);
+        var plot = document.getElementById(plotId);
+        updateLocus(seq0, seq1, seq2, title, plot);
       }
     }
   };
@@ -298,7 +319,7 @@ d3.csv('camspec.csv', function(err, rows){
   wlen = wlen.slice(0, wlen.length/3);
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
-  var cams = Object.keys(rows[0]);
+  var cams = Object.keys(rows[0]); // real cams start from 1 (0 is wavelength)
 
   var rCamSpec = rows.slice(0, wlen.length);
   var gCamSpec = rows.slice(wlen.length, 2 * wlen.length);
@@ -402,6 +423,9 @@ d3.csv('camspec.csv', function(err, rows){
     }
     chartTraces.push(lTrace, mTrace, sTrace);
 
+    var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
+    var rgbLocusMarkerColors = Array(wlen.length).fill(redColor);
+
     var canvas = document.getElementById("canvasCamSpace");
     var ctx = canvas.getContext("2d");
     window.camSenChart = new Chart(ctx, {
@@ -416,7 +440,8 @@ d3.csv('camspec.csv', function(err, rows){
         },
         responsive: true,
         interaction: {
-          mode: 'nearest', // find the nearest point on one curve
+          //mode: 'nearest', // find the nearest point on one curve
+          mode: 'index',
           intersect: false,
         },
         scales: {
@@ -455,18 +480,152 @@ d3.csv('camspec.csv', function(err, rows){
             display: false,
           },
           tooltip: {
+            callbacks: {
+              labelTextColor: function(context) {
+                if (context.datasetIndex == 0) {
+                  highlightLocus(context.dataIndex, 'locusDiv', lmsLocusMarkerColors, rgbLocusMarkerColors);
+                }
+                return '#FFFFFF';
+              }
+            },
           }
         }
       }
     });
 
+    var plot = plotSpectralLocus(lCone, mCone, sCone, wlen,
+        unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]));
+
     genSelectBox(cams.slice(1));
-    registerSelCam(window.camSenChart, canvas, rCamSpec, gCamSpec, bCamSpec);
+    registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec);
 
   });
 });
 
-function registerSelCam(chart, canvas, rCamSpec, gCamSpec, bCamSpec) {
+function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
+  var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
+  var lmsTrace = {
+    x: lCone,
+    y: mCone,
+    z: sCone,
+    text: wlen,
+    mode: 'lines+markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: lmsLocusMarkerColors,
+    },
+    line: {
+      color: greyColor,
+      width: 2
+    },
+    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
+    // <extra> tag to suppress trace name
+    hovertemplate: 'L: %{x}' +
+      '<br>M: %{y}' +
+      '<br>S: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'Spectral Locus in LMS',
+  };
+
+  var rgbLocusMarkerColors = Array(wlen.length).fill(redColor);
+  var rgbTrace = {
+    x: rCam,
+    y: gCam,
+    z: bCam,
+    text: wlen,
+    mode: 'lines+markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: rgbLocusMarkerColors,
+      symbol: Array(wlen.length).fill('diamond'),
+    },
+    line: {
+      color: redColor,
+      width: 2
+    },
+    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
+    // <extra> tag to suppress trace name
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'Spectral Locus in Cam',
+  };
+
+  var data = [rgbTrace, lmsTrace];
+ 
+  var layout = {
+    name: 'Spectral locus',
+    showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.9,
+    },
+    margin: {
+      l: 0,
+      r: 0,
+      b: 0,
+      t: 0
+    },
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    //plot_bgcolor: 'rgba(0, 0, 0, 0)',
+    //title: 'Spectral locus in LMS cone space',
+    scene: {
+      camera: {
+        projection: {
+          type: 'orthographic'
+        }
+      },
+      // https://plotly.com/javascript/3d-axes/
+      //aspectmode: 'cube',
+      xaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'L'
+        }
+      },
+      yaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'M'
+        }
+      },
+      zaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'S'
+        }
+      },
+    }
+  };
+
+  var plot = document.getElementById('locusDiv');
+  Plotly.newPlot(plot, data, layout);
+
+  return plot;
+}
+
+function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec) {
   $('#camSel').on('change', function(evt) {
     var val = this.value;
     if (val == "Draw") {
@@ -477,8 +636,9 @@ function registerSelCam(chart, canvas, rCamSpec, gCamSpec, bCamSpec) {
       chart.data.datasets[0].data = unpack(rCamSpec, val);
       chart.data.datasets[1].data = unpack(gCamSpec, val);
       chart.data.datasets[2].data = unpack(bCamSpec, val);
+
+      updateLocus(chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data, '', plot);
     }
     chart.update();
   });
 }
-
