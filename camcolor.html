@@ -70,18 +70,37 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Step 0: Understanding the LMS Cone Fundamentals</h3>
+        <h3>Step 0: Understanding the Spectral Reflectance</h3>
       </div>
 
       <div class="row">
         <canvas id="canvasCCSpec"></canvas>
-        <div>
-          <br>
-          <div><button id="resetChartLMS">Chart Reset</button> Reset the chart to the original LMS cone fundamentals and remove primary selections if any.</div>
-          <br>
-          <div><button id="resetZoomLMS">Reset Zoom</button> Reset the zoom of the chart.</div>
-        </div>
+        <div><button id="resetZoomSpecR" class="my-2">Reset Zoom</button> Reset the zoom of the chart.</div>
       </div>
+
+      <div class="row pt-2">
+        <h4>How to Interact With the Charts:</h4>
+        <p>Move your mouse to <b>hover the charts</b>, both the 2D and the 3D ones. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the 3D chart will be highlighted as you hover the 2D chart.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 1: Exploring Camera Color Space</h3>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-7">
+          <select id="camSel" style="width: 150px" class="my-2">
+          </select>
+          <canvas id="canvasCamSpace"></canvas>
+        </div>
+        <div class="col-sm-5">
+          <canvas id="locusDiV"></canvas>
+        </div>
+        <div><button id="resetZoomCamSpece" class="my-2">Reset Zoom</button> Reset the zoom of the chart.</div>
+      </div>
+
       <div class="row pt-2">
         <h4>How to Interact With the Charts:</h4>
         <p>Move your mouse to <b>hover the charts</b>, both the 2D and the 3D ones. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the 3D chart will be highlighted as you hover the 2D chart.</p>
