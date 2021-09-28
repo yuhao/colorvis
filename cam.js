@@ -3,6 +3,7 @@ var greenColor = '#008f00';
 var blueColor = '#011993';
 var greyColor = '#888888';
 var purpleColor = '#5c32a8';
+var magentaColor = '#fc0377';
 var brightYellowColor = '#fcd303'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
@@ -532,6 +533,7 @@ d3.csv('camspec.csv', function(err, rows){
 
     var plot = plotSpectralLocus(lCone, mCone, sCone, wlen,
         unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]));
+    registerDrawCorrectLocus('#correctLocus', plot, wlen);
 
     genSelectBox(cams.slice(1), "camSel");
     registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec);
@@ -539,6 +541,50 @@ d3.csv('camspec.csv', function(err, rows){
         [Array(wlen.length).fill(0.8), redColor], [Array(wlen.length).fill(0.9), greenColor], [Array(wlen.length).fill(0.6), blueColor]);
   });
 });
+
+function registerDrawCorrectLocus(buttonId, plot, wlen) {
+  var calculated = false;
+  $(buttonId).on('click', function(evt) {
+    var RGBMat = math.transpose([plot.data[0].x, plot.data[0].y, plot.data[0].z]);
+
+    var cLMSMat = math.transpose(math.multiply(RGBMat, ccMat));
+
+    if (calculated) {
+      var data_update = {'x': [cLMSMat[0]], 'y': [cLMSMat[1]], 'z': [cLMSMat[2]]};
+
+      Plotly.update(plot, data_update, {}, [2]);
+      return;
+    }
+
+    calculated = true;
+    var locusMarkerColors = Array(wlen.length).fill(magentaColor);
+    var trace = {
+      x: cLMSMat[0],
+      y: cLMSMat[1],
+      z: cLMSMat[2],
+      text: wlen,
+      mode: 'lines+markers',
+      type: 'scatter3d',
+      name: 'LMS (Corrected)',
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        color: locusMarkerColors,
+        //symbol: Array(wlen.length).fill('1'),
+      },
+      line: {
+        color: magentaColor,
+        width: 2
+      },
+      //hoverinfo: 'skip',
+      hovertemplate: 'L: %{x}' +
+        '<br>M: %{y}' +
+        '<br>S: %{z}' +
+        '<br>wavelength: %{text}<extra></extra>' ,
+    };
+    Plotly.addTraces(plot, [trace]);
+  });
+}
 
 function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
   var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
@@ -794,6 +840,7 @@ d3.csv('ciesi.csv', function(err, rows){
   registerCalcMat('#calcMatrix', plot);
 });
 
+var ccMat;
 function registerCalcMat(buttonId, plot) {
   var calculated = false;
   $(buttonId).on('click', function(evt) {
@@ -802,6 +849,7 @@ function registerCalcMat(buttonId, plot) {
 
     var M = math.multiply(math.multiply(math.inv(math.multiply(math.transpose(RGBMat), RGBMat)),
         math.transpose(RGBMat)), LMSMat);
+    ccMat = M;
 
     var cLMSMat = math.transpose(math.multiply(RGBMat, M));
 
@@ -834,6 +882,7 @@ function registerCalcMat(buttonId, plot) {
         '<br>name: %{text}<extra></extra>' ,
     };
     Plotly.addTraces(plot, [trace]);
+    $('#correctLocus').prop('disabled', false);
   });
 }
 
@@ -989,8 +1038,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
   };
 
   Plotly.newPlot(plot, data, layout);
-
-  return plot;
 }
 
 function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {

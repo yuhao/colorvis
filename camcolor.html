@@ -77,12 +77,20 @@
         <div class="col-sm-7">
           <select id="camSel" style="width: 150px" class="my-2">
           </select>
-          <canvas id="canvasCamSpace"></canvas>
-          <div class="mt-4"><button id="resetChartCam" disabled>Draw Reset</button> Reset the camera sensitivity chart.</div>
-          <div class="my-2"><button id="resetZoomCamSpece">Reset Zoom</button> Reset the zoom of the chart.</div>
+          <canvas id="canvasCamSpace" class="mt-4"></canvas>
         </div>
         <div class="col-sm-5">
           <div id="locusDiv"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-7">
+          <div><button id="resetChartCam" disabled>Draw Reset</button> Reset the camera sensitivity chart.</div>
+          <div class="my-2"><button id="resetZoomCamSpece">Reset Zoom</button> Reset the zoom of the chart.</div>
+        </div>
+        <div class="col-sm-5">
+          <div><button id="correctLocus" disabled>Correct Locus</button> Draw the transformed spectral locus using the color correction matrix.</div>
         </div>
       </div>
     </div>
