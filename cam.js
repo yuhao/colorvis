@@ -5,6 +5,7 @@ var greyColor = '#888888';
 var purpleColor = '#5c32a8';
 var magentaColor = '#fc0377';
 var brightYellowColor = '#fcd303'; 
+var blueGreenColor = '#63BFAB'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
 var oBlueColor = 'rgba(1, 25, 147, 0.3)';
@@ -25,23 +26,23 @@ function updateLocus(seq1, seq2, seq3, newTitle, plot) {
   Plotly.update(plot, data_update, layout_update, [0]);
 }
 
-function highlightLocus(index, id, baseColors, baseColors2) {
-  // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
-  // Fx.hover fires only for 2d plots for now, so can't use it
+function highlightLocus(index, id) {
   var plot = document.getElementById(id);
-  var colors = Array.from(baseColors);
-  colors[index] = brightYellowColor;
-  // rather than 'marker': {color: colors}, which uses defaults for all other parameters
-  var update = {'marker.color': [colors]};
-  Plotly.restyle(plot, update, [1]);
 
-  colors = Array.from(baseColors2);
-  colors[index] = brightYellowColor;
-  // rather than 'marker': {color: colors}, which uses defaults for all other parameters
-  var update = {'marker.color': [colors]};
-  Plotly.restyle(plot, update, [0]);
+  for (var i = 0; i < plot.data.length; i++) {
+    var prevHlId = plot.data[i].marker.color.indexOf(brightYellowColor);
+    if (prevHlId != -1) {
+      plot.data[i].marker.color[prevHlId] =
+          plot.data[i].marker.color[(prevHlId + 1) % plot.data[i].x.length];
+    }
+
+    var colors = Array.from(plot.data[i].marker.color);
+    colors[index] = brightYellowColor;
+    var update = {'marker.color': [colors]};
+    Plotly.restyle(plot, update, [i]);
+  }
 }
- 
+
 function unpack(rows, key, toNum) {
   return rows.map(function(row) {
       if (toNum == false) return row[key];
@@ -458,87 +459,150 @@ d3.csv('camspec.csv', function(err, rows){
     }
     chartTraces.push(lTrace, mTrace, sTrace);
 
-    var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
-    var rgbLocusMarkerColors = Array(wlen.length).fill(purpleColor);
+    d3.csv('ciexyz31.csv', function(err, rows){
+      var stride = 5;
 
-    var canvas = document.getElementById("canvasCamSpace");
-    var ctx = canvas.getContext("2d");
-    window.camSenChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: x_data,
-        datasets: chartTraces,
-      },
-      options: {
-        animation: {
-          duration: 0,
-          //onComplete: function(animation) {
-          //  plotTargetColors(window.ccSpecChart, this, window.whiteChart);
-          //}
+      var wlen = unpack(rows, 'wavelength');
+      var firstW = wlen[0];
+      var lastW = wlen[wlen.length - 1];
+      var firstIdx = (400 - firstW) / stride;
+      var lastIdx = (720 - firstW) / stride;
+
+      // XYZ CMFs are given at 5 nm intervals
+      var xbar = unpack(rows, 'x').slice(firstIdx, lastIdx + 1).filter((element, index) => {
+        return index % 2 === 0;
+      });
+      var ybar = unpack(rows, 'y').slice(firstIdx, lastIdx + 1).filter((element, index) => {
+        return index % 2 === 0;
+      });
+      var zbar = unpack(rows, 'z').slice(firstIdx, lastIdx + 1).filter((element, index) => {
+        return index % 2 === 0;
+      });
+      wlen = wlen.slice(firstIdx, lastIdx + 1).filter((element, index) => {
+        return index % 2 === 0;
+      });
+
+      var xTrace = {
+        data: xbar,
+        label: 'CMF X',
+        fill: false,
+        pointHoverRadius: 10,
+        //pointBackgroundColor: redColor,
+        pointRadius: 0,
+        borderColor: redColor,
+        //borderDash: [10, 10],
+        backgroundColor: oRedColor,
+        borderWidth: 2,
+      }
+      var yTrace = {
+        data: ybar,
+        label: 'CMF Y',
+        fill: false,
+        pointHoverRadius: 10,
+        //pointBackgroundColor: greenColor,
+        pointRadius: 0,
+        borderColor: greenColor,
+        //borderDash: [10, 10],
+        backgroundColor: oGreenColor,
+        borderWidth: 2,
+      }
+      var zTrace = {
+        data: zbar,
+        label: 'CMF Z',
+        fill: false,
+        pointHoverRadius: 10,
+        //pointBackgroundColor: blueColor,
+        pointRadius: 0,
+        borderColor: blueColor,
+        //borderDash: [10, 10],
+        backgroundColor: oBlueColor,
+        borderWidth: 2,
+      }
+      chartTraces.push(xTrace, yTrace, zTrace);
+
+      var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
+      var rgbLocusMarkerColors = Array(wlen.length).fill(purpleColor);
+      var xyzLocusMarkerColors = Array(wlen.length).fill(blueGreenColor);
+
+      var canvas = document.getElementById("canvasCamSpace");
+      var ctx = canvas.getContext("2d");
+      window.camSenChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: x_data,
+          datasets: chartTraces,
         },
-        responsive: true,
-        interaction: {
-          //mode: 'nearest', // find the nearest point on one curve
-          mode: 'index',
-          intersect: false,
-        },
-        scales: {
-          yAxes:{
-            min: 0,
-            max: 1,
-            position: 'left',
+        options: {
+          animation: {
+            duration: 0,
           },
-        },
-        plugins: {
-          // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
-          zoom: {
+          responsive: true,
+          interaction: {
+            //mode: 'nearest', // find the nearest point on one curve
+            mode: 'index',
+            intersect: false,
+          },
+          scales: {
+            yAxes:{
+              min: 0,
+              //max: 2,
+              position: 'left',
+            },
+          },
+          plugins: {
+            // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
             zoom: {
-              wheel: {
-                enabled: true,
-                speed: 0.1,
+              zoom: {
+                wheel: {
+                  enabled: true,
+                  speed: 0.1,
+                },
+                mode: 'x',
               },
-              mode: 'x',
+              pan: {
+                enabled: true,
+                modifierKey: 'shift',
+                mode: 'x',
+              },
             },
-            pan: {
-              enabled: true,
-              modifierKey: 'shift',
-              mode: 'x',
+            title: {
+              display: true,
+              text: 'Camera Spectral Sensitivity',
+              font: {
+                size: 20,
+                family: 'Helvetica Neue',
+              },
             },
-          },
-          title: {
-            display: true,
-            text: 'Camera Spectral Sensitivity',
-            font: {
-              size: 20,
-              family: 'Helvetica Neue',
+            legend: {
+              position: 'left',
+              display: true,
             },
-          },
-          legend: {
-            position: 'top',
-            display: true,
-          },
-          tooltip: {
-            callbacks: {
-              labelTextColor: function(context) {
-                if (context.datasetIndex == 0) {
-                  highlightLocus(context.dataIndex, 'locusDiv', lmsLocusMarkerColors, rgbLocusMarkerColors);
+            tooltip: {
+              callbacks: {
+                labelTextColor: function(context) {
+                  if (context.datasetIndex == 0) {
+                    highlightLocus(context.dataIndex, 'locusDiv');
+                  }
+                  return '#FFFFFF';
                 }
-                return '#FFFFFF';
-              }
-            },
+              },
+            }
           }
         }
-      }
+      });
+
+      var plot = plotSpectralLocus(lCone, mCone, sCone, wlen,
+          unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]),
+          xbar, ybar, zbar);
+      registerDrawCorrectLocus('#correctLocus', plot, wlen);
+
+      genSelectBox(cams.slice(1), "camSel");
+      registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec);
+      registerChartReset('#resetChartCam', plot, window.camSenChart, canvas, 3,
+          [Array(wlen.length).fill(0.8), redColor],
+          [Array(wlen.length).fill(0.9), greenColor],
+          [Array(wlen.length).fill(0.6), blueColor]);
     });
-
-    var plot = plotSpectralLocus(lCone, mCone, sCone, wlen,
-        unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]));
-    registerDrawCorrectLocus('#correctLocus', plot, wlen);
-
-    genSelectBox(cams.slice(1), "camSel");
-    registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec);
-    registerChartReset('#resetChartCam', plot, window.camSenChart, canvas, 3,
-        [Array(wlen.length).fill(0.8), redColor], [Array(wlen.length).fill(0.9), greenColor], [Array(wlen.length).fill(0.6), blueColor]);
   });
 });
 
@@ -547,10 +611,10 @@ function registerDrawCorrectLocus(buttonId, plot, wlen) {
   $(buttonId).on('click', function(evt) {
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
 
-    var cLMSMat = math.multiply(ccMat, RGBMat);
+    var cXYZMat = math.multiply(ccMat, RGBMat);
 
     if (calculated) {
-      var data_update = {'x': [cLMSMat[0]], 'y': [cLMSMat[1]], 'z': [cLMSMat[2]]};
+      var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
       Plotly.update(plot, data_update, {}, [2]);
       return;
@@ -559,13 +623,13 @@ function registerDrawCorrectLocus(buttonId, plot, wlen) {
     calculated = true;
     var locusMarkerColors = Array(wlen.length).fill(magentaColor);
     var trace = {
-      x: cLMSMat[0],
-      y: cLMSMat[1],
-      z: cLMSMat[2],
+      x: cXYZMat[0],
+      y: cXYZMat[1],
+      z: cXYZMat[2],
       text: wlen,
       mode: 'lines+markers',
       type: 'scatter3d',
-      name: 'LMS (Corrected)',
+      name: 'XYZ (Corrected)',
       marker: {
         size: 6,
         opacity: 0.8,
@@ -577,16 +641,16 @@ function registerDrawCorrectLocus(buttonId, plot, wlen) {
         width: 2
       },
       //hoverinfo: 'skip',
-      hovertemplate: 'L: %{x}' +
-        '<br>M: %{y}' +
-        '<br>S: %{z}' +
+      hovertemplate: 'X: %{x}' +
+        '<br>Y: %{y}' +
+        '<br>Z: %{z}' +
         '<br>wavelength: %{text}<extra></extra>' ,
     };
     Plotly.addTraces(plot, [trace]);
   });
 }
 
-function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
+function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam, xbar, ybar, zbar) {
   var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
   var lmsTrace = {
     x: lCone,
@@ -595,7 +659,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
     text: wlen,
     mode: 'lines+markers',
     marker: {
-      size: 6,
+      size: 4,
       opacity: 0.8,
       color: lmsLocusMarkerColors,
     },
@@ -621,7 +685,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
     text: wlen,
     mode: 'lines+markers',
     marker: {
-      size: 6,
+      size: 4,
       opacity: 0.8,
       color: rgbLocusMarkerColors,
       symbol: Array(wlen.length).fill('diamond'),
@@ -640,7 +704,32 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
     name: 'Spectral Locus in Cam',
   };
 
-  var data = [rgbTrace, lmsTrace];
+  var xyzLocusMarkerColors = Array(wlen.length).fill(blueGreenColor);
+  var xyzTrace = {
+    x: xbar,
+    y: ybar,
+    z: zbar,
+    text: wlen,
+    mode: 'lines+markers',
+    marker: {
+      size: 4,
+      opacity: 0.8,
+      color: xyzLocusMarkerColors,
+      //symbol: Array(wlen.length).fill('diamond'),
+    },
+    line: {
+      color: blueGreenColor,
+      width: 2
+    },
+    hovertemplate: 'X: %{x}' +
+      '<br>Y: %{y}' +
+      '<br>Z: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'Spectral Locus in XYZ',
+  };
+
+  var data = [rgbTrace, lmsTrace, xyzTrace];
  
   var layout = {
     name: 'Spectral locus',
@@ -666,7 +755,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         }
       },
       // https://plotly.com/javascript/3d-axes/
-      //aspectmode: 'cube',
+      aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1],
@@ -675,7 +764,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'L/R'
+          text: 'L/R/X'
         }
       },
       yaxis: {
@@ -686,7 +775,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'M/G'
+          text: 'M/G/Y'
         }
       },
       zaxis: {
@@ -697,7 +786,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'S/B'
+          text: 'S/B/Z'
         }
       },
     }
@@ -868,17 +957,17 @@ function registerCalcMat(buttonId, plot) {
       text: window.ccPatchNames,
       mode: 'markers',
       type: 'scatter3d',
-      name: 'LMS (Corrected)',
+      name: 'XYZ (Corrected)',
       marker: {
-        size: 6,
+        size: 4,
         opacity: 0.8,
         color: redColor,
         symbol: Array(window.ccPatchNames.length).fill('diamond'),
       },
       //hoverinfo: 'skip',
-      hovertemplate: 'L: %{x}' +
-        '<br>M: %{y}' +
-        '<br>S: %{z}' +
+      hovertemplate: 'X: %{x}' +
+        '<br>Y: %{y}' +
+        '<br>Z: %{z}' +
         '<br>name: %{text}<extra></extra>' ,
     };
     Plotly.addTraces(plot, [trace]);
@@ -910,7 +999,8 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
 
   var numPatches = ccSpec.data.datasets.length;
   var patchRGB = [[], [], []];
-  var patchLMS = [[], [], []];
+  //var patchLMS = [[], [], []];
+  var patchXYZ = [[], [], []];
   for (var i = 0; i < numPatches; i++) {
     var R = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[0].data);
     var G = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[1].data);
@@ -919,12 +1009,19 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     patchRGB[1].push(G);
     patchRGB[2].push(B);
 
-    var L = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[3].data);
-    var M = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[4].data);
-    var S = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[5].data);
-    patchLMS[0].push(L);
-    patchLMS[1].push(M);
-    patchLMS[2].push(S);
+    //var L = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[3].data);
+    //var M = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[4].data);
+    //var S = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[5].data);
+    //patchLMS[0].push(L);
+    //patchLMS[1].push(M);
+    //patchLMS[2].push(S);
+
+    var X = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[6].data);
+    var Y = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[7].data);
+    var Z = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[8].data);
+    patchXYZ[0].push(X);
+    patchXYZ[1].push(Y);
+    patchXYZ[2].push(Z);
   }
 
   if (update) {
@@ -934,25 +1031,45 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     return;
   }
 
-  var lmsTrace = {
-    x: patchLMS[0],
-    y: patchLMS[1],
-    z: patchLMS[2],
+  var xyzTrace = {
+    x: patchXYZ[0],
+    y: patchXYZ[1],
+    z: patchXYZ[2],
     text: window.ccPatchNames,
     mode: 'markers',
     marker: {
-      size: 6,
+      size: 4,
       opacity: 0.8,
-      color: greyColor,
+      color: blueGreenColor,
       //symbol: Array(window.ccPatchNames.length).fill('diamond'),
     },
-    hovertemplate: 'L: %{x}' +
-      '<br>M: %{y}' +
-      '<br>S: %{z}' +
+    hovertemplate: 'X: %{x}' +
+      '<br>Y: %{y}' +
+      '<br>Z: %{z}' +
       '<br>name: %{text}<extra></extra>' ,
     type: 'scatter3d',
-    name: 'LMS',
+    name: 'XYZ',
   };
+
+  //var lmsTrace = {
+  //  x: patchLMS[0],
+  //  y: patchLMS[1],
+  //  z: patchLMS[2],
+  //  text: window.ccPatchNames,
+  //  mode: 'markers',
+  //  marker: {
+  //    size: 6,
+  //    opacity: 0.8,
+  //    color: greyColor,
+  //    //symbol: Array(window.ccPatchNames.length).fill('diamond'),
+  //  },
+  //  hovertemplate: 'L: %{x}' +
+  //    '<br>M: %{y}' +
+  //    '<br>S: %{z}' +
+  //    '<br>name: %{text}<extra></extra>' ,
+  //  type: 'scatter3d',
+  //  name: 'LMS',
+  //};
 
   var rgbTrace = {
     x: patchRGB[0],
@@ -961,7 +1078,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     text: window.ccPatchNames,
     mode: 'markers',
     marker: {
-      size: 6,
+      size: 4,
       opacity: 0.8,
       color: purpleColor,
       symbol: Array(window.ccPatchNames.length).fill('diamond'),
@@ -974,7 +1091,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     name: 'RGB',
   };
 
-  var data = [rgbTrace, lmsTrace];
+  var data = [rgbTrace, xyzTrace];
 
   var layout = {
     name: 'ColorChecker',
@@ -1009,7 +1126,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'L/R'
+          text: 'X/R'
         }
       },
       yaxis: {
@@ -1020,7 +1137,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'M/G'
+          text: 'Y/G'
         }
       },
       zaxis: {
@@ -1031,7 +1148,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
         zerolinewidth: 5,
         showspikes: false,
         title: {
-          text: 'S/B'
+          text: 'Z/B'
         }
       },
     }
