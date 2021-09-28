@@ -58,31 +58,39 @@ function registerResetZoom(id, chart) {
   });
 }
 
-// TODO: a quick hack right now. support any number of traces
+// TODO: a quick hack here. need to support arbitrary num of traces.
 function registerChartReset(buttonId, plotId, chart, canvas, num, resetData1, resetData2, resetData3) {
   $(buttonId).on('click', function(evt) {
     // reset chart.js (2d)
     // do a value copy here so that future updates to the chart won't affect the original data
 
-    chart.data.datasets[0].data = Array.from(resetData1);
-    chart.data.datasets[1].data = Array.from(resetData2);
-    chart.data.datasets[2].data = Array.from(resetData3);
+    var length = resetData1[0].length;
+    chart.data.datasets[0].data = Array.from(resetData1[0]);
+    var traceColor = resetData1[1];
+    chart.data.datasets[0].borderColor = Array(length).fill(traceColor);
+    chart.data.datasets[0].pointBackgroundColor = Array(length).fill(traceColor);
+    chart.data.datasets[0].pointRadius = Array(length).fill(3);
+    chart.data.datasets[0].borderColor = Array(length).fill(traceColor);
 
-    chart.data.datasets[0].borderColor = Array(resetData1.length).fill(redColor);
-    chart.data.datasets[0].pointBackgroundColor = Array(resetData1.length).fill(redColor);
-    chart.data.datasets[0].pointRadius = Array(resetData1.length).fill(3);
-    chart.data.datasets[1].borderColor = Array(resetData1.length).fill(greenColor);
-    chart.data.datasets[1].pointBackgroundColor = Array(resetData1.length).fill(greenColor);
-    chart.data.datasets[1].pointRadius = Array(resetData1.length).fill(3);
-    chart.data.datasets[2].borderColor = Array(resetData1.length).fill(blueColor);
-    chart.data.datasets[2].pointBackgroundColor = Array(resetData1.length).fill(blueColor);
-    chart.data.datasets[2].pointRadius = Array(resetData1.length).fill(3);
+    if (num > 1) {
+      traceColor = resetData2[1];
+      chart.data.datasets[1].data = Array.from(resetData2[0]);
+      chart.data.datasets[1].borderColor = Array(length).fill(traceColor);
+      chart.data.datasets[1].pointBackgroundColor = Array(length).fill(traceColor);
+      chart.data.datasets[1].pointRadius = Array(length).fill(3);
+
+      traceColor = resetData3[1];
+      chart.data.datasets[2].data = Array.from(resetData3[0]);
+      chart.data.datasets[2].borderColor = Array(length).fill(traceColor);
+      chart.data.datasets[2].pointBackgroundColor = Array(length).fill(traceColor);
+      chart.data.datasets[2].pointRadius = Array(length).fill(3);
+    }
 
     registerDrag(canvas, chart, plotId);
     chart.update();
 
     // reset plotly.js (3d)
-    if (plotId != undefined) updateLocus(resetData1, resetData2, resetData3, '', plotId);
+    if (plotId != undefined) updateLocus(resetData1[0], resetData2[0], resetData3[0], '', plotId);
   });
 }
 
@@ -259,7 +267,7 @@ d3.csv('ccspec.csv', function(err, rows){
     },
     options: {
       animation: {
-        duration: 10
+        //duration: 10
       },
       responsive: true,
       interaction: {
@@ -344,9 +352,9 @@ d3.csv('camspec.csv', function(err, rows){
   var rCamSpec = rows.slice(0, wlen.length);
   var gCamSpec = rows.slice(wlen.length, 2 * wlen.length);
   var bCamSpec = rows.slice(2 * wlen.length, 3 * wlen.length);
-  var drawSpec = [Array(wlen.length).fill(0.6),
+  var drawSpec = [Array(wlen.length).fill(0.8),
                   Array(wlen.length).fill(0.9),
-                  Array(wlen.length).fill(0.8)];
+                  Array(wlen.length).fill(0.6)];
 
   // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
@@ -463,9 +471,9 @@ d3.csv('camspec.csv', function(err, rows){
       options: {
         animation: {
           duration: 0,
-          onComplete: function() {
-            plotTargetColors(window.ccSpecChart, this, window.whiteChart);
-         }
+          //onComplete: function(animation) {
+          //  plotTargetColors(window.ccSpecChart, this, window.whiteChart);
+          //}
         },
         responsive: true,
         interaction: {
@@ -528,7 +536,7 @@ d3.csv('camspec.csv', function(err, rows){
     genSelectBox(cams.slice(1), "camSel");
     registerSelCam(window.camSenChart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec);
     registerChartReset('#resetChartCam', plot, window.camSenChart, canvas, 3,
-        Array(wlen.length).fill(0.6), Array(wlen.length).fill(0.9), Array(wlen.length).fill(0.8));
+        [Array(wlen.length).fill(0.8), redColor], [Array(wlen.length).fill(0.9), greenColor], [Array(wlen.length).fill(0.6), blueColor]);
   });
 });
 
@@ -725,7 +733,10 @@ d3.csv('ciesi.csv', function(err, rows){
     },
     options: {
       animation: {
-        duration: 10
+        duration: 0,
+        //onComplete: function(animation) {
+        //  plotTargetColors(window.ccSpecChart, window.camSenChart, this);
+        //}
       },
       responsive: true,
       interaction: {
@@ -772,12 +783,12 @@ d3.csv('ciesi.csv', function(err, rows){
   registerSelWhite(window.whiteChart, canvas, rows, DrawIllu, firstIdx, lastIdx);
   registerResetZoom('#resetZoomWhite', window.whiteChart);
   // TODO: fix this
-  //registerChartReset('#resetWhite', undefined, window.whiteChart, canvas, 1,
-  //    Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1)).filter((element, index) => {
-  //        return index % 2 === 0;
-  //      });
+  registerChartReset('#resetWhite', undefined, window.whiteChart, canvas, 1,
+      [Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+          return index % 2 === 0;
+        }), "#000000"]);
 
-  //plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart);
+  registerPlotTargets('#plotTargets', 'targetDiv');
 
 });
 
@@ -787,7 +798,21 @@ function calcTriVal(a, b, c) {
   return math.dot(s, c);
 }
 
-function plotTargetColors(ccSpec, camSen, stdIllu) {
+function registerPlotTargets(buttonId, plotId) {
+  var plotted = false;
+  $(buttonId).on('click', function(evt) {
+    if (!plotted) {
+      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plotId, false);
+      plotted = true;
+    } else {
+      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plotId, true);
+    }
+  });
+}
+
+function plotTargetColors(ccSpec, camSen, stdIllu, plotId, update) {
+  if (ccSpec == undefined || camSen == undefined || stdIllu == undefined) return;
+
   var numPatches = ccSpec.data.datasets.length;
   var patchRGB = [[], [], []];
   var patchLMS = [[], [], []];
@@ -807,6 +832,14 @@ function plotTargetColors(ccSpec, camSen, stdIllu) {
     patchLMS[2].push(S);
   }
 
+  if (update) {
+    var data_update = {'x': [patchRGB[0]], 'y': [patchRGB[1]], 'z': [patchRGB[2]]};
+
+    var plot = document.getElementById(plotId);
+    Plotly.update(plot, data_update, {}, [0]);
+    return;
+  }
+
   var lmsTrace = {
     x: patchLMS[0],
     y: patchLMS[1],
@@ -819,12 +852,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu) {
       color: greyColor,
       //symbol: Array(window.ccPatchNames.length).fill('diamond'),
     },
-    //line: {
-    //  color: greyColor,
-    //  width: 2
-    //},
-    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
-    // <extra> tag to suppress trace name
     hovertemplate: 'L: %{x}' +
       '<br>M: %{y}' +
       '<br>S: %{z}' +
@@ -845,12 +872,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu) {
       color: purpleColor,
       symbol: Array(window.ccPatchNames.length).fill('diamond'),
     },
-    //line: {
-    //  color: purpleColor,
-    //  width: 2
-    //},
-    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
-    // <extra> tag to suppress trace name
     hovertemplate: 'R: %{x}' +
       '<br>G: %{y}' +
       '<br>B: %{z}' +
@@ -862,7 +883,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu) {
   var data = [rgbTrace, lmsTrace];
 
   var layout = {
-    name: 'ColorChecker RGB',
+    name: 'ColorChecker',
     showlegend: true,
     legend: {
       x: 1,
@@ -922,12 +943,11 @@ function plotTargetColors(ccSpec, camSen, stdIllu) {
     }
   };
 
-  var plot = document.getElementById('targetDiv');
+  var plot = document.getElementById(plotId);
   Plotly.newPlot(plot, data, layout);
 
   return plot;
 }
-
 
 function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
   $('#whiteSel').on('change', function(evt) {
