@@ -795,14 +795,24 @@ d3.csv('ciesi.csv', function(err, rows){
 });
 
 function registerCalcMat(buttonId, plot) {
+  var calculated = false;
   $(buttonId).on('click', function(evt) {
     var RGBMat = math.transpose([plot.data[0].x, plot.data[0].y, plot.data[0].z]);
     var LMSMat = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
 
-    var M = math.multiply(math.multiply(math.inv(math.multiply(math.transpose(RGBMat), RGBMat)), math.transpose(RGBMat)), LMSMat);
+    var M = math.multiply(math.multiply(math.inv(math.multiply(math.transpose(RGBMat), RGBMat)),
+        math.transpose(RGBMat)), LMSMat);
 
     var cLMSMat = math.transpose(math.multiply(RGBMat, M));
 
+    if (calculated) {
+      var data_update = {'x': [cLMSMat[0]], 'y': [cLMSMat[1]], 'z': [cLMSMat[2]]};
+
+      Plotly.update(plot, data_update, {}, [2]);
+      return;
+    }
+
+    calculated = true;
     var trace = {
       x: cLMSMat[0],
       y: cLMSMat[1],
