@@ -782,15 +782,50 @@ d3.csv('ciesi.csv', function(err, rows){
 
   registerSelWhite(window.whiteChart, canvas, rows, DrawIllu, firstIdx, lastIdx);
   registerResetZoom('#resetZoomWhite', window.whiteChart);
-  // TODO: fix this
   registerChartReset('#resetWhite', undefined, window.whiteChart, canvas, 1,
       [Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
           return index % 2 === 0;
         }), "#000000"]);
 
-  registerPlotTargets('#plotTargets', 'targetDiv');
+  // 3D plot; RGB trace first, LMS trace second
+  var plot = document.getElementById('targetDiv');
+  registerPlotTargets('#plotTargets', plot);
 
+  registerCalcMat('#calcMatrix', plot);
 });
+
+function registerCalcMat(buttonId, plot) {
+  $(buttonId).on('click', function(evt) {
+    var RGBMat = math.transpose([plot.data[0].x, plot.data[0].y, plot.data[0].z]);
+    var LMSMat = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
+
+    var M = math.multiply(math.multiply(math.inv(math.multiply(math.transpose(RGBMat), RGBMat)), math.transpose(RGBMat)), LMSMat);
+
+    var cLMSMat = math.transpose(math.multiply(RGBMat, M));
+
+    var trace = {
+      x: cLMSMat[0],
+      y: cLMSMat[1],
+      z: cLMSMat[2],
+      text: window.ccPatchNames,
+      mode: 'markers',
+      type: 'scatter3d',
+      name: 'LMS (Corrected)',
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        color: redColor,
+        symbol: Array(window.ccPatchNames.length).fill('diamond'),
+      },
+      //hoverinfo: 'skip',
+      hovertemplate: 'L: %{x}' +
+        '<br>M: %{y}' +
+        '<br>S: %{z}' +
+        '<br>name: %{text}<extra></extra>' ,
+    };
+    Plotly.addTraces(plot, [trace]);
+  });
+}
 
 function calcTriVal(a, b, c) {
   var s = [];
@@ -798,19 +833,20 @@ function calcTriVal(a, b, c) {
   return math.dot(s, c);
 }
 
-function registerPlotTargets(buttonId, plotId) {
+function registerPlotTargets(buttonId, plot) {
   var plotted = false;
   $(buttonId).on('click', function(evt) {
+    $('#calcMatrix').prop('disabled', false);
     if (!plotted) {
-      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plotId, false);
+      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plot, false);
       plotted = true;
     } else {
-      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plotId, true);
+      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plot, true);
     }
   });
 }
 
-function plotTargetColors(ccSpec, camSen, stdIllu, plotId, update) {
+function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
   if (ccSpec == undefined || camSen == undefined || stdIllu == undefined) return;
 
   var numPatches = ccSpec.data.datasets.length;
@@ -835,7 +871,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plotId, update) {
   if (update) {
     var data_update = {'x': [patchRGB[0]], 'y': [patchRGB[1]], 'z': [patchRGB[2]]};
 
-    var plot = document.getElementById(plotId);
     Plotly.update(plot, data_update, {}, [0]);
     return;
   }
@@ -857,7 +892,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plotId, update) {
       '<br>S: %{z}' +
       '<br>name: %{text}<extra></extra>' ,
     type: 'scatter3d',
-    name: 'ColorChecker LMS',
+    name: 'LMS',
   };
 
   var rgbTrace = {
@@ -877,7 +912,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plotId, update) {
       '<br>B: %{z}' +
       '<br>name: %{text}<extra></extra>' ,
     type: 'scatter3d',
-    name: 'ColorChecker RGB',
+    name: 'RGB',
   };
 
   var data = [rgbTrace, lmsTrace];
@@ -943,7 +978,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plotId, update) {
     }
   };
 
-  var plot = document.getElementById(plotId);
   Plotly.newPlot(plot, data, layout);
 
   return plot;
