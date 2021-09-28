@@ -611,7 +611,7 @@ function registerDrawCorrectLocus(buttonId, plot, wlen) {
   $(buttonId).on('click', function(evt) {
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
 
-    var cXYZMat = math.multiply(ccMat, RGBMat);
+    var cXYZMat = math.multiply(window.ccMat, RGBMat);
 
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
@@ -934,16 +934,21 @@ function registerCalcMat(buttonId, plot) {
   var calculated = false;
   $(buttonId).on('click', function(evt) {
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
-    var LMSMat = [plot.data[1].x, plot.data[1].y, plot.data[1].z];
+    var XYZMat = [plot.data[1].x, plot.data[1].y, plot.data[1].z];
 
-    var M = math.multiply(math.multiply(LMSMat, math.transpose(RGBMat)),
+    //
+    //var Illu = window.whiteChart.data.datasets[0].data;
+    //var X = math.dot(Illu, );
+    //
+
+    var M = math.multiply(math.multiply(XYZMat, math.transpose(RGBMat)),
                           math.inv(math.multiply(RGBMat, math.transpose(RGBMat))));
     ccMat = M;
 
-    var cLMSMat = math.multiply(M, RGBMat);
+    var cXYZMat = math.multiply(M, RGBMat);
 
     if (calculated) {
-      var data_update = {'x': [cLMSMat[0]], 'y': [cLMSMat[1]], 'z': [cLMSMat[2]]};
+      var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
       Plotly.update(plot, data_update, {}, [2]);
       return;
@@ -951,9 +956,9 @@ function registerCalcMat(buttonId, plot) {
 
     calculated = true;
     var trace = {
-      x: cLMSMat[0],
-      y: cLMSMat[1],
-      z: cLMSMat[2],
+      x: cXYZMat[0],
+      y: cXYZMat[1],
+      z: cXYZMat[2],
       text: window.ccPatchNames,
       mode: 'markers',
       type: 'scatter3d',
