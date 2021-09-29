@@ -72,7 +72,7 @@
       <div class="row">
         <h3>Introduction</h3>
         <p>Do cameras see the same color as us? Can cameras always accurately reproduce colors that our eyes see? This interactive tutorial explores these questions and many more interesting aspects of camera raw color space. In particular, we will walk you through an important concept in both color science and camera signal processing: color correction, the process of correcting the color perception of a camera such that it is as close to ours as allowed. In the end, you will get to appreciate why you should never trust the color produced by your camera and how you might build your own camera that, in theory, out-performs existing cameras in color reproduction.</p>
-        <p><b>Caveats</b>. 1) This tutorial demonstrates the principle of color correction with many important, but subtle, engineering details omitted; we will mention them when appropriate. 2) Color correction is one of the two components in camera color reproduction, the other being white balance (or rather, camera's emulation of chromatic adaption of human visual system). <a href="http://yuhaozhu.com/blog/chromatic-adaptation.html">This post</a> discusses the principles of chromatic adaptation and its application in white balance. The relationship of color correction and white balance is quite tricky. Andrew Rowlands has a <a href="https://www.spiedigitallibrary.org/journals/optical-engineering/volume-59/issue-11/110801/Color-conversion-matrices-in-digital-cameras-a-tutorial/10.1117/1.OE.59.11.110801.full?SSO=1">fascinating article</a> that has everything you need to know about color correction and white balance.</p>
+        <p><b>Caveats</b>. 1) This tutorial demonstrates the principle of color correction with many important, but subtle, engineering details omitted; we will mention them when appropriate. 2) Color correction is one of the two components in camera color reproduction, the other being white balance (or rather, camera's emulation of chromatic adaption of human visual system). We have a <a href="http://yuhaozhu.com/blog/chromatic-adaptation.html">post</a> that discusses the principles of chromatic adaptation and its application in white balance. The relationship of color correction and white balance is quite tricky, but Andrew Rowlands has a <a href="https://www.spiedigitallibrary.org/journals/optical-engineering/volume-59/issue-11/110801/Color-conversion-matrices-in-digital-cameras-a-tutorial/10.1117/1.OE.59.11.110801.full?SSO=1">fascinating article</a> that demystefies it for you.</p>
       </div>
     </div>
 
@@ -96,7 +96,7 @@
 
       <div class="row">
         <div class="col-sm-7">
-          <div><button id="resetChartCam" disabled>Draw Reset</button> Reset the camera sensitivity chart.</div>
+          <div><button id="resetChartCam" disabled>Draw Reset</button> Reset the custom camera sensitivity functions.</div>
           <div class="my-2"><button id="resetZoomCamSpece">Reset Zoom</button> Reset the zoom of the chart.</div>
         </div>
         <div class="col-sm-5">
@@ -105,23 +105,49 @@
       </div>
 
       <div class="row">
-        <p>You can see that the shapes of the camera sensitivities functions more or less resemble those of the cone fundamentals, which is perhaps not all that surprising. After all, cameras are built to reproduce colors that our eyes see. The shapes, however, are not an exact match. Most notably, you will see that the L and M cone responses overlap much more than the overlap between the R and the G filters. As you can imagine, sensitivities that are overly close to each other won't provide a great ability to distinguish colors. In the extreme case where two filters' sensitivities exactly match, the camera is dichromatic.</p>
+        <p>You can see that the shapes of the camera sensitivities functions more or less resemble those of the cone fundamentals, which is perhaps not all that surprising. After all, cameras are built to reproduce colors that our eyes see. The shapes, however, are not an exact match. Most notably, you will see that the L and M cone responses overlap much more than the R and the G filters overlap. As you can imagine, sensitivities that are overly close to each other won't provide a great ability to distinguish colors. In the extreme case where two filters' sensitivities exactly match, the camera is dichromatic.</p>
         <!-- The camera sensitivities functions rarely exactly mimic the LMS cone responses; they are limited by the optical and silicon materials, the fabrication process, and have to consider not only color reproduction but also the signal-to-noise ratio. -->
-        <p>Although by default disabled, the chart also contains the CIE 1931 XYZ Color Matching Functions (CMFs). You can enable them by clicking on the legend to the left of the chart. In fact, clicking on a legend label toggles the visibility of the corresponding curve in the chart. The XYZ CMFs are just one linear transformation away from the LMS cone fundamentals, and is used as the "common language" in colorimetry when comparing different color spaces. So we will use XYZ as the connection color space in the rest of the tutorial. But as you know by now, the XYZ color space and the LMS color space are just one linear transformation away from each other.</p>
+        <p>Although by default disabled, the chart also contains the CIE 1931 XYZ Color Matching Functions (CMFs). You can enable them by clicking on the legend to the left of the chart. In fact, clicking on a legend label toggles the visibility of the corresponding curve in the chart. The XYZ CMFs are just one linear transformation away from the LMS cone fundamentals, and is used as the "common language" in colorimetry when comparing different color spaces. So we will use XYZ as the connection color space in the rest of the tutorial.</p>
         <p>In the same way we can plot the spectral locus in the XYZ color space, we can also plot the spectral locus on a camera's native RGB color space. The 3D plot on the right shows you the spectral locus on the XYZ, LMS, and the camera's RGB color space. The LMS locus is by default disabled, but you can enable it by clicking its legend label. Drag your mouse and spin around the 3D plot. You can see that the spectral locus in XYZ and in camera's RGB space do not match.</p>
+        <p>You can also draw your own camera sensitivity functions. Select "Draw" from the drop-down list, and start dragging your mouse. As you draw, the spectral locus in the camera RGB space will be dynamically updated on the 3D plot on the right. You can hit the Draw Reset button to clean the drawing.</p>
       </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 2: The Correction Targets</h3>
-        <p>The fact that the XYZ and the RGB locus do not match means that each spectral light has a different XYZ triple from the RGB triplet. That in itself is not a problem. the LMS and the xyz don't match too. but critically they are just one linear transformation away  from each other. in fact, any  light, not just spectral light can be converted between xyz and lms using one single linear transformation. can the same be said about the camera's RGB? well that's what we will have to find out. to do so, we will have to answer to questions: what lights are we going to use as targets lights to construct the transformation and how to construct the transformation.</p>
-        <p>If the three RGB numbers are just one linear transformation away from the three LMS numbers, the camera can essentially see the same colors as us. Otherwise, metamers to our eyes are not metamers to camera. In general, if the camera raw color space is precisely a linear transformation away from LMS/XYZ/other known colorimetric color space, then the camera is said to satisfy the <a href="https://en.wikipedia.org/wiki/Tristimulus_colorimeter#:~:text=A%20camera%20or%20colorimeter%20is,of%20the%20filters%20is%20a">Luther Condition</a> and that the camera space is colorimetric (in that we can use the camera to measure color)</p>
+        <p>The fact that the locus in XYZ and in the RGB locus do not match means that each spectral light has different XYZ tristimulus values from the RGB tristimulus values. That in itself is not a problem: the LMS and the XYZ tristimulus values of spectral lights don't match either. Critically, however, the LMS and XYZ color spaces are just one linear transformation away from each other. Any light, not just spectral light, can be converted between the XYZ and the LMS space using one single $3\times 3$ matrix multiplication. So it really doesn't matter in which space you express the color of a light; whether in LMS or XYZ (or any other colorimetric space), it's all the same underlying color.</p>
+        <p>Here comes the central question of this tutorial: is a camera's RGB color space also just a linear transformation from the XYZ/LMS space? If so, then the raw camera RGB values of any light can be translated to the correct XYZ values of that light, essentially recovering the color of the light from camera captures. In other words, the camera sees the same colors as us, and metamers to our eyes are also metamers to the camera. In general, if the camera raw color space is precisely a linear transformation away from the XYZ color space, the camera is said to satisfy the <a href="https://en.wikipedia.org/wiki/Tristimulus_colorimeter#:~:text=A%20camera%20or%20colorimeter%20is,of%20the%20filters%20is%20a">Luther Condition</a> and that the camera color space is colorimetric (in that we can use the camera to measure color). What would happen if a camera doesn't satisty the Luther Condition? Well, lights that are different to us (i.e., have different XYZ values) might be the same to the camera (i.e., have the same raw RGB values), and vice versa. Metamers to the camera would not be metameras to our eyes.</p>
+        <p>Stated mathematically, we want to find a $3\times 3$ transformation matrix $T$ that satifies the following equation:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        X_0, X_1, X_2, \dots \\
+        Y_0, Y_1, Y_2, \dots \\
+        Z_0, Z_1, Z_2, \dots
+        \end{bmatrix} =
+        \begin{bmatrix}
+        T_{00}, T_{01}, T_{02} \\
+        T_{10}, T_{11}, T_{12} \\
+        T_{20}, T_{21}, T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        R_0, R_1, R_2, \dots \\
+        G_0, G_1, G_2, \dots \\
+        B_0, B_1, B_2, \dots
+        \end{bmatrix},
+        $
+        </p>
+        <p>where $[X_i, Y_i, Z_i]^T$ is the XYZ values of a light and $[R_i, G_i, B_i]^T$ is the camera raw RGB values of the same light. Since the transformation matrix $T$ has 9 unknowns but $T$ should ideally work for any arbitrary light, i.e., infinitely many equations, the system of equations is over-determined. Instead of finding an exact solution, we will instead settle for a <i>best-fit</i> $T$ that works well for a set of lights whose color reproduction we care about.</p>
       </div>
 
       <div class="row">
         <canvas id="canvasCCSpec"></canvas>
-        <div class="my-4"><button id="resetZoomSpecR">Reset Zoom</button> Reset the zoom of the chart.</div>
+        <div class="mt-4"><button id="resetZoomSpecR">Reset Zoom</button> Reset the zoom of the chart.</div>
+      </div>
+
+      <div class="row mt-2">
+        <p>What are the lights we care to to reproduct their colors? We could certainly just use the spectral lights in the chart above, or could even just pick some random lights. But spectral lights are not commonly seen in real-world. In practical camera color calibration, what's often used is what's called the <a href="https://en.wikipedia.org/wiki/ColorChecker">ColorChecker color redition chart</a>, which contains 24 patches whose "spectral reflectances mimic those of natural objects such as human skin, foliage, and flowers." These are perfect target lights for us to calibrate the transformation matrix. While the original manufacturer <a href="https://www.xrite.com/service-support/faq_colorchecker_sg_spectral_data">does not publish</a> the spectral data, people have measured and published the spectral reflectance of these patches. The ones we plot above are from <a href="https://www.babelcolor.com/colorchecker-2.htm#CCP2_data">BabelColor</a>, but you might see slightly different versions.</p>
       </div>
 
     </div>
@@ -132,15 +158,38 @@
       </div>
 
       <div class="row pt-2">
-        <div class="col-sm-7">
+        <div class="col-sm-6">
           <select id="whiteSel" style="width: 150px" class="my-2">
           </select>
           <canvas id="canvasWhite"></canvas>
           <div class="mt-4"><button id="resetWhite" disabled>Reset Illuminant</button> Reset the Illuminant drawing.</div>
           <div class="my-2"><button id="resetZoomWhite">Reset Zoom</button> Reset the zoom of the chart.</div>
+          <div><p>You can select an iluminant in the chart above, which shows the SPD of a few CIE Standard Illuminants normalized to peak at unity. You can also draw your own illuminant by selecting "Draw" from the drop-down list.</p></div>
         </div>
-        <div class="col-sm-5">
+        <div class="col-sm-6">
+          <p>How do we obtain the XYZ and RGB values of a ColorChecker patch? These patches do not emit lights themselves; they reflect lights. Therefore, we must pick an illuminant for color correction. This inherently suggests that the color correction matrix will be dependent on the illuminant.
+          <p>Mathmatically, given an illuminant $\Phi(\lambda)$, the XYZ and the camera raw RGB values of a patch $i$ (with a spectral reflectance of $S_i(\lambda)$) are calculated as:</p>
+          <div class="row">
+            <div class="col-sm-6">
+              <p>$X_i = \sum_{400}^{720}\Phi(\lambda)S_i(\lambda)X(\lambda)$</p>
+              <p>$Y_i = \sum_{400}^{720}\Phi(\lambda)S_i(\lambda)Y(\lambda)$</p>
+              <p>$Z_i = \sum_{400}^{720}\Phi(\lambda)S_i(\lambda)Z(\lambda)$</p>
+            </div>
+            <div class="col-sm-6">
+              <p>$R_i = \sum_{400}^{720}\Phi(\lambda)S_i(\lambda)R(\lambda)$</p>
+              <p>$G_i = \sum_{400}^{720}\Phi(\lambda)S_i(\lambda)G(\lambda)$</p>
+              <p>$B_i = \sum_{400}^{720}\Phi(\lambda)S_i(\lambda)B(\lambda)$</p>
+            </div>
+          </div>
+          <p>Do the same calculation for all 24 patches, and plug the numbers back to the linear system in Step 2; you will then get an over-determined system with 72 equations and 9 unknowns.</p>
+          <p>In practical camera color calibration, we won't be able to get the exact SPD of the capturing illuminant, and sometimes we don't want to trust the spectral reflectance data. How do we get the RGB and XYZ values? The RGB values are easy: they can be directly read from the raw image captured by the camera, but how about the XYZ values? Fortunately, people have calculated the <a href="https://www.babelcolor.com/colorchecker-2.htm#CCP2_data">XYZ values of the patches</a> under different CIE Standard Illuminants. We would then have to estimate the illuminant of the capturing scene, and find the closest illuminant for which the XYZ values of the patches are available. Estimating the scene illuminant is a difficult topic on its own, and has implications in white balance as well, which we leave for another tutorial.</p>
         </div>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 4: Color Difference Metric</h3>
       </div>
     </div>
 
@@ -155,7 +204,7 @@
           <div class="mt-4"><button id="plotTargets">Plot patches</button> Plot the ColorChecker patches in both the XYZ and the camera-native RGB spaces.</div>
         </div>
         <div class="col-sm-6">
-          <div><button id="calcMatrix" disabled>Calculate Matrix</button> Calculate the color correction matrix.</div> Do not satisfy the <a href="https://en.wikipedia.org/wiki/Tristimulus_colorimeter#:~:text=A%20camera%20or%20colorimeter%20is,of%20the%20filters%20is%20a">Luther Condition</a>, meaning the camera can't be used for measuring color.
+          <div><button id="calcMatrix" disabled>Calculate Matrix</button> Calculate the color correction matrix.</div>
         </div>
       </div>
     </div>
