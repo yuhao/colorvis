@@ -190,12 +190,32 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 4: Calculate Color Correction Matrix</h3>
+        <p>With the illuminant selected, the linear system now looks like this:</p>
+        <p>
+        $\begin{bmatrix}
+        \boxed{??} \\
+        \boxed{??} \\
+        \boxed{??}
+        \end{bmatrix}$
+        $= \begin{bmatrix}
+        T_{00}, T_{01}, T_{02} \\
+        T_{10}, T_{11}, T_{12} \\
+        T_{20}, T_{21}, T_{22}
+        \end{bmatrix} \times$
+        $\begin{bmatrix}
+        \boxed{??} \\
+        \boxed{??} \\
+        \boxed{??}
+        \end{bmatrix}$
+        </p>
+        <p>The first matrix has 24 columns, each representing the XYZ values of a ColocChecker patch under the chosen illuminant. The last matrix also has 24 columns, each representing the RGB values of a patch in the camera raw RGB space under the same illuminant. Before solving the system, let's first <button id="plotTargets">Plot Patches</button> in both the XYZ and the camera-native RGB spaces. Evidently, you can see the patches do not overlap in the two spaces.</p>
+        <p>How to find the best fit $T$? The common approach is to formulate this as a <a href="https://en.wikipedia.org/wiki/Linear_least_squares">linear least squares</a> problem, which essentially minimizes the sum of the squared differences between the reconstructed XYZ values and the "ground truth" XYZ values. Critically, the difference is calculated as the Euclidean distance in the XYZ space. However, Euclidean distance in the XYZ space is not proportional to the <a href="https://en.wikipedia.org/wiki/MacAdam_ellipse">perceptual color difference</a>. Therefore, it is usually better to convert the color from the XYZ space to a perceptually uniform color space, such as the <a href="https://en.wikipedia.org/wiki/CIELAB_color_space#CIELAB">CIELAB</a>, before formulating the least squares. For simplicity we won't do it here, but you get the idea.</p>
+        <p>The optimal solution to the linear least squares problem in the form of $A=TB$ is: $T=AB^T (BB^T)^{-1}$, where $A$ is our XYZ matrix and $B$ is the RGB matrix.</p>
       </div>
 
       <div class="row pt-2">
         <div class="col-sm-6">
           <div id="targetDiv"></div>
-          <div class="mt-4"><button id="plotTargets">Plot patches</button> Plot the ColorChecker patches in both the XYZ and the camera-native RGB spaces.</div>
         </div>
         <div class="col-sm-6">
           <div><button id="calcMatrix" disabled>Calculate Matrix</button> Calculate the color correction matrix.</div>
