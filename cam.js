@@ -273,7 +273,7 @@ d3.csv('ccspec.csv', function(err, rows){
     },
     options: {
       animation: {
-        //duration: 10
+        duration: 0
       },
       responsive: true,
       interaction: {
@@ -628,7 +628,7 @@ function registerDrawCorrectLocus(buttonId, plot, wlen) {
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
-      Plotly.update(plot, data_update, {}, [2]);
+      Plotly.update(plot, data_update, {}, [3]);
       return;
     }
 
