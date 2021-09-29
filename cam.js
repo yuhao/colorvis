@@ -855,10 +855,8 @@ d3.csv('ciesi.csv', function(err, rows){
   var DrawIllu = Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
     return index % 2 === 0;
   });
-  var t = unpack(rows, StdIllu[1]);
-  var y_data_1 = math.dotDivide(t, Math.max(...t)).slice(firstIdx, lastIdx + 1).filter((element, index) => {
-    return index % 2 === 0;
-  });
+  var t = sampleSPD(unpack(rows, StdIllu[1]).slice(firstIdx, lastIdx + 1), 2);
+  var y_data_1 = math.dotDivide(t, Math.max(...t));
 
   var canvas = document.getElementById("canvasWhite");
   var ctx = canvas.getContext("2d");
@@ -1153,6 +1151,20 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
   Plotly.newPlot(plot, data, layout);
 }
 
+function sampleSPD(spd, stride) {
+  var result = [];
+  var accuPower = 0;
+  for (var i = 0; i < spd.length; i+=stride) {
+    for (var j = 0; j < stride && (i+j) < spd.length; j++) {
+      accuPower += spd[i+j]
+    }
+    result.push(accuPower/j);
+    accuPower = 0;
+  }
+
+  return result;
+}
+
 function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
   $('#whiteSel').on('change', function(evt) {
     var val = this.value;
@@ -1165,9 +1177,11 @@ function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
       $('#resetWhite').prop('disabled', true);
 
       var illu = unpack(rows, val);
-      var normIllu = math.dotDivide(illu, Math.max(...illu)).slice(firstIdx, lastIdx + 1).filter((element, index) => {
-        return index % 2 === 0;
-      });
+      var sampledIllu = sampleSPD(illu.slice(firstIdx, lastIdx + 1), 2);
+      var normIllu = math.dotDivide(sampledIllu, Math.max(...sampledIllu));
+      //.filter((element, index) => {
+      //  return index % 2 === 0;
+      //});
       chart.data.datasets[0].data = normIllu;
 
       toggleDrag(canvas, false);
