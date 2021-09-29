@@ -88,7 +88,7 @@ function registerChartReset(buttonId, plotId, chart, canvas, num, resetData1, re
       chart.data.datasets[2].pointRadius = Array(length).fill(3);
     }
 
-    registerDrag(canvas, chart, plotId);
+    registerDrag(canvas, chart, plotId, false, []);
     chart.update();
 
     // reset plotly.js (3d)
@@ -108,11 +108,15 @@ function toggleDrag(canvas, enable) {
   }
 }
 
-function registerDrag(canvas, chart, plotId, disableTT) {
+function registerDrag(canvas, chart, plotId, disableTT, targetTraces) {
   function down_handler(event) {
     // get the intersecting data point
     const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
     if (points.length > 0) {
+      // only drag draggable curves
+      if ((targetTraces.length != 0) && (targetTraces.indexOf(points[0].datasetIndex) == -1)) {
+        return;
+      }
       // grab the point, start dragging
       canvas.activePoint = points[0];
       canvas.selectedTrace = canvas.activePoint.datasetIndex;
@@ -342,6 +346,10 @@ function genSelectBox(values, id) {
   select.appendChild(option);
 }
 
+var defaultLegendClickHandler = Chart.defaults.plugins.legend.onClick;
+var newLegendClickHandler = function (e, legendItem, legend) {
+};
+
 d3.csv('camspec.csv', function(err, rows){
   var stride = 10;
 
@@ -493,6 +501,7 @@ d3.csv('camspec.csv', function(err, rows){
         //borderDash: [10, 10],
         backgroundColor: oRedColor,
         borderWidth: 2,
+        hidden: true,
       }
       var yTrace = {
         data: ybar,
@@ -505,6 +514,7 @@ d3.csv('camspec.csv', function(err, rows){
         //borderDash: [10, 10],
         backgroundColor: oGreenColor,
         borderWidth: 2,
+        hidden: true,
       }
       var zTrace = {
         data: zbar,
@@ -517,6 +527,7 @@ d3.csv('camspec.csv', function(err, rows){
         //borderDash: [10, 10],
         backgroundColor: oBlueColor,
         borderWidth: 2,
+        hidden: true,
       }
       chartTraces.push(xTrace, yTrace, zTrace);
 
@@ -576,6 +587,7 @@ d3.csv('camspec.csv', function(err, rows){
             legend: {
               position: 'left',
               display: true,
+              //onClick: newLegendClickHandler,
             },
             tooltip: {
               callbacks: {
@@ -806,7 +818,7 @@ function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawS
       chart.data.datasets[0].data = drawSpec[0];
       chart.data.datasets[1].data = drawSpec[1];
       chart.data.datasets[2].data = drawSpec[2];
-      registerDrag(canvas, chart, plot, true);
+      registerDrag(canvas, chart, plot, true, [0, 1, 2]);
     } else {
       $('#resetChartCam').prop('disabled', true);
       chart.data.datasets[0].data = unpack(rCamSpec, val);
@@ -936,16 +948,22 @@ function registerCalcMat(buttonId, plot) {
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
     var XYZMat = [plot.data[1].x, plot.data[1].y, plot.data[1].z];
 
-    //
-    //var Illu = window.whiteChart.data.datasets[0].data;
-    //var X = math.dot(Illu, );
-    //
-
     var M = math.multiply(math.multiply(XYZMat, math.transpose(RGBMat)),
                           math.inv(math.multiply(RGBMat, math.transpose(RGBMat))));
     ccMat = M;
 
     var cXYZMat = math.multiply(M, RGBMat);
+
+    /* showing that the illuminant isn't perfectly corrected
+    var Illu = window.whiteChart.data.datasets[0].data;
+    var X = math.dot(Illu, window.camSenChart.data.datasets[6].data);
+    var Y = math.dot(Illu, window.camSenChart.data.datasets[7].data);
+    var Z = math.dot(Illu, window.camSenChart.data.datasets[8].data);
+    var R = math.dot(Illu, window.camSenChart.data.datasets[0].data);
+    var G = math.dot(Illu, window.camSenChart.data.datasets[1].data);
+    var B = math.dot(Illu, window.camSenChart.data.datasets[2].data);
+    var test = math.multiply(M, math.transpose([R, G, B]));
+    */
 
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
@@ -1004,7 +1022,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
 
   var numPatches = ccSpec.data.datasets.length;
   var patchRGB = [[], [], []];
-  //var patchLMS = [[], [], []];
   var patchXYZ = [[], [], []];
   for (var i = 0; i < numPatches; i++) {
     var R = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[0].data);
@@ -1013,13 +1030,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     patchRGB[0].push(R);
     patchRGB[1].push(G);
     patchRGB[2].push(B);
-
-    //var L = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[3].data);
-    //var M = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[4].data);
-    //var S = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[5].data);
-    //patchLMS[0].push(L);
-    //patchLMS[1].push(M);
-    //patchLMS[2].push(S);
 
     var X = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[6].data);
     var Y = calcTriVal(stdIllu.data.datasets[0].data, ccSpec.data.datasets[i].data, camSen.data.datasets[7].data);
@@ -1055,26 +1065,6 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     type: 'scatter3d',
     name: 'XYZ',
   };
-
-  //var lmsTrace = {
-  //  x: patchLMS[0],
-  //  y: patchLMS[1],
-  //  z: patchLMS[2],
-  //  text: window.ccPatchNames,
-  //  mode: 'markers',
-  //  marker: {
-  //    size: 6,
-  //    opacity: 0.8,
-  //    color: greyColor,
-  //    //symbol: Array(window.ccPatchNames.length).fill('diamond'),
-  //  },
-  //  hovertemplate: 'L: %{x}' +
-  //    '<br>M: %{y}' +
-  //    '<br>S: %{z}' +
-  //    '<br>name: %{text}<extra></extra>' ,
-  //  type: 'scatter3d',
-  //  name: 'LMS',
-  //};
 
   var rgbTrace = {
     x: patchRGB[0],
@@ -1169,7 +1159,7 @@ function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
       $('#resetWhite').prop('disabled', false);
 
       chart.data.datasets[0].data = drawIllu;
-      registerDrag(canvas, chart, undefined, true);
+      registerDrag(canvas, chart, undefined, true, []);
     } else {
       $('#resetWhite').prop('disabled', true);
 
