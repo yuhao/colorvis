@@ -669,6 +669,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam, xbar, yb
     y: mCone,
     z: sCone,
     text: wlen,
+    visible: 'legendonly',
     mode: 'lines+markers',
     marker: {
       size: 4,
