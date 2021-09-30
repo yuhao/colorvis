@@ -966,22 +966,21 @@ function registerGenLinSys(buttonId, plot){
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
     var XYZMat = [plot.data[1].x, plot.data[1].y, plot.data[1].z];
 
-    var xyz = "\\begin{bmatrix}" +
+    var xyz = "\\small{ \\begin{bmatrix}" +
         convertToMatStr(XYZMat[0]) + "\\\\" +
         convertToMatStr(XYZMat[1]) + "\\\\" +
         convertToMatStr(XYZMat[2]) +
-        "\\end{bmatrix}";
+        "\\end{bmatrix}}";
     QUEUE.Push(["Text", equText[0], xyz]);
 
-    var rgb = "\\begin{bmatrix}" +
+    var rgb = "\\small{ \\begin{bmatrix}" +
         convertToMatStr(RGBMat[0]) + "\\\\" +
         convertToMatStr(RGBMat[1]) + "\\\\" +
         convertToMatStr(RGBMat[2]) +
-        "\\end{bmatrix}";
+        "\\end{bmatrix} }";
     QUEUE.Push(["Text", equText[2], rgb]);
 
     QUEUE.Push(["Text", equText2[0], $('#whiteSel').val()]);
-    QUEUE.Push(["Text", equText2[1], $('#whiteSel').val()]);
   });
 }
 

@@ -116,7 +116,7 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 2: The Correction Targets</h3>
-        <p>The fact that the locus in XYZ and in the RGB locus do not match means that each spectral light has different XYZ tristimulus values from the RGB tristimulus values. That in itself is not a problem: the LMS and the XYZ tristimulus values of spectral lights don't match either. Critically, however, the LMS and XYZ color spaces are just one linear transformation away from each other. Any light, not just spectral light, can be converted between the XYZ and the LMS space using one single $3\times 3$ matrix multiplication. So it really doesn't matter in which space you express the color of a light; whether in LMS or XYZ (or any other colorimetric space), it's all the same underlying color.</p>
+        <p>The fact that the locus in XYZ and in the RGB locus do not match means that each spectral light has different XYZ and RGB tristimulus values. That in itself is not a problem: the LMS and the XYZ tristimulus values of spectral lights don't match either. Critically, however, the LMS and XYZ color spaces are just one linear transformation away from each other. Any light, not just spectral light, can be converted between the XYZ and the LMS space using one single $3\times 3$ matrix multiplication. So it really doesn't matter in which space you express the color of a light; whether in LMS or XYZ (or any other colorimetric space), it's all the same underlying color.</p>
         <p>Here comes the central question of this tutorial: is a camera's RGB color space also just a linear transformation from the XYZ/LMS space? If so, then the raw camera RGB values of any light can be translated to the correct XYZ values of that light, essentially recovering the color of the light from camera captures. In other words, the camera sees the same colors as us, and metamers to our eyes are also metamers to the camera. In general, if the camera raw color space is precisely a linear transformation away from the XYZ color space, the camera is said to satisfy the <a href="https://en.wikipedia.org/wiki/Tristimulus_colorimeter#:~:text=A%20camera%20or%20colorimeter%20is,of%20the%20filters%20is%20a">Luther Condition</a> and that the camera color space is colorimetric (in that we can use the camera to measure color). What would happen if a camera doesn't satisty the Luther Condition? Well, lights that are different to us (i.e., have different XYZ values) might be the same to the camera (i.e., have the same raw RGB values), and vice versa. Metamers to the camera would not be metameras to our eyes.</p>
         <p>Stated mathematically, we want to find a $3\times 3$ transformation matrix $T$ that satifies the following equation:</p>
         <p>
@@ -197,18 +197,18 @@
         \boxed{??} \\
         \boxed{??}
         \end{bmatrix}$
-        $= \begin{bmatrix}
+        $\small{ = \begin{bmatrix}
         T_{00} & T_{01} & T_{02} \\
         T_{10} & T_{11} & T_{12} \\
         T_{20} & T_{21} & T_{22}
-        \end{bmatrix} \times$
+        \end{bmatrix} \times}$
         $\begin{bmatrix}
         \boxed{??} \\
         \boxed{??} \\
         \boxed{??}
         \end{bmatrix}$
         </p>
-        <p id="equText2">The first matrix has 24 columns, each representing the XYZ values of a ColocChecker patch under your chosen illuminant ${}$. The last matrix also has 24 columns, each representing the RGB values of a patch in the camera raw RGB space under the same illuminant ${}$. We get an over-determined system with 72 equations and 9 unknowns.</p>
+        <p id="equText2">The first matrix has 24 columns, each representing the XYZ values of a ColocChecker patch under your chosen illuminant ${\boxed{??}}$. The last matrix also has 24 columns, each representing the RGB values of a patch in the camera RGB space under the same illuminant. We get an over-determined system with 72 equations and 9 unknowns.</p>
         <p>Before solving the system, let's look at the patches in both the XYZ and the camera RGB spaces, which is shown in the left chart below. Evidently, the XYZ and the RGB values of the patches do not overlap, but if you spin around the chart you'll likely see that the relative distributions of the patches within the XYZ and the RGB space are roughly similar, suggesting that a linear transformation might exist.</p>
       </div>
 
@@ -232,7 +232,8 @@
         \end{bmatrix}}$
         , for camera ${\boxed{??}}$ and illuminant ${\boxed{??}}$.</p>
         <p>Meanwhile, the transformed/corrected XYZ values of the patches will be shown in the chart above. Look for the label "XYZ (Corrected)". You can see that the correct XYZ values pretty much align with the "ground truth" XYZ values. But they don't exactly overlap, because the transformation matrix is just the best fit, not the perfect solution. To see the color correction error, the chart on the right shows a heatmap plotting the distances between the true XYZ and the reproduced XYZ values of the 24 patches. Again, in reality you would estimate the best-fit in a something like a CIELAB space and use a perceptual color difference metric such as <a href="https://en.wikipedia.org/wiki/Color_difference#CIELAB_%CE%94E*">CIE $\Delta E^*$</a>.</p>
-        <p>Finally, if you want to change the camera and the illuminant choice, simply click the Generate Equations and Calculate Matrix buttons again (in that order). As you change the camera and illuminant, you will see that the correction matrix above will change too, confirming that the correction matrix inherently tied to a particular camera and the calibrating illuminant.</p>
+        <p>If you change the camera and the illuminant choice, simply click the "Generate Equations" and "Calculate Matrix" buttons again (in that order). As you change the camera and illuminant, you will see that the correction matrix changes too, confirming that the correction matrix is inherently tied to a particular camera and calibrating illuminant.</p>
+        <p id="equText3">This basic process is done in real camera color calibration, which has a few additional customary normalizations. For instance, when the RGB values are directly read from the raw captures, they are normalized to the range of $[0, 1]$ using the maxium raw value of the sensor. Also, the transformation matrix $T$ is normalized such that the capturing illuminant (${}$ here), when normalized to have a Y value of 1, saturates one of the RGB channels (usually the G channel is the first to saturate since green filter has the highest sensitivity as is evident in the first chart).</p>
       </div>
     </div>
 
