@@ -611,7 +611,9 @@ d3.csv('camspec.csv', function(err, rows){
         }
       });
 
-      var plot = plotSpectralLocus(lCone, mCone, sCone, wlen,
+      var plot = document.getElementById('locusDiv');
+      window.locusPlot = plot;
+      plotSpectralLocus(plot, lCone, mCone, sCone, wlen,
           unpack(rCamSpec, cams[1]), unpack(gCamSpec, cams[1]), unpack(bCamSpec, cams[1]),
           xbar, ybar, zbar);
       registerDrawCorrectLocus('#correctLocus', plot, wlen);
@@ -670,7 +672,7 @@ function registerDrawCorrectLocus(buttonId, plot, wlen) {
   });
 }
 
-function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam, xbar, ybar, zbar) {
+function plotSpectralLocus(plot, lCone, mCone, sCone, wlen, rCam, gCam, bCam, xbar, ybar, zbar) {
   var lmsLocusMarkerColors = Array(wlen.length).fill(greyColor);
   var lmsTrace = {
     x: lCone,
@@ -813,10 +815,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam, xbar, yb
     }
   };
 
-  var plot = document.getElementById('locusDiv');
   Plotly.newPlot(plot, data, layout);
-
-  return plot;
 }
 
 function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec) {
@@ -946,8 +945,12 @@ d3.csv('ciesi.csv', function(err, rows){
   plot.plotted = false;
   registerGenLinSys('#genLinSys', plot);
 
+  // heatmap for color difference
   var colorDiffPlot = document.getElementById('colDiffDiv');
-  registerCalcMat('#calcMatrix', plot, colorDiffPlot);
+  // chromaticity plot
+  var chrmPlot = document.getElementById('chrmDiv');
+  registerCalcMat('#calcMatrix', plot, colorDiffPlot, chrmPlot);
+
 });
 
 function convertToMatStr(row) {
@@ -985,7 +988,7 @@ function registerGenLinSys(buttonId, plot){
 }
 
 var ccMat;
-function registerCalcMat(buttonId, plot, colorDiffPlot) {
+function registerCalcMat(buttonId, plot, colorDiffPlot, chrmPlot) {
   var calculated = false;
   $(buttonId).on('click', function(evt) {
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
@@ -1050,7 +1053,98 @@ function registerCalcMat(buttonId, plot, colorDiffPlot) {
     $('#correctLocus').prop('disabled', false);
 
     plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, false);
+
+    plotChrm(chrmPlot);
   });
+}
+
+function toChrm(Tri) {
+  var sum = math.add(math.add(Tri[0], Tri[1]), Tri[2]);
+  var x = math.dotDivide(Tri[0], sum);
+  var y = math.dotDivide(Tri[1], sum);
+  var z = math.dotDivide(Tri[2], sum);
+
+  return [x, y, z];
+}
+
+function plotChrm(plot) {
+  var locusPlot = window.locusPlot;
+  var RGBMat = [locusPlot.data[0].x, locusPlot.data[0].y, locusPlot.data[0].z];
+  var XYZMat = [locusPlot.data[2].x, locusPlot.data[2].y, locusPlot.data[2].z];
+  var cXYZMat = math.multiply(window.ccMat, RGBMat);
+
+  var cXYZChrm = toChrm(cXYZMat);
+  var XYZChrm = toChrm(XYZMat);
+  var wlen = locusPlot.data[0].text;
+
+  var xyTrace = {
+    x: XYZChrm[0].concat([XYZChrm[0][0]]),
+    y: XYZChrm[1].concat([XYZChrm[1][0]]),
+    text: wlen,
+    mode: 'lines+markers',
+    fill: 'toself',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: purpleColor,
+    },
+    line: {
+      color: purpleColor,
+      width: 2,
+      shape: 'spline',
+    },
+    name: 'Spectral Locus',
+  };
+
+  var cxyTrace = {
+    x: cXYZChrm[0].concat([cXYZChrm[0][0]]),
+    y: cXYZChrm[1].concat([cXYZChrm[1][0]]),
+    text: wlen,
+    mode: 'lines+markers',
+    fill: 'toself',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: blueGreenColor,
+    },
+    line: {
+      color: blueGreenColor,
+      width: 2,
+      shape: 'spline',
+    },
+    name: 'Corrected Spectral Locus',
+  };
+
+  var data = [xyTrace, cxyTrace];
+ 
+  var layout = {
+    //title: 'Spectral locus in xy-chromaticity plot',
+    showlegend: true,
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    plot_bgcolor: 'rgba(0, 0, 0, 0)',
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.9,
+    },
+    xaxis: {
+      range: [Math.min(0, Math.min(...cXYZChrm[0])), Math.max(1, Math.max(...cXYZChrm[0]))],
+      title: {
+        text: 'x'
+      },
+      // https://community.plotly.com/t/get-mouses-position-on-click/4145/3
+      constrain: 'domain',
+    },
+    yaxis: {
+      range: [Math.min(0, Math.min(...cXYZChrm[1])), Math.max(1, Math.max(...cXYZChrm[1]))],
+      title: {
+        text: 'y'
+      },
+      scaleanchor: 'x',
+    }
+  };
+ 
+  Plotly.newPlot(plot, data, layout);
 }
 
 function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
@@ -1296,4 +1390,3 @@ function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
     chart.update();
   });
 }
-
