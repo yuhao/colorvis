@@ -222,6 +222,7 @@
       </div>
 
       <div class="row pt-2">
+        <h4>Solving the Optimization Problem</h4>
         <p>How to find the best fit $T$? The common approach is to formulate this as a <a href="https://en.wikipedia.org/wiki/Linear_least_squares">linear least squares</a> problem, which essentially minimizes the sum of the squared differences between the reconstructed XYZ values and the "ground truth" XYZ values. Critically, squared differences represent Euclidean distances in the XYZ space. However, Euclidean distance in the XYZ space is not proportional to the <a href="https://en.wikipedia.org/wiki/MacAdam_ellipse">perceptual color difference</a>. Therefore, it is usually better to convert the color from the XYZ space to a perceptually uniform color space, such as the <a href="https://en.wikipedia.org/wiki/CIELAB_color_space#CIELAB">CIELAB</a>, before formulating the least squares. For simplicity we won't do it here, but you get the idea.</p>
         <p>The optimal solution to the linear least squares problem in the form of $A=TB$ is: $T=AB^T (BB^T)^{-1}$, where $A$ is our XYZ matrix and $B$ is the RGB matrix. Now click <button id="calcMatrix" disabled>Calculate Matrix</button> to find $T$! The best-fit matrix is calculated as:</p>
         <p id="ccMatText">
@@ -232,14 +233,19 @@
         \end{bmatrix}}$
         , for camera ${\boxed{??}}$ and illuminant ${\boxed{??}}$.</p>
         <p>Meanwhile, the transformed/corrected XYZ values of the patches will be shown in the chart above. Look for the label "XYZ (Corrected)". You can see that the correct XYZ values pretty much align with the "ground truth" XYZ values. But they don't exactly overlap, because the transformation matrix is just the best fit, not the perfect solution. To see the color correction error, the heatmap on the right shows the distances between the true XYZ and the reproduced XYZ values of the 24 patches. Again, in reality you would estimate the best-fit in a perceptually-uniform space like CIELAB and use a perceptual color difference metric such as <a href="https://en.wikipedia.org/wiki/Color_difference#CIELAB_%CE%94E*">CIE $\Delta E^*$</a>.</p>
-        <p>If you change the camera and the illuminant choice, simply click the "Generate Equations" and "Calculate Matrix" buttons again (in that order). As you change the camera and illuminant, you will see that the correction matrix changes too, confirming that the correction matrix is inherently tied to a particular camera and calibrating illuminant.</p>
         <p id="equText3">This basic process is done in real camera color calibration, which just has a few additional customary normalizations. For instance, when the RGB values are directly read from the raw captures, they are normalized to the range of $[0, 1]$ using the maxium raw value of the sensor. Also, the transformation matrix $T$ is normalized such that the capturing illuminant (${}$ here), when normalized to have a Y value of 1, saturates one of the RGB channels (usually the G channel is the first to saturate since green filter has the highest sensitivity as is evident in the first chart).</p>
+        <h4>Customizing the Camera</h4>
+        <p>If you change the camera and the illuminant choice, simply click the "Generate Equations" and "Calculate Matrix" buttons again (in that order). As you change the camera and illuminant, you will see that the correction matrix changes too, confirming that the correction matrix is inherently tied to a particular camera and calibrating illuminant. One thing you are particularly encouraged to do is to draw the camera sensitivity functions that mimic the LMS conen fundamentals or the XYZ CMFs. You will see that the color reproduction error will be relatively small.</p>
       </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Interpreting Camera Color Space</h3>
+        <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that: a typical camera's color space covers imaginary colors, and that the intuition that a color space's gamut is the area enclosed by the spectral locus doesn't apply anymore.</p>
+        <h4>Are Spectral Lights Corrected?</h4>
+        <p>The first question you can ask is, does $T$ correct colors of other lights that are not used for color correction? In particular, we are interested in how the spectral lights are corrected. Go back to the spectral locus plot (second plot in this tutorial) and click the "Corrected XYZ Locus" button. You will see the transformed spectral locus plotted (the "XYZ (Corrected)" curve). Ideally, you want that locus to be precisely ovelapping with the actual XYZ spectral locus, but most likely you will see that that are way off. This is perhaps not all that surprising, since the spectral lights are not used for calculating the best-fit matrix.</p>
+        <p></p>
         <div class="col-sm-6">
           <div id="chrmDiv"></div>
         </div>
