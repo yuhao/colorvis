@@ -887,9 +887,6 @@ d3.csv('ciesi.csv', function(err, rows){
     options: {
       animation: {
         duration: 0,
-        //onComplete: function(animation) {
-        //  plotTargetColors(window.ccSpecChart, window.camSenChart, this);
-        //}
       },
       responsive: true,
       interaction: {
@@ -1024,7 +1021,9 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
       Plotly.update(patchPlot, data_update, {}, [2]);
+
       plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, true);
+      plotChrm(patchPlot, chrmPlot, true);
       return;
     }
 
@@ -1040,7 +1039,7 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
       marker: {
         size: 4,
         opacity: 0.8,
-        color: redColor,
+        color: magentaColor,
         symbol: Array(window.ccPatchNames.length).fill('diamond'),
       },
       //hoverinfo: 'skip',
@@ -1054,7 +1053,7 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
 
     plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, false);
 
-    plotChrm(patchPlot, chrmPlot);
+    plotChrm(patchPlot, chrmPlot, false);
   });
 }
 
@@ -1067,29 +1066,43 @@ function toChrm(Tri) {
   return [x, y, z];
 }
 
-function plotChrm(patchPlot, chrmPlot) {
+function plotChrm(patchPlot, chrmPlot, plotted) {
   var locusPlot = window.locusPlot;
+  var wlen = locusPlot.data[0].text;
+
   var locusRGBMat = [locusPlot.data[0].x, locusPlot.data[0].y, locusPlot.data[0].z];
   var locusXYZMat = [locusPlot.data[2].x, locusPlot.data[2].y, locusPlot.data[2].z];
   var cLocusXYZMat = math.multiply(window.ccMat, locusRGBMat);
 
   var cLocusXYZChrm = toChrm(cLocusXYZMat);
   var locusXYZChrm = toChrm(locusXYZMat);
-  var wlen = locusPlot.data[0].text;
+
+  var patchXYZMat = [patchPlot.data[1].x, patchPlot.data[1].y, patchPlot.data[1].z];
+  var cPatchXYZMat = [patchPlot.data[2].x, patchPlot.data[2].y, patchPlot.data[2].z];
+  var patchXYZChrm = toChrm(patchXYZMat);
+  var cPatchXYZChrm = toChrm(cPatchXYZMat);
+
+  if (plotted) {
+    var data_update = {'x': [cLocusXYZChrm[0], patchXYZChrm[0], cPatchXYZChrm[0]],
+                       'y': [cLocusXYZChrm[1], patchXYZChrm[1], cPatchXYZChrm[1]]};
+
+    Plotly.update(chrmPlot, data_update, {}, [1, 2, 3]);
+    return;
+  }
 
   var xyTrace = {
     x: locusXYZChrm[0],//.concat([XYZChrm[0][0]]),
     y: locusXYZChrm[1],//.concat([XYZChrm[1][0]]),
     text: wlen,
-    mode: 'lines+markers',
+    mode: 'lines',
     //fill: 'toself',
-    marker: {
-      size: 6,
-      opacity: 0.8,
-      color: purpleColor,
-    },
+    //marker: {
+    //  size: 6,
+    //  opacity: 0.8,
+    //  color: blueGreenColor,
+    //},
     line: {
-      color: purpleColor,
+      color: blueGreenColor,
       width: 2,
       shape: 'spline',
     },
@@ -1103,15 +1116,15 @@ function plotChrm(patchPlot, chrmPlot) {
     x: cLocusXYZChrm[0],//.concat([cXYZChrm[0][0]]),
     y: cLocusXYZChrm[1],//.concat([cXYZChrm[1][0]]),
     text: wlen,
-    mode: 'lines+markers',
+    mode: 'lines',
     //fill: 'toself',
-    marker: {
-      size: 6,
-      opacity: 0.8,
-      color: redColor,
-    },
+    //marker: {
+    //  size: 6,
+    //  opacity: 0.8,
+    //  color: magentaColor,
+    //},
     line: {
-      color: redColor,
+      color: magentaColor,
       width: 2,
       shape: 'spline',
     },
@@ -1121,28 +1134,23 @@ function plotChrm(patchPlot, chrmPlot) {
       '<br>name: %{text}<extra></extra>',
   };
 
-  var patchXYZMat = [patchPlot.data[1].x, patchPlot.data[1].y, patchPlot.data[1].z];
-  var cPatchXYZMat = [patchPlot.data[2].x, patchPlot.data[2].y, patchPlot.data[2].z];
-  var cPatchXYZChrm = toChrm(cPatchXYZMat);
-  var patchXYZChrm = toChrm(patchXYZMat);
-
   var pxyTrace = {
     x: patchXYZChrm[0],//.concat([XYZChrm[0][0]]),
     y: patchXYZChrm[1],//.concat([XYZChrm[1][0]]),
-    text: wlen,
+    text: window.ccPatchNames,
     mode: 'markers',
     //fill: 'toself',
     marker: {
       size: 6,
       opacity: 0.8,
-      color: purpleColor,
+      color: blueGreenColor,
     },
     line: {
-      color: purpleColor,
+      color: blueGreenColor,
       width: 2,
       shape: 'spline',
     },
-    name: 'Spectral Locus',
+    name: 'Patches',
     hovertemplate: 'x: %{x}' +
       '<br>y: %{y}' +
       '<br>name: %{text}<extra></extra>',
@@ -1151,20 +1159,20 @@ function plotChrm(patchPlot, chrmPlot) {
   var cpxyTrace = {
     x: cPatchXYZChrm[0],//.concat([cXYZChrm[0][0]]),
     y: cPatchXYZChrm[1],//.concat([cXYZChrm[1][0]]),
-    text: wlen,
+    text: window.ccPatchNames,
     mode: 'markers',
     //fill: 'toself',
     marker: {
       size: 6,
       opacity: 0.8,
-      color: redColor,
+      color: magentaColor,
     },
     line: {
-      color: redColor,
+      color: magentaColor,
       width: 2,
       shape: 'spline',
     },
-    name: 'Corrected Spectral Locus',
+    name: 'Corrected Patches',
     hovertemplate: 'x: %{x}' +
       '<br>y: %{y}' +
       '<br>name: %{text}<extra></extra>',
@@ -1175,7 +1183,7 @@ function plotChrm(patchPlot, chrmPlot) {
   var layout = {
     //title: 'Spectral locus in xy-chromaticity plot',
     margin: {
-      l: 30,
+      l: 0,
       r: 30,
       b: 30,
       t: 30
