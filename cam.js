@@ -12,8 +12,12 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-var text1Jax, text2Jax, text4Jax;
-var allJax, cmfJax;
+var ccMatText;
+
+QUEUE.Push(function () {
+  ccMatText = MathJax.Hub.getAllJax('ccMatText');
+});
+
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, plot) {
@@ -329,7 +333,7 @@ d3.csv('ccspec.csv', function(err, rows){
   registerResetZoom('#resetZoomSpecR', window.ccSpecChart);
 });
 
-function genSelectBox(values, id) {
+function genSelectBox(values, id, preset) {
   var select = document.getElementById(id);
 
   for (const val of values)
@@ -344,6 +348,8 @@ function genSelectBox(values, id) {
   option.value = 'Draw';
   option.text = 'Draw';
   select.appendChild(option);
+
+  if (preset) select.value = preset;
 }
 
 var defaultLegendClickHandler = Chart.defaults.plugins.legend.onClick;
@@ -855,7 +861,7 @@ d3.csv('ciesi.csv', function(err, rows){
   var DrawIllu = Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
     return index % 2 === 0;
   });
-  var t = sampleSPD(unpack(rows, StdIllu[1]).slice(firstIdx, lastIdx + 1), 2);
+  var t = sampleSPD(unpack(rows, StdIllu[3]).slice(firstIdx, lastIdx + 1), 2);
   var y_data_1 = math.dotDivide(t, Math.max(...t));
 
   var canvas = document.getElementById("canvasWhite");
@@ -924,7 +930,7 @@ d3.csv('ciesi.csv', function(err, rows){
     }
   });
 
-  genSelectBox(StdIllu.slice(1), "whiteSel");
+  genSelectBox(StdIllu.slice(1), "whiteSel", 'D65');
 
   registerSelWhite(window.whiteChart, canvas, rows, DrawIllu, firstIdx, lastIdx);
   registerResetZoom('#resetZoomWhite', window.whiteChart);
@@ -936,12 +942,12 @@ d3.csv('ciesi.csv', function(err, rows){
   // 3D plot; RGB trace first, LMS trace second
   var plot = document.getElementById('targetDiv');
   registerPlotTargets('#plotTargets', plot);
-
-  registerCalcMat('#calcMatrix', plot);
+  var colorDiffPlot = document.getElementById('colDiffDiv');
+  registerCalcMat('#calcMatrix', plot, colorDiffPlot);
 });
 
 var ccMat;
-function registerCalcMat(buttonId, plot) {
+function registerCalcMat(buttonId, plot, colorDiffPlot) {
   var calculated = false;
   $(buttonId).on('click', function(evt) {
     var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
@@ -964,10 +970,20 @@ function registerCalcMat(buttonId, plot) {
     var test = math.multiply(M, math.transpose([R, G, B]));
     */
 
+    var text = "\\begin{bmatrix}" +
+        M[0][0].toFixed(3) + "&" + M[0][1].toFixed(3) + "&" +  M[0][2].toFixed(3) + "\\\\" +
+        M[1][0].toFixed(3) + "&" + M[1][1].toFixed(3) + "&" +  M[1][2].toFixed(3) + "\\\\" +
+        M[2][0].toFixed(3) + "&" + M[2][1].toFixed(3) + "&" +  M[2][2].toFixed(3) +
+        "\\end{bmatrix}";
+    QUEUE.Push(["Text", ccMatText[0], text]);
+    QUEUE.Push(["Text", ccMatText[1], $('#camSel').val()]);
+    QUEUE.Push(["Text", ccMatText[2], $('#whiteSel').val()]);
+
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
       Plotly.update(plot, data_update, {}, [2]);
+      plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, true);
       return;
     }
 
@@ -994,7 +1010,65 @@ function registerCalcMat(buttonId, plot) {
     };
     Plotly.addTraces(plot, [trace]);
     $('#correctLocus').prop('disabled', false);
+
+    plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, false);
   });
+}
+
+function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
+  //var xValues = ['0', '1', '2', '3', '4', '5'];
+  //var yValues = ['0', '1', '2', '3'];
+  var zValues = [];
+  var tValues = [];
+
+  for (var i = 0; i < 4; i++) {
+    var row = [];
+    var tRow = [];
+    for (var j = 0; j < 6; j++) {
+      var idx = i * 6 + j;
+      var gtVal = [XYZMat[0][idx], XYZMat[1][idx], XYZMat[2][idx]];
+      var newVal = [cXYZMat[0][idx], cXYZMat[1][idx], cXYZMat[2][idx]];
+      row.push(Math.sqrt(Math.pow((newVal[0] - gtVal[0]), 2) + Math.pow((newVal[1] - gtVal[1]), 2) + Math.pow((newVal[2] - gtVal[2]), 2)));
+      tRow.push(window.ccPatchNames[idx]);
+    }
+    zValues.push(row);
+    tValues.push(tRow);
+  }
+
+  if (plotted) {
+    var data_update = {'z': [zValues]};
+
+    Plotly.update(colorDiffPlot, data_update, {}, [0]);
+    return;
+  }
+
+  var data = [{
+    //x: xValues,
+    //y: yValues,
+    z: zValues,
+    customdata: tValues,
+    type: 'heatmap',
+    colorscale: 'Viridis',
+    //showscale: false
+    hovertemplate: '%{z}' +
+      '<br>name: %{customdata}<extra></extra>' ,
+  }];
+  
+  var layout = {
+    title: 'Color Difference in XYZ Space',
+    annotations: [],
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    xaxis: {
+      ticks: '',
+      side: 'top'
+    },
+    yaxis: {
+      ticks: '',
+      ticksuffix: ' ',
+    }
+  };
+
+  Plotly.newPlot(colorDiffPlot, data, layout);
 }
 
 function calcTriVal(a, b, c) {
@@ -1038,10 +1112,11 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     patchXYZ[2].push(Z);
   }
 
+  // update both RGB and XYZ points
   if (update) {
-    var data_update = {'x': [patchRGB[0]], 'y': [patchRGB[1]], 'z': [patchRGB[2]]};
+    var data_update = {'x': [patchRGB[0], patchXYZ[0]], 'y': [patchRGB[1], patchXYZ[1]], 'z': [patchRGB[2], patchXYZ[2]]};
 
-    Plotly.update(plot, data_update, {}, [0]);
+    Plotly.update(plot, data_update, {}, [0, 1]);
     return;
   }
 
@@ -1060,7 +1135,7 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
     hovertemplate: 'X: %{x}' +
       '<br>Y: %{y}' +
       '<br>Z: %{z}' +
-      '<br>name: %{text}<extra></extra>' ,
+      '<br>name: %{text}<extra></extra>',
     type: 'scatter3d',
     name: 'XYZ',
   };
@@ -1179,9 +1254,6 @@ function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
       var illu = unpack(rows, val);
       var sampledIllu = sampleSPD(illu.slice(firstIdx, lastIdx + 1), 2);
       var normIllu = math.dotDivide(sampledIllu, Math.max(...sampledIllu));
-      //.filter((element, index) => {
-      //  return index % 2 === 0;
-      //});
       chart.data.datasets[0].data = normIllu;
 
       toggleDrag(canvas, false);
