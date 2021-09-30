@@ -1272,7 +1272,7 @@ d3.csv('ciesi.csv', function(err, rows){
 function registerSelWhite(chart, canvas, d65, a, e, draw) {
   $('#whiteSel').on('change', function(evt) {
     var val = this.value;
-    if (val == "Draw") {
+    if (val == "Custom") {
       registerDrag(canvas, chart, '');
       chart.data.datasets[0].data = draw;
     } else {

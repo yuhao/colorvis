@@ -12,10 +12,12 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-var ccMatText;
+var ccMatText, equText, equText2;
 
 QUEUE.Push(function () {
   ccMatText = MathJax.Hub.getAllJax('ccMatText');
+  equText = MathJax.Hub.getAllJax('equText');
+  equText2 = MathJax.Hub.getAllJax('equText2');
 });
 
 
@@ -345,8 +347,8 @@ function genSelectBox(values, id, preset) {
   }
 
   var option = document.createElement("option");
-  option.value = 'Draw';
-  option.text = 'Draw';
+  option.value = 'Custom';
+  option.text = 'Custom';
   select.appendChild(option);
 
   if (preset) select.value = preset;
@@ -820,7 +822,7 @@ function plotSpectralLocus(lCone, mCone, sCone, wlen, rCam, gCam, bCam, xbar, yb
 function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawSpec) {
   $('#camSel').on('change', function(evt) {
     var val = this.value;
-    if (val == "Draw") {
+    if (val == "Custom") {
       $('#resetChartCam').prop('disabled', false);
       chart.data.datasets[0].data = drawSpec[0];
       chart.data.datasets[1].data = drawSpec[1];
@@ -941,10 +943,47 @@ d3.csv('ciesi.csv', function(err, rows){
 
   // 3D plot; RGB trace first, LMS trace second
   var plot = document.getElementById('targetDiv');
-  registerPlotTargets('#plotTargets', plot);
+  plot.plotted = false;
+  registerGenLinSys('#genLinSys', plot);
+
   var colorDiffPlot = document.getElementById('colDiffDiv');
   registerCalcMat('#calcMatrix', plot, colorDiffPlot);
 });
+
+function convertToMatStr(row) {
+  var str = row[0].toFixed(2);
+  for (var i = 1; i < row.length; i++) {
+    str += "&" + row[i].toFixed(2);
+  }
+
+  return str;
+}
+
+function registerGenLinSys(buttonId, plot){
+  $(buttonId).on('click', function(evt) {
+    plotTargets('#plotTargets', plot);
+
+    var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
+    var XYZMat = [plot.data[1].x, plot.data[1].y, plot.data[1].z];
+
+    var xyz = "\\begin{bmatrix}" +
+        convertToMatStr(XYZMat[0]) + "\\\\" +
+        convertToMatStr(XYZMat[1]) + "\\\\" +
+        convertToMatStr(XYZMat[2]) +
+        "\\end{bmatrix}";
+    QUEUE.Push(["Text", equText[0], xyz]);
+
+    var rgb = "\\begin{bmatrix}" +
+        convertToMatStr(RGBMat[0]) + "\\\\" +
+        convertToMatStr(RGBMat[1]) + "\\\\" +
+        convertToMatStr(RGBMat[2]) +
+        "\\end{bmatrix}";
+    QUEUE.Push(["Text", equText[2], rgb]);
+
+    QUEUE.Push(["Text", equText2[0], $('#whiteSel').val()]);
+    QUEUE.Push(["Text", equText2[1], $('#whiteSel').val()]);
+  });
+}
 
 var ccMat;
 function registerCalcMat(buttonId, plot, colorDiffPlot) {
@@ -1077,17 +1116,14 @@ function calcTriVal(a, b, c) {
   return math.dot(s, c);
 }
 
-function registerPlotTargets(buttonId, plot) {
-  var plotted = false;
-  $(buttonId).on('click', function(evt) {
-    $('#calcMatrix').prop('disabled', false);
-    if (!plotted) {
-      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plot, false);
-      plotted = true;
-    } else {
-      plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plot, true);
-    }
-  });
+function plotTargets(buttonId, plot) {
+  $('#calcMatrix').prop('disabled', false);
+  if (!plot.plotted) {
+    plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plot, false);
+    plot.plotted = true;
+  } else {
+    plotTargetColors(window.ccSpecChart, window.camSenChart, window.whiteChart, plot, true);
+  }
 }
 
 function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
@@ -1243,7 +1279,7 @@ function sampleSPD(spd, stride) {
 function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
   $('#whiteSel').on('change', function(evt) {
     var val = this.value;
-    if (val == "Draw") {
+    if (val == "Custom") {
       $('#resetWhite').prop('disabled', false);
 
       chart.data.datasets[0].data = drawIllu;

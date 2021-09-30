@@ -109,7 +109,7 @@
         <!-- The camera sensitivities functions rarely exactly mimic the LMS cone responses; they are limited by the optical and silicon materials, the fabrication process, and have to consider not only color reproduction but also the signal-to-noise ratio. -->
         <p>Although by default disabled, the chart also contains the CIE 1931 XYZ Color Matching Functions (CMFs). You can enable them by clicking on the legend to the left of the chart. In fact, clicking on a legend label toggles the visibility of the corresponding curve in the chart. The XYZ CMFs are just one linear transformation away from the LMS cone fundamentals, and is used as the "common language" in colorimetry when comparing different color spaces. So we will use XYZ as the connection color space in the rest of the tutorial.</p>
         <p>In the same way we can plot the spectral locus in the XYZ color space, we can also plot the spectral locus on a camera's native RGB color space. The 3D plot on the right shows you the spectral locus on the XYZ, LMS, and the camera's RGB color space. The LMS locus is by default disabled, but you can enable it by clicking its legend label. Drag your mouse and spin around the 3D plot. You can see that the spectral locus in XYZ and in camera's RGB space do not match.</p>
-        <p>You can also draw your own camera sensitivity functions. Select "Draw" from the drop-down list, and start dragging your mouse. As you draw, the spectral locus in the camera RGB space will be dynamically updated on the 3D plot on the right. You can hit the Draw Reset button to clean the drawing.</p>
+        <p>You can also draw your own camera sensitivity functions. Select "Custom" from the drop-down list, and start dragging your mouse. As you draw, the spectral locus in the camera RGB space will be dynamically updated on the 3D plot on the right. You can hit the Draw Reset button to clean the drawing.</p>
       </div>
     </div>
 
@@ -164,7 +164,7 @@
           <canvas id="canvasWhite"></canvas>
           <div class="mt-4"><button id="resetWhite" disabled>Reset Illuminant</button> Reset the Illuminant drawing.</div>
           <div class="my-2"><button id="resetZoomWhite">Reset Zoom</button> Reset the zoom of the chart.</div>
-          <div><p>You can select an iluminant in the chart above, which shows the SPD of a few CIE Standard Illuminants normalized to peak at unity. You can also draw your own illuminant by selecting "Draw" from the drop-down list.</p></div>
+          <div><p>You can select an iluminant in the chart above, which shows the SPD of a few CIE Standard Illuminants normalized to peak at unity. You can also draw your own illuminant by selecting "Custom" from the drop-down list.</p></div>
         </div>
         <div class="col-sm-6">
           <p>How do we obtain the XYZ and RGB values of a ColorChecker patch? These patches do not emit lights themselves; they reflect lights. Therefore, we must pick an illuminant for color correction. This inherently suggests that the color correction matrix will be dependent on the illuminant.
@@ -190,8 +190,8 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 4: Calculate Color Correction Matrix</h3>
-        <p>With the illuminant selected, the linear system now looks like this:</p>
-        <p>
+        <p>With the illuminant selected, we now have everything to <button id="genLinSys">Generate Equations</button> for the final linear system:</p>
+        <p id="equText">
         $\begin{bmatrix}
         \boxed{??} \\
         \boxed{??} \\
@@ -208,7 +208,8 @@
         \boxed{??}
         \end{bmatrix}$
         </p>
-        <p>The first matrix has 24 columns, each representing the XYZ values of a ColocChecker patch under the chosen illuminant. The last matrix also has 24 columns, each representing the RGB values of a patch in the camera raw RGB space under the same illuminant. We get an over-determined system with 72 equations and 9 unknowns. Before solving the system, let's first <button id="plotTargets">Plot Patches</button> in both the XYZ and the camera-native RGB spaces. Evidently, the XYZ and the RGB values of the patches do not overlap, but the relative distributions of the patches within the XYZ and the RGB space are roughly similar, suggesting that a linear transformation might exist.</p>
+        <p id="equText2">The first matrix has 24 columns, each representing the XYZ values of a ColocChecker patch under your chosen illuminant ${}$. The last matrix also has 24 columns, each representing the RGB values of a patch in the camera raw RGB space under the same illuminant ${}$. We get an over-determined system with 72 equations and 9 unknowns.</p>
+        <p>Before solving the system, let's look at the patches in both the XYZ and the camera RGB spaces, which is shown in the left chart below. Evidently, the XYZ and the RGB values of the patches do not overlap, but if you spin around the chart you'll likely see that the relative distributions of the patches within the XYZ and the RGB space are roughly similar, suggesting that a linear transformation might exist.</p>
       </div>
 
       <div class="row pt-2">
@@ -230,7 +231,8 @@
         \boxed{??} & \boxed{??} & \boxed{??}
         \end{bmatrix}}$
         , for camera ${\boxed{??}}$ and illuminant ${\boxed{??}}$.</p>
-        <p>Meanwhile, the transformed/corrected XYZ values of the patches will be shown in the chart above. Look for the label "XYZ (Corrected)". You can see that the correct XYZ values pretty much align with the "ground truth" XYZ values. But they don't exactly overlap, because the transformation matrix is just the best fit, not the perfect solution. To see the color correction error, the chart on the right shows a heatmap plotting the distances between the true XYZ and the reproduced XYZ values of the 24 patches. Again, in reality you would estimate the best-fit in a something like a CIELAB space and use a perceptual color difference metric such as CIE <a href="https://en.wikipedia.org/wiki/Color_difference#CIELAB_%CE%94E*">$\Delta E^*$</a>.</p>
+        <p>Meanwhile, the transformed/corrected XYZ values of the patches will be shown in the chart above. Look for the label "XYZ (Corrected)". You can see that the correct XYZ values pretty much align with the "ground truth" XYZ values. But they don't exactly overlap, because the transformation matrix is just the best fit, not the perfect solution. To see the color correction error, the chart on the right shows a heatmap plotting the distances between the true XYZ and the reproduced XYZ values of the 24 patches. Again, in reality you would estimate the best-fit in a something like a CIELAB space and use a perceptual color difference metric such as <a href="https://en.wikipedia.org/wiki/Color_difference#CIELAB_%CE%94E*">CIE $\Delta E^*$</a>.</p>
+        <p>Finally, if you want to change the camera and the illuminant choice, simply click the Generate Equations and Calculate Matrix buttons again (in that order). As you change the camera and illuminant, you will see that the correction matrix above will change too, confirming that the correction matrix inherently tied to a particular camera and the calibrating illuminant.</p>
       </div>
     </div>
 
