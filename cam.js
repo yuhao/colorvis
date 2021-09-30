@@ -941,15 +941,15 @@ d3.csv('ciesi.csv', function(err, rows){
         }), "#000000"]);
 
   // 3D plot; RGB trace first, LMS trace second
-  var plot = document.getElementById('targetDiv');
-  plot.plotted = false;
-  registerGenLinSys('#genLinSys', plot);
+  var patchPlot = document.getElementById('targetDiv');
+  patchPlot.plotted = false;
+  registerGenLinSys('#genLinSys', patchPlot);
 
   // heatmap for color difference
   var colorDiffPlot = document.getElementById('colDiffDiv');
   // chromaticity plot
   var chrmPlot = document.getElementById('chrmDiv');
-  registerCalcMat('#calcMatrix', plot, colorDiffPlot, chrmPlot);
+  registerCalcMat('#calcMatrix', patchPlot, colorDiffPlot, chrmPlot);
 
 });
 
@@ -988,11 +988,11 @@ function registerGenLinSys(buttonId, plot){
 }
 
 var ccMat;
-function registerCalcMat(buttonId, plot, colorDiffPlot, chrmPlot) {
+function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
   var calculated = false;
   $(buttonId).on('click', function(evt) {
-    var RGBMat = [plot.data[0].x, plot.data[0].y, plot.data[0].z];
-    var XYZMat = [plot.data[1].x, plot.data[1].y, plot.data[1].z];
+    var RGBMat = [patchPlot.data[0].x, patchPlot.data[0].y, patchPlot.data[0].z];
+    var XYZMat = [patchPlot.data[1].x, patchPlot.data[1].y, patchPlot.data[1].z];
 
     var M = math.multiply(math.multiply(XYZMat, math.transpose(RGBMat)),
                           math.inv(math.multiply(RGBMat, math.transpose(RGBMat))));
@@ -1023,7 +1023,7 @@ function registerCalcMat(buttonId, plot, colorDiffPlot, chrmPlot) {
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
-      Plotly.update(plot, data_update, {}, [2]);
+      Plotly.update(patchPlot, data_update, {}, [2]);
       plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, true);
       return;
     }
@@ -1049,12 +1049,12 @@ function registerCalcMat(buttonId, plot, colorDiffPlot, chrmPlot) {
         '<br>Z: %{z}' +
         '<br>name: %{text}<extra></extra>' ,
     };
-    Plotly.addTraces(plot, [trace]);
+    Plotly.addTraces(patchPlot, [trace]);
     $('#correctLocus').prop('disabled', false);
 
     plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, false);
 
-    plotChrm(chrmPlot);
+    plotChrm(patchPlot, chrmPlot);
   });
 }
 
@@ -1067,22 +1067,22 @@ function toChrm(Tri) {
   return [x, y, z];
 }
 
-function plotChrm(plot) {
+function plotChrm(patchPlot, chrmPlot) {
   var locusPlot = window.locusPlot;
-  var RGBMat = [locusPlot.data[0].x, locusPlot.data[0].y, locusPlot.data[0].z];
-  var XYZMat = [locusPlot.data[2].x, locusPlot.data[2].y, locusPlot.data[2].z];
-  var cXYZMat = math.multiply(window.ccMat, RGBMat);
+  var locusRGBMat = [locusPlot.data[0].x, locusPlot.data[0].y, locusPlot.data[0].z];
+  var locusXYZMat = [locusPlot.data[2].x, locusPlot.data[2].y, locusPlot.data[2].z];
+  var cLocusXYZMat = math.multiply(window.ccMat, locusRGBMat);
 
-  var cXYZChrm = toChrm(cXYZMat);
-  var XYZChrm = toChrm(XYZMat);
+  var cLocusXYZChrm = toChrm(cLocusXYZMat);
+  var locusXYZChrm = toChrm(locusXYZMat);
   var wlen = locusPlot.data[0].text;
 
   var xyTrace = {
-    x: XYZChrm[0].concat([XYZChrm[0][0]]),
-    y: XYZChrm[1].concat([XYZChrm[1][0]]),
+    x: locusXYZChrm[0],//.concat([XYZChrm[0][0]]),
+    y: locusXYZChrm[1],//.concat([XYZChrm[1][0]]),
     text: wlen,
     mode: 'lines+markers',
-    fill: 'toself',
+    //fill: 'toself',
     marker: {
       size: 6,
       opacity: 0.8,
@@ -1094,31 +1094,92 @@ function plotChrm(plot) {
       shape: 'spline',
     },
     name: 'Spectral Locus',
+    hovertemplate: 'x: %{x}' +
+      '<br>y: %{y}' +
+      '<br>name: %{text}<extra></extra>',
   };
 
   var cxyTrace = {
-    x: cXYZChrm[0].concat([cXYZChrm[0][0]]),
-    y: cXYZChrm[1].concat([cXYZChrm[1][0]]),
+    x: cLocusXYZChrm[0],//.concat([cXYZChrm[0][0]]),
+    y: cLocusXYZChrm[1],//.concat([cXYZChrm[1][0]]),
     text: wlen,
     mode: 'lines+markers',
-    fill: 'toself',
+    //fill: 'toself',
     marker: {
       size: 6,
       opacity: 0.8,
-      color: blueGreenColor,
+      color: redColor,
     },
     line: {
-      color: blueGreenColor,
+      color: redColor,
       width: 2,
       shape: 'spline',
     },
     name: 'Corrected Spectral Locus',
+    hovertemplate: 'x: %{x}' +
+      '<br>y: %{y}' +
+      '<br>name: %{text}<extra></extra>',
   };
 
-  var data = [xyTrace, cxyTrace];
+  var patchXYZMat = [patchPlot.data[1].x, patchPlot.data[1].y, patchPlot.data[1].z];
+  var cPatchXYZMat = [patchPlot.data[2].x, patchPlot.data[2].y, patchPlot.data[2].z];
+  var cPatchXYZChrm = toChrm(cPatchXYZMat);
+  var patchXYZChrm = toChrm(patchXYZMat);
+
+  var pxyTrace = {
+    x: patchXYZChrm[0],//.concat([XYZChrm[0][0]]),
+    y: patchXYZChrm[1],//.concat([XYZChrm[1][0]]),
+    text: wlen,
+    mode: 'markers',
+    //fill: 'toself',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: purpleColor,
+    },
+    line: {
+      color: purpleColor,
+      width: 2,
+      shape: 'spline',
+    },
+    name: 'Spectral Locus',
+    hovertemplate: 'x: %{x}' +
+      '<br>y: %{y}' +
+      '<br>name: %{text}<extra></extra>',
+  };
+
+  var cpxyTrace = {
+    x: cPatchXYZChrm[0],//.concat([cXYZChrm[0][0]]),
+    y: cPatchXYZChrm[1],//.concat([cXYZChrm[1][0]]),
+    text: wlen,
+    mode: 'markers',
+    //fill: 'toself',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: redColor,
+    },
+    line: {
+      color: redColor,
+      width: 2,
+      shape: 'spline',
+    },
+    name: 'Corrected Spectral Locus',
+    hovertemplate: 'x: %{x}' +
+      '<br>y: %{y}' +
+      '<br>name: %{text}<extra></extra>',
+  };
+
+  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace];
  
   var layout = {
     //title: 'Spectral locus in xy-chromaticity plot',
+    margin: {
+      l: 30,
+      r: 30,
+      b: 30,
+      t: 30
+    },
     showlegend: true,
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     plot_bgcolor: 'rgba(0, 0, 0, 0)',
@@ -1128,7 +1189,7 @@ function plotChrm(plot) {
       y: 0.9,
     },
     xaxis: {
-      range: [Math.min(0, Math.min(...cXYZChrm[0])), Math.max(1, Math.max(...cXYZChrm[0]))],
+      range: [Math.min(0, Math.min(...cLocusXYZChrm[0])), Math.max(1, Math.max(...cLocusXYZChrm[0]))],
       title: {
         text: 'x'
       },
@@ -1136,7 +1197,7 @@ function plotChrm(plot) {
       constrain: 'domain',
     },
     yaxis: {
-      range: [Math.min(0, Math.min(...cXYZChrm[1])), Math.max(1, Math.max(...cXYZChrm[1]))],
+      range: [Math.min(0, Math.min(...cLocusXYZChrm[1])), Math.max(1, Math.max(...cLocusXYZChrm[1]))],
       title: {
         text: 'y'
       },
@@ -1144,7 +1205,7 @@ function plotChrm(plot) {
     }
   };
  
-  Plotly.newPlot(plot, data, layout);
+  Plotly.newPlot(chrmPlot, data, layout);
 }
 
 function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
