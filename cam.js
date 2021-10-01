@@ -1095,7 +1095,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
   var srgbx = [0.6400, 0.3000, 0.1500];
   var srgby = [0.3300, 0.6000, 0.0600];
 
-  var camRGB = math.multiply(window.ccMat, [[0, 0, 1], [0, 1, 0], [1, 0, 0]]);
+  var camRGB = math.multiply(window.ccMat, [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
   var camGamutChrm = toChrm(camRGB);
 
   function findRange(traces) {
@@ -1109,7 +1109,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
             Math.min(0, Math.min(...Y)), Math.max(1, Math.max(...Y))];
   };
 
-  function OA2AO (obj) {
+  function obj2Arr(obj) {
     var traces = [];
 
     for (var i = 0; i < obj.x.length; i++) {
@@ -1127,10 +1127,10 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
                              camGamutChrm[0].concat(camGamutChrm[0][0])],
                        'y': [cLocusXYZChrm[1], patchXYZChrm[1], cPatchXYZChrm[1],
                              camGamutChrm[1].concat(camGamutChrm[1][0])]};
-    var ranges = findRange(OA2AO(data_update));
+    var ranges = findRange(obj2Arr(data_update));
     var layout_update = {
-      'xaxis.range': [ranges[0], ranges[1]],
-      'yaxis.range': [ranges[2], ranges[3]],
+      'xaxis.range': [ranges[0]-0.1, ranges[1]+0.1],
+      'yaxis.range': [ranges[2]-0.1, ranges[3]+0.1],
     };
 
     Plotly.update(chrmPlot, data_update, layout_update, [1, 2, 3, 5]);
@@ -1222,8 +1222,9 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
   var srgbTrace = {
     x: srgbx.concat(srgbx[0]),
     y: srgby.concat(srgby[0]),
-    text: ['R', 'G', 'B', 'R'],
+    text: ['sRGB-R', 'sRGB-G', 'sRGB-B', 'sRGB-R'],
     mode: 'lines+markers',
+    visible: 'legendonly',
     marker: {
       size: 6,
       opacity: 0.8,
@@ -1243,8 +1244,9 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
   var camGamutTrace = {
     x: camGamutChrm[0].concat(camGamutChrm[0][0]),
     y: camGamutChrm[1].concat(camGamutChrm[1][0]),
-    text: ['R', 'G', 'B', 'R'],
+    text: ['cam-R', 'cam-G', 'cam-B', 'cam-R'],
     mode: 'lines+markers',
+    visible: 'legendonly',
     marker: {
       size: 6,
       opacity: 0.8,
@@ -1268,6 +1270,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
  
   var layout = {
     //title: 'Spectral locus in xy-chromaticity plot',
+    height: 600,
     margin: {
       l: 0,
       r: 30,
@@ -1280,24 +1283,26 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     legend: {
       x: 1,
       xanchor: 'right',
-      y: 0.9,
+      y: 1,
     },
     xaxis: {
-      range: [ranges[0], ranges[1]],
+      range: [ranges[0]-0.1, ranges[1]+0.1],
       title: {
         text: 'x'
       },
       // https://community.plotly.com/t/get-mouses-position-on-click/4145/3
       constrain: 'domain',
       dtick: 0.2,
+      zerolinewidth: 3,
     },
     yaxis: {
-      range: [ranges[2], ranges[3]],
+      range: [ranges[2]-0.1, ranges[3]+0.1],
       title: {
         text: 'y'
       },
       scaleanchor: 'x',
       dtick: 0.2,
+      zerolinewidth: 3,
     }
   };
  
@@ -1320,7 +1325,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
        ]);
     } else {
        Plotly.Fx.hover('chrmDiv',[
-           { curveNumber:4, pointNumber:pointNum },
+           { curveNumber:curveNum, pointNumber:pointNum },
        ]);
     }
 });
