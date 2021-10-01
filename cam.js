@@ -1098,13 +1098,42 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
   var camRGB = math.multiply(window.ccMat, [[0, 0, 1], [0, 1, 0], [1, 0, 0]]);
   var camGamutChrm = toChrm(camRGB);
 
+  function findRange(traces) {
+    var X = [], Y = [];
+    for (var i = 0; i < traces.length; i++) {
+      X = X.concat(traces[i].x);
+      Y = Y.concat(traces[i].y);
+    }
+
+    return [Math.min(0, Math.min(...X)), Math.max(1, Math.max(...X)),
+            Math.min(0, Math.min(...Y)), Math.max(1, Math.max(...Y))];
+  };
+
+  function OA2AO (obj) {
+    var traces = [];
+
+    for (var i = 0; i < obj.x.length; i++) {
+      var trace = {};
+      trace.x = obj.x[i];
+      trace.y = obj.y[i];
+      traces.push(trace);
+    }
+
+    return traces;
+  };
+
   if (plotted) {
     var data_update = {'x': [cLocusXYZChrm[0], patchXYZChrm[0], cPatchXYZChrm[0],
                              camGamutChrm[0].concat(camGamutChrm[0][0])],
                        'y': [cLocusXYZChrm[1], patchXYZChrm[1], cPatchXYZChrm[1],
                              camGamutChrm[1].concat(camGamutChrm[1][0])]};
+    var ranges = findRange(OA2AO(data_update));
+    var layout_update = {
+      'xaxis.range': [ranges[0], ranges[1]],
+      'yaxis.range': [ranges[2], ranges[3]],
+    };
 
-    Plotly.update(chrmPlot, data_update, {}, [1, 2, 3, 5]);
+    Plotly.update(chrmPlot, data_update, layout_update, [1, 2, 3, 5]);
     return;
   }
 
@@ -1234,6 +1263,8 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
 
 
   var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace, camGamutTrace];
+
+  var ranges = findRange(data);
  
   var layout = {
     //title: 'Spectral locus in xy-chromaticity plot',
@@ -1252,20 +1283,21 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       y: 0.9,
     },
     xaxis: {
-      range: [Math.min(0, Math.min(...cLocusXYZChrm[0])), Math.max(1, Math.max(...cLocusXYZChrm[0]))],
+      range: [ranges[0], ranges[1]],
       title: {
         text: 'x'
       },
       // https://community.plotly.com/t/get-mouses-position-on-click/4145/3
       constrain: 'domain',
+      dtick: 0.2,
     },
     yaxis: {
-      // TODO: pick the min of all traces
-      range: [Math.min(0, Math.min(...cLocusXYZChrm[1], -0.2)), Math.max(1, Math.max(...cLocusXYZChrm[1]))],
+      range: [ranges[2], ranges[3]],
       title: {
         text: 'y'
       },
       scaleanchor: 'x',
+      dtick: 0.2,
     }
   };
  
