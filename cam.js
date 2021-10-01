@@ -1077,6 +1077,7 @@ function toChrm(Tri) {
 }
 
 function plotChrm(patchPlot, chrmPlot, plotted) {
+  // preparing data
   var locusPlot = window.locusPlot;
   var wlen = locusPlot.data[0].text;
 
@@ -1097,6 +1098,9 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
 
   var camRGB = math.multiply(window.ccMat, [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
   var camGamutChrm = toChrm(camRGB);
+
+  var points = math.transpose(cLocusXYZChrm.slice(0, 2));
+  var hullPoints = math.transpose(hull(points, Infinity));
 
   function findRange(traces) {
     var X = [], Y = [];
@@ -1122,18 +1126,19 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     return traces;
   };
 
+  // plotting logic
   if (plotted) {
     var data_update = {'x': [cLocusXYZChrm[0], patchXYZChrm[0], cPatchXYZChrm[0],
-                             camGamutChrm[0].concat(camGamutChrm[0][0])],
+                             camGamutChrm[0].concat(camGamutChrm[0][0]), hullPoints[0]],
                        'y': [cLocusXYZChrm[1], patchXYZChrm[1], cPatchXYZChrm[1],
-                             camGamutChrm[1].concat(camGamutChrm[1][0])]};
+                             camGamutChrm[1].concat(camGamutChrm[1][0]), hullPoints[1]]};
     var ranges = findRange(obj2Arr(data_update));
     var layout_update = {
       'xaxis.range': [ranges[0]-0.1, ranges[1]+0.1],
       'yaxis.range': [ranges[2]-0.1, ranges[3]+0.1],
     };
 
-    Plotly.update(chrmPlot, data_update, layout_update, [1, 2, 3, 5]);
+    Plotly.update(chrmPlot, data_update, layout_update, [1, 2, 3, 5, 6]);
     return;
   }
 
@@ -1167,7 +1172,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     line: {
       color: magentaColor,
       width: 2,
-      shape: 'spline',
+      //shape: 'spline',
     },
     name: 'Corrected Spectral Locus',
     hovertemplate: 'x: %{x}' +
@@ -1263,8 +1268,27 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       '<br>name: %{text}<extra></extra>',
   };
 
+  var hullTrace = {
+    x: hullPoints[0].concat(hullPoints[0][0]),
+    y: hullPoints[1].concat(hullPoints[1][0]),
+    //text: ['cam-R', 'cam-G', 'cam-B', 'cam-R'],
+    mode: 'lines+markers',
+    visible: 'legendonly',
+    fill: 'toself',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: '#000000',
+    },
+    line: {
+      color: '#000000',
+      width: 2,
+    },
+    name: 'Convex Hull of Camera RGB Gamut',
+  };
 
-  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace, camGamutTrace];
+
+  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace, camGamutTrace, hullTrace];
 
   var ranges = findRange(data);
  
