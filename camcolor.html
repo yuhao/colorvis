@@ -242,10 +242,10 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Interpreting Camera Color Space</h3>
-        <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that: a typical camera's color space covers imaginary colors, and that the intuition that a color space's gamut is the area enclosed by the spectral locus doesn't apply anymore.</p>
+        <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that: a typical camera's color space contains imaginary colors, and that the intuition that a color space's gamut is the area enclosed by the spectral locus doesn't apply anymore.</p>
         <h4>Are Spectral Lights Corrected?</h4>
         <p>The first question you can ask is, does $T$ correct colors of other lights that are not used for color correction? In particular, we are interested in how the spectral lights are corrected. Go back to the spectral locus plot (second plot in this tutorial) and click the "Corrected XYZ Locus" button. You will see the transformed spectral locus plotted (the "XYZ (Corrected)" curve). Ideally, you want that locus to be precisely ovelapping with the actual XYZ spectral locus, but most likely you will see that that are way off. This is perhaps not all that surprising, since the spectral lights are not used for calculating the best-fit matrix.</p>
-        <p></p>
+        <p>We can gain a better understanding of the correction results in the chromaticity plot. The chart below plots the "ground truth" spectral locus and the 24 patches in the xy-chromaticity plot, and then overlays the reconstructed locus and patches transformed from the camera RGB space using matrix $T$. Hover you mouse on any point will show the coupled counterpart as well. Notice how the original 24 patches and the reconstructed ones are almost overlapped, but the true and corrected spectral locus are miles apart.</p>
         <div class="col-sm-6">
           <div id="chrmDiv"></div>
         </div>

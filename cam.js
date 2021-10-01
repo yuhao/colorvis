@@ -5,6 +5,7 @@ var greyColor = '#888888';
 var purpleColor = '#5c32a8';
 var magentaColor = '#fc0377';
 var brightYellowColor = '#fcd303'; 
+var orangeColor = '#DC7B2E';
 var blueGreenColor = '#63BFAB'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
@@ -1098,11 +1099,6 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     //mode: 'lines+markers+text',
     //textposition: 'top right',
     //fill: 'toself',
-    //marker: {
-    //  size: 6,
-    //  opacity: 0.8,
-    //  color: blueGreenColor,
-    //},
     line: {
       color: blueGreenColor,
       width: 2,
@@ -1122,11 +1118,6 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     //mode: 'lines+markers+text',
     //textposition: 'top right',
     //fill: 'toself',
-    //marker: {
-    //  size: 6,
-    //  opacity: 0.8,
-    //  color: magentaColor,
-    //},
     line: {
       color: magentaColor,
       width: 2,
@@ -1182,7 +1173,32 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       '<br>name: %{text}<extra></extra>',
   };
 
-  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace];
+  var srgbx = [0.6400, 0.3000, 0.1500];
+  var srgby = [0.3300, 0.6000, 0.0600];
+
+  var srgbTrace = {
+    x: srgbx.concat(srgbx[0]),
+    y: srgby.concat(srgby[0]),
+    text: ['R', 'G', 'B', 'R'],
+    mode: 'lines+markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: orangeColor,
+      symbol: Array(3).fill('diamond'),
+    },
+    line: {
+      color: orangeColor,
+      width: 2,
+    },
+    name: 'sRGB',
+    hovertemplate: 'x: %{x}' +
+      '<br>y: %{y}' +
+      '<br>name: %{text}<extra></extra>',
+  };
+
+
+  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace];
  
   var layout = {
     //title: 'Spectral locus in xy-chromaticity plot',
@@ -1229,10 +1245,14 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
            { curveNumber:0, pointNumber:pointNum },
            { curveNumber:1, pointNumber:pointNum },
        ]);
-    } else {
+    } else if (curveNum <= 3) {
        Plotly.Fx.hover('chrmDiv',[
            { curveNumber:2, pointNumber:pointNum },
            { curveNumber:3, pointNumber:pointNum },
+       ]);
+    } else {
+       Plotly.Fx.hover('chrmDiv',[
+           { curveNumber:4, pointNumber:pointNum },
        ]);
     }
 });
