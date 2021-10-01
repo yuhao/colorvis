@@ -970,7 +970,7 @@ function registerGenLinSys(buttonId, plot){
         convertToMatStr(XYZMat[0]) + "\\\\" +
         convertToMatStr(XYZMat[1]) + "\\\\" +
         convertToMatStr(XYZMat[2]) +
-        "\\end{bmatrix}}";
+        "\\end{bmatrix} }";
     QUEUE.Push(["Text", equText[0], xyz]);
 
     var rgb = "\\small{ \\begin{bmatrix}" +
@@ -1094,7 +1094,9 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     x: locusXYZChrm[0],//.concat([XYZChrm[0][0]]),
     y: locusXYZChrm[1],//.concat([XYZChrm[1][0]]),
     text: wlen,
-    mode: 'lines',
+    mode: 'lines+markers',
+    //mode: 'lines+markers+text',
+    //textposition: 'top right',
     //fill: 'toself',
     //marker: {
     //  size: 6,
@@ -1116,7 +1118,9 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     x: cLocusXYZChrm[0],//.concat([cXYZChrm[0][0]]),
     y: cLocusXYZChrm[1],//.concat([cXYZChrm[1][0]]),
     text: wlen,
-    mode: 'lines',
+    mode: 'lines+markers',
+    //mode: 'lines+markers+text',
+    //textposition: 'top right',
     //fill: 'toself',
     //marker: {
     //  size: 6,
@@ -1214,6 +1218,24 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
   };
  
   Plotly.newPlot(chrmPlot, data, layout);
+
+  chrmPlot.on('plotly_hover', function (eventdata){
+    var point = eventdata.points[0];
+    var curveNum = point.curveNumber;
+    var pointNum = point.pointNumber;
+
+    if (curveNum <= 1) {
+       Plotly.Fx.hover('chrmDiv',[
+           { curveNumber:0, pointNumber:pointNum },
+           { curveNumber:1, pointNumber:pointNum },
+       ]);
+    } else {
+       Plotly.Fx.hover('chrmDiv',[
+           { curveNumber:2, pointNumber:pointNum },
+           { curveNumber:3, pointNumber:pointNum },
+       ]);
+    }
+});
 }
 
 function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
