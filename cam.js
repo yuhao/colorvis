@@ -949,7 +949,16 @@ d3.csv('ciesi.csv', function(err, rows){
   var chrmPlot = document.getElementById('chrmDiv');
   registerCalcMat('#calcMatrix', patchPlot, colorDiffPlot, chrmPlot);
 
+  registerChooseCase('#chooseD80', '#genLinSys', '#calcMatrix', '#camSel');
 });
+
+function registerChooseCase(id, genLinSys, calcMat, camSel) {
+  $(id).on('click', function(evt) {
+    $(camSel).val('Nikon D80').trigger('change');
+    $(genLinSys).trigger('click');
+    $(calcMat).trigger('click');
+  });
+}
 
 function convertToMatStr(row) {
   var str = row[0].toFixed(2);
@@ -1083,11 +1092,19 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
   var patchXYZChrm = toChrm(patchXYZMat);
   var cPatchXYZChrm = toChrm(cPatchXYZMat);
 
-  if (plotted) {
-    var data_update = {'x': [cLocusXYZChrm[0], patchXYZChrm[0], cPatchXYZChrm[0]],
-                       'y': [cLocusXYZChrm[1], patchXYZChrm[1], cPatchXYZChrm[1]]};
+  var srgbx = [0.6400, 0.3000, 0.1500];
+  var srgby = [0.3300, 0.6000, 0.0600];
 
-    Plotly.update(chrmPlot, data_update, {}, [1, 2, 3]);
+  var camRGB = math.multiply(window.ccMat, [[0, 0, 1], [0, 1, 0], [1, 0, 0]]);
+  var camGamutChrm = toChrm(camRGB);
+
+  if (plotted) {
+    var data_update = {'x': [cLocusXYZChrm[0], patchXYZChrm[0], cPatchXYZChrm[0],
+                             camGamutChrm[0].concat(camGamutChrm[0][0])],
+                       'y': [cLocusXYZChrm[1], patchXYZChrm[1], cPatchXYZChrm[1],
+                             camGamutChrm[1].concat(camGamutChrm[1][0])]};
+
+    Plotly.update(chrmPlot, data_update, {}, [1, 2, 3, 5]);
     return;
   }
 
@@ -1173,9 +1190,6 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       '<br>name: %{text}<extra></extra>',
   };
 
-  var srgbx = [0.6400, 0.3000, 0.1500];
-  var srgby = [0.3300, 0.6000, 0.0600];
-
   var srgbTrace = {
     x: srgbx.concat(srgbx[0]),
     y: srgby.concat(srgby[0]),
@@ -1191,14 +1205,35 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       color: orangeColor,
       width: 2,
     },
-    name: 'sRGB',
+    name: 'sRGB Gamut',
+    hovertemplate: 'x: %{x}' +
+      '<br>y: %{y}' +
+      '<br>name: %{text}<extra></extra>',
+  };
+
+  var camGamutTrace = {
+    x: camGamutChrm[0].concat(camGamutChrm[0][0]),
+    y: camGamutChrm[1].concat(camGamutChrm[1][0]),
+    text: ['R', 'G', 'B', 'R'],
+    mode: 'lines+markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: purpleColor,
+      symbol: Array(3).fill('diamond'),
+    },
+    line: {
+      color: purpleColor,
+      width: 2,
+    },
+    name: 'Camera RGB Gamut',
     hovertemplate: 'x: %{x}' +
       '<br>y: %{y}' +
       '<br>name: %{text}<extra></extra>',
   };
 
 
-  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace];
+  var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace, camGamutTrace];
  
   var layout = {
     //title: 'Spectral locus in xy-chromaticity plot',
@@ -1225,7 +1260,8 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       constrain: 'domain',
     },
     yaxis: {
-      range: [Math.min(0, Math.min(...cLocusXYZChrm[1])), Math.max(1, Math.max(...cLocusXYZChrm[1]))],
+      // TODO: pick the min of all traces
+      range: [Math.min(0, Math.min(...cLocusXYZChrm[1], -0.2)), Math.max(1, Math.max(...cLocusXYZChrm[1]))],
       title: {
         text: 'y'
       },

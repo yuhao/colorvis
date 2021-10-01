@@ -244,13 +244,23 @@
         <h3>Interpreting Camera Color Space</h3>
         <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that: a typical camera's color space contains imaginary colors, and that the intuition that a color space's gamut is the area enclosed by the spectral locus doesn't apply anymore.</p>
         <h4>Are Spectral Lights Corrected?</h4>
-        <p>The first question you can ask is, does $T$ correct colors of other lights that are not used for color correction? In particular, we are interested in how the spectral lights are corrected. Go back to the spectral locus plot (second plot in this tutorial) and click the "Corrected XYZ Locus" button. You will see the transformed spectral locus plotted (the "XYZ (Corrected)" curve). Ideally, you want that locus to be precisely ovelapping with the actual XYZ spectral locus, but most likely you will see that that are way off. This is perhaps not all that surprising, since the spectral lights are not used for calculating the best-fit matrix.</p>
-        <p>We can gain a better understanding of the correction results in the chromaticity plot. The chart below plots the "ground truth" spectral locus and the 24 patches in the xy-chromaticity plot, and then overlays the reconstructed locus and patches transformed from the camera RGB space using matrix $T$. Hover you mouse on any point will show the coupled counterpart as well. Notice how the original 24 patches and the reconstructed ones are almost overlapped, but the true and corrected spectral locus are miles apart.</p>
+        <p>The first question you can ask is, does $T$ correct colors of other lights that are not used for color correction? In particular, we are interested in how the spectral lights are corrected. Go back to the spectral locus plot (second plot in this tutorial) and click the "Corrected XYZ Locus" button. You will see the transformed spectral locus plotted (the "XYZ (Corrected)" curve). Ideally, you want that locus to be precisely ovelapping with the actual XYZ spectral locus, but most likely you will see that that are way off. This is perhaps not all that surprising, because the spectral lights are not used for calculating the best-fit matrix.</p>
+        <p>We can gain a better understanding of the correction results in the chromaticity plot. The chart below plots the "ground truth" spectral locus and the 24 patches in the xy-chromaticity plot, and then overlays the reconstructed locus and patches transformed from the camera RGB space using matrix $T$. Hover on any point will show the coupled counterpart as well. Notice how the original 24 patches and the reconstructed ones are almost overlapped, but the true and corrected spectral locus are miles apart.</p>
+      </div>
+
+      <div class="row">
         <div class="col-sm-6">
           <div id="chrmDiv"></div>
         </div>
         <div class="col-sm-6">
         </div>
+      </div>
+
+      <div class="row pt-2">
+        <h4>What's a Camera's Color Space Like?</h4>
+        <p>While the observations we are about to make are generally true, but let's take one specific camera just so we can be concrete. Click the <button id="chooseD80">Choose Nikon D80</button> button to update all the plots using Nikon D80 as the target camera and D65 as the illuminant. The chromaticity plot will be updated accordingly.</p>
+        <p>You will see that the reconstructed spectral locus no longer has our familiar horseshoe shape and, more importantly, is no longer convex. The fact that the spectral locus isn't convex any more means that the gamut of the camera RGB space is no longer the area enclosed by the locus. For instance, if you connect spectral light $520~nm$ and $550~nm$ from the corrected locus, any point on that line represents the color of is a real light mixed from $520~nm$ and $550~nm$. But that line lies outside the locus! So we can no longer say that any real color lies inside the locus.</p>
+        <p>You will also see that a significant portion of the locus is pushed outside the gamut of all human visible colors.</p>
       </div>
     </div>
 
