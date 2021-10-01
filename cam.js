@@ -1158,7 +1158,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     name: 'Spectral Locus',
     hovertemplate: 'x: %{x}' +
       '<br>y: %{y}' +
-      '<br>name: %{text}<extra></extra>',
+      '<br>wavelength: %{text}<extra></extra>',
   };
 
   var cxyTrace = {
@@ -1177,7 +1177,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     name: 'Corrected Spectral Locus',
     hovertemplate: 'x: %{x}' +
       '<br>y: %{y}' +
-      '<br>name: %{text}<extra></extra>',
+      '<br>wavelength: %{text}<extra></extra>',
   };
 
   var pxyTrace = {
