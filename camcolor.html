@@ -242,7 +242,7 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Interpreting Camera Color Space</h3>
+        <h3>Step 5: Interpreting Camera Color Space</h3>
         <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that a typical camera's color space contains imaginary colors. While the observations we are about to make are generally true, but let's take one specific camera just so we can be concrete. Click the <button id="chooseD80">Choose Nikon D80</button> button to choose Nikon D80 as the target camera and D65 as the illuminant. Everything on this page will be updated accordingly.</p>
         <h4>Are Spectral Lights Corrected?</h4>
         <p>The first question you can ask is, does $T$ correct colors of other lights that are not used for color correction? In particular, we are interested in how the spectral lights are corrected. Go back to the spectral locus plot in Step 1 and click the "Corrected XYZ Locus" button. You will see the transformed spectral locus plotted (the "XYZ (Corrected)" curve). Ideally, you want that locus to be precisely ovelapping with the actual XYZ spectral locus, but most likely you will see that that are way off. This is perhaps not all that surprising, because the spectral lights are not used for calculating the best-fit matrix.</p>
@@ -255,7 +255,7 @@
       </div>
 
       <div class="row pt-2">
-        <h4>Step 5: What's a Camera's Gamut Like?</h4>
+        <h4>What's a Camera's Gamut Like?</h4>
         <p>Recall two things here. First, gamut refers to all the colors that can be produced by a color space by mixing (non-negative amount of) the primaries of that color space. Second, the area enclosed by the spectral locus represents all the colors that huiman visual system can see.</p>
         <p>If you click the "sRGB gamut" legend label in the plot above, you will see the gamut of the sRGB color space. It's a triangle that's enclosed by the spectral locus. The three vertices of the triangle represent the three primaries of the sRGB color space. Clearly, the sRGB priamries are real colors and all the colors produced by the sRGB color space are real colors, too, but there are some human visible colors that can't produced by sRGB.</p>
         <p>Now click the "Camera RGB gamut" legend label in the plot above. You will see the gamut of Nikon D80's color space. Nikon D80's gamut is still a triangle, because we are still mixing the RGB primaries through a linear combination. This triangle is obtained simply by multiplying $T$ with $[[0, 0, 1], [0, 1, 0], [1, 0, 0]]$ (assuming the raw values are normalized to the range of $[0, 1]$) and converting the results to chromaticities. However, the B and G primaries are imaginary colors since they lies outside of spectral locus. What this means is that no real photos of Nikon D80 will have (normalized) raw RGB values of $[0, 1, 0]$ and $[1, 0, 0]$. You can certainly manually set raw pixels to those values if you have a raw image editor, but those values will never be obtained in a real capture.</p>
