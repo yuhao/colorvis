@@ -862,9 +862,9 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   QUEUE.Push(["Text", cmfJax[2], window.cmfChart.data.datasets[0].data[primIdx[0]].toFixed(5)]);
   QUEUE.Push(["Text", cmfJax[3], window.cmfChart.data.datasets[1].data[primIdx[0]].toFixed(5)]);
   QUEUE.Push(["Text", cmfJax[4], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
-  QUEUE.Push(["Text", cmfJax[5], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
-  QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
-  QUEUE.Push(["Text", cmfJax[8], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[7], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[9], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
 
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
