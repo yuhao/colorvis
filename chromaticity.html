@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>Chromaticity and Gamut</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/headers/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="headers.css" rel="stylesheet">
+
+    <!-- JavaScript -->
+    <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [ ['$$','$$'], ['\[','\]'] ]
+          }
+        });
+        MathJax.Hub.Register.StartupHook("End",function () {
+          console.log("Mathjax loaded");
+          console.log(typeof MathJax);
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, "TFS"]);
+        });
+    </script>
+  </head>
+  <body>
+
+<main>
+  <div class="container">
+    <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+        <h2>Tutorial 2: Chromaticity Plot and Gamut</h2>
+      </a>
+    </header>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Introduction</h3>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 1: Separating Quality from Quantity</h3>
+      </div>
+
+      <div class="row">
+        <div class="row">
+          <div class="col-sm-6">
+            <canvas id="canvasLMS" class="mt-2"></canvas>
+          </div>
+          <div class="col-sm-6">
+            <canvas id="canvasRGBPrim" class="mt-2"></canvas>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6">
+            <div><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;Select Spectral Primaries</label></div>
+            <div><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;Use Preset Primaries</label></div>
+          </div>
+          <div class="col-sm-6">
+            <div><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;Draw Primaries</label>&nbsp;&nbsp;&nbsp;&nbsp;<button id="resetPrim" disabled>Draw Reset</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="b-example-divider"></div>
+  </div>
+
+
+</main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+
+    <script src="chrm.js"></script>
+  </body>
+</html>
