@@ -347,26 +347,21 @@ function updateUnscaledCMF(chart) {
   QUEUE.Push(["Text", text2Jax[7], chart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
 }
 
-function registerPlotUnscaledCMF(buttonId, wlen) {
+function registerSolLinSysPlot(buttonId, canvas, chart, wlen, plotId) {
   var plotted = false;
   var chart;
 
   $(buttonId).on('click', function(evt) {
+    var rMat = [chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data];
+    var lMatInv = math.inv(lMat);
+    resMat = math.multiply(lMatInv, rMat);
+
     if (!plotted) {
       chart = plotUnscaledCMF(wlen);
       plotted = true;
     } else {
       updateUnscaledCMF(chart, wlen);
     }
-  });
-}
-
-function registerSolLinSys(buttonId, canvas, chart, wlen, plotId) {
-  $(buttonId).on('click', function(evt) {
-    var rMat = [chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data];
-    var lMatInv = math.inv(lMat);
-    resMat = math.multiply(lMatInv, rMat);
-    $('#plotUnscaledCMF').prop('disabled', false);
   });
 }
 
@@ -749,8 +744,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
     setupLinSys(window.myChart, wlen);
   });
   registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
-  registerSolLinSys('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
-  registerPlotUnscaledCMF('#plotUnscaledCMF', wlen);
+  registerSolLinSysPlot('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
   registerCalcCMFScale('#calcCMFScale', wlen);
   registerPlotScaleCMF('#plotScaleCMF', wlen);
 });
