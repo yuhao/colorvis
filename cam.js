@@ -45,7 +45,9 @@ function highlightLocus(index, id) {
     }
 
     var colors = Array.from(plot.data[i].marker.color);
-    colors[index] = brightYellowColor;
+    if (index != -1) {
+      colors[index] = brightYellowColor;
+    }
     var update = {'marker.color': [colors]};
     Plotly.restyle(plot, update, [i]);
   }
@@ -322,14 +324,6 @@ d3.csv('ccspec.csv', function(err, rows){
         legend: {
           position: 'left',
         },
-        tooltip: {
-          //callbacks: {
-          //  labelTextColor: function(context) {
-          //    if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'lmsDiv', lmsLocusMarkerColors);
-          //    return '#FFFFFF';
-          //  }
-          //},
-        }
       }
     }
   });
@@ -569,6 +563,11 @@ d3.csv('camspec.csv', function(err, rows){
               //max: 2,
               position: 'left',
             },
+          },
+          onHover: (event) => {
+            if (event.type === 'mouseout') {
+              highlightLocus(-1, 'locusDiv');
+            }
           },
           plugins: {
             // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options

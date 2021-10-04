@@ -1,6 +1,7 @@
 var redColor = '#da2500';
 var greenColor = '#008f00';
 var blueColor = '#011993';
+var brightYellowColor = '#fcd303'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
 var oBlueColor = 'rgba(1, 25, 147, 0.3)';
@@ -21,17 +22,27 @@ function updateLocus(seq1, seq2, seq3, newTitle, id) {
   Plotly.update(plot, data_update, layout_update, [0]);
 }
 
-function highlightLocus(index, id, baseColors) {
-  // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
-  // Fx.hover fires only for 2d plots for now, so can't use it
-  var myPlot = document.getElementById(id);
-  var colors = Array.from(baseColors);
-  colors[index] = '#fcd303';
-  // rather than 'marker': {color: colors}, which uses defaults for all other parameters
-  var update = {'marker.color': [colors]};
-  Plotly.restyle(myPlot, update, [0]);
+// https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
+// Fx.hover fires only for 2d plots for now, so can't use it
+function highlightLocus(index, id) {
+  var plot = document.getElementById(id);
+
+  for (var i = 0; i < plot.data.length; i++) {
+    var prevHlId = plot.data[i].marker.color.indexOf(brightYellowColor);
+    if (prevHlId != -1) {
+      plot.data[i].marker.color[prevHlId] =
+          plot.data[i].marker.color[(prevHlId + 1) % plot.data[i].x.length];
+    }
+
+    var colors = Array.from(plot.data[i].marker.color);
+    if (index != -1) {
+      colors[index] = brightYellowColor;
+    }
+    var update = {'marker.color': [colors]};
+    Plotly.restyle(plot, update, [i]);
+  }
 }
- 
+
 function unpack(rows, key) {
   return rows.map(function(row) {
       return parseFloat(row[key]);
@@ -598,6 +609,11 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         mode: 'index',
         intersect: false,
       },
+      onHover: (event) => {
+        if (event.type === 'mouseout') {
+          highlightLocus(-1, 'lmsDiv');
+        }
+      },
       scales: {
         yAxes:{
           min: 0,
@@ -632,7 +648,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         tooltip: {
           callbacks: {
             labelTextColor: function(context) {
-              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'lmsDiv', lmsLocusMarkerColors);
+              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'lmsDiv');
               return '#FFFFFF';
             }
           },
@@ -817,6 +833,11 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         //  position: 'left',
         //},
       },
+      onHover: (event) => {
+        if (event.type === 'mouseout') {
+          highlightLocus(-1, 'rgbDiv');
+        }
+      },
       plugins: {
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
         zoom: {
@@ -841,7 +862,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         tooltip: {
           callbacks: {
             labelTextColor: function(context) {
-              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'rgbDiv', rgbLocusMarkerColors);
+              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'rgbDiv');
               return '#FFFFFF';
             }
           },
