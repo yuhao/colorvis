@@ -1289,7 +1289,6 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     name: 'Convex Hull of Camera RGB Gamut',
   };
 
-
   var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace, camGamutTrace, hullTrace];
 
   var ranges = findRange(data);
@@ -1331,8 +1330,15 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       zerolinewidth: 3,
     }
   };
+
+  var config = {
+    toImageButtonOptions: {
+      format: 'svg', // one of png, svg, jpeg, webp
+      //scale: 1 // Multiply title/legend/axis/canvas sizes by this factor
+    }
+  };
  
-  Plotly.newPlot(chrmPlot, data, layout);
+  Plotly.newPlot(chrmPlot, data, layout, config);
 
   chrmPlot.on('plotly_hover', function (eventdata){
     var point = eventdata.points[0];
