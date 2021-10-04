@@ -19,6 +19,7 @@ QUEUE.Push(function () {
   ccMatText = MathJax.Hub.getAllJax('ccMatText');
   equText = MathJax.Hub.getAllJax('equText');
   equText2 = MathJax.Hub.getAllJax('equText2');
+  equText3 = MathJax.Hub.getAllJax('equText3');
 });
 
 
@@ -1027,6 +1028,8 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
     QUEUE.Push(["Text", ccMatText[1], $('#camSel').val()]);
     QUEUE.Push(["Text", ccMatText[2], $('#whiteSel').val()]);
 
+    QUEUE.Push(["Text", equText3[2], $('#whiteSel').val()]);
+
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
 
@@ -1134,8 +1137,8 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
                              camGamutChrm[1].concat(camGamutChrm[1][0]), hullPoints[1]]};
     var ranges = findRange(obj2Arr(data_update));
     var layout_update = {
-      'xaxis.range': [ranges[0]-0.1, ranges[1]+0.1],
-      'yaxis.range': [ranges[2]-0.1, ranges[3]+0.1],
+      'xaxis.range': [Math.max(-1, ranges[0]-0.1), Math.min(2, ranges[1]+0.1)],
+      'yaxis.range': [Math.max(-1, ranges[2]-0.1), Math.min(2, ranges[3]+0.1)],
     };
 
     Plotly.update(chrmPlot, data_update, layout_update, [1, 2, 3, 5, 6]);
@@ -1310,7 +1313,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       y: 1,
     },
     xaxis: {
-      range: [ranges[0]-0.1, ranges[1]+0.1],
+      range: [Math.max(-1, ranges[0]-0.1), Math.min(2, ranges[1]+0.1)],
       title: {
         text: 'x'
       },
@@ -1320,7 +1323,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       zerolinewidth: 3,
     },
     yaxis: {
-      range: [ranges[2]-0.1, ranges[3]+0.1],
+      range: [Math.max(-1, ranges[2]-0.1), Math.min(2, ranges[3]+0.1)],
       title: {
         text: 'y'
       },
@@ -1338,21 +1341,21 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
     var pointNum = point.pointNumber;
 
     if (curveNum <= 1) {
-       Plotly.Fx.hover('chrmDiv',[
+       Plotly.Fx.hover(chrmPlot,[
            { curveNumber:0, pointNumber:pointNum },
            { curveNumber:1, pointNumber:pointNum },
        ]);
     } else if (curveNum <= 3) {
-       Plotly.Fx.hover('chrmDiv',[
+       Plotly.Fx.hover(chrmPlot,[
            { curveNumber:2, pointNumber:pointNum },
            { curveNumber:3, pointNumber:pointNum },
        ]);
     } else {
-       Plotly.Fx.hover('chrmDiv',[
+       Plotly.Fx.hover(chrmPlot,[
            { curveNumber:curveNum, pointNumber:pointNum },
        ]);
     }
-});
+  });
 }
 
 function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
