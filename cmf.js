@@ -24,10 +24,12 @@ function updateLocus(seq1, seq2, seq3, newTitle, id) {
 
 // https://community.plotly.com/t/how-to-link-hover-event-in-2d-scatter-to-3d-scatter/3548/2
 // Fx.hover fires only for 2d plots for now, so can't use it
-function highlightLocus(index, id) {
+function highlightLocus(index, id, excludeTraces) {
   var plot = document.getElementById(id);
 
   for (var i = 0; i < plot.data.length; i++) {
+    if (excludeTraces.indexOf(i) != -1) continue;
+
     var prevHlId = plot.data[i].marker.color.indexOf(brightYellowColor);
     if (prevHlId != -1) {
       plot.data[i].marker.color[prevHlId] =
@@ -611,7 +613,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
       },
       onHover: (event) => {
         if (event.type === 'mouseout') {
-          highlightLocus(-1, 'lmsDiv');
+          highlightLocus(-1, 'lmsDiv', []);
         }
       },
       scales: {
@@ -648,7 +650,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         tooltip: {
           callbacks: {
             labelTextColor: function(context) {
-              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'lmsDiv');
+              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'lmsDiv', []);
               return '#FFFFFF';
             }
           },
@@ -835,7 +837,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
       },
       onHover: (event) => {
         if (event.type === 'mouseout') {
-          highlightLocus(-1, 'rgbDiv');
+          highlightLocus(-1, 'rgbDiv', [1]);
         }
       },
       plugins: {
@@ -862,7 +864,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         tooltip: {
           callbacks: {
             labelTextColor: function(context) {
-              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'rgbDiv');
+              if (context.datasetIndex == 0) highlightLocus(context.dataIndex, 'rgbDiv', [1]);
               return '#FFFFFF';
             }
           },

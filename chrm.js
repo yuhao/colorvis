@@ -25,25 +25,6 @@ function updateLocus(seq1, seq2, seq3, newTitle, plot) {
   Plotly.update(plot, data_update, layout_update, [0]);
 }
 
-function highlightLocus(index, id) {
-  var plot = document.getElementById(id);
-
-  for (var i = 0; i < plot.data.length; i++) {
-    var prevHlId = plot.data[i].marker.color.indexOf(brightYellowColor);
-    if (prevHlId != -1) {
-      plot.data[i].marker.color[prevHlId] =
-          plot.data[i].marker.color[(prevHlId + 1) % plot.data[i].x.length];
-    }
-
-    var colors = Array.from(plot.data[i].marker.color);
-    if (index != -1) {
-      colors[index] = brightYellowColor;
-    }
-    var update = {'marker.color': [colors]};
-    Plotly.restyle(plot, update, [i]);
-  }
-}
-
 function unpack(rows, key, toNum) {
   return rows.map(function(row) {
       if (toNum == false) return row[key];

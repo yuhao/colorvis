@@ -34,10 +34,12 @@ function updateLocus(seq1, seq2, seq3, newTitle, plot) {
   Plotly.update(plot, data_update, layout_update, [0]);
 }
 
-function highlightLocus(index, id) {
+function highlightLocus(index, id, excludeTraces) {
   var plot = document.getElementById(id);
 
   for (var i = 0; i < plot.data.length; i++) {
+    if (excludeTraces.indexOf(i) != -1) continue;
+
     var prevHlId = plot.data[i].marker.color.indexOf(brightYellowColor);
     if (prevHlId != -1) {
       plot.data[i].marker.color[prevHlId] =
@@ -566,7 +568,7 @@ d3.csv('camspec.csv', function(err, rows){
           },
           onHover: (event) => {
             if (event.type === 'mouseout') {
-              highlightLocus(-1, 'locusDiv');
+              highlightLocus(-1, 'locusDiv', []);
             }
           },
           plugins: {
@@ -602,7 +604,7 @@ d3.csv('camspec.csv', function(err, rows){
               callbacks: {
                 labelTextColor: function(context) {
                   if (context.datasetIndex == 0) {
-                    highlightLocus(context.dataIndex, 'locusDiv');
+                    highlightLocus(context.dataIndex, 'locusDiv', []);
                   }
                   return '#FFFFFF';
                 }
