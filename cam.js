@@ -550,6 +550,7 @@ d3.csv('camspec.csv', function(err, rows){
           datasets: chartTraces,
         },
         options: {
+          //aspectRatio: 1.6,
           animation: {
             duration: 0,
           },

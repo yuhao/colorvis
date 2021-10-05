@@ -86,7 +86,7 @@
 
       <div class="row">
         <div class="col-sm-7">
-          <select id="camSel" style="width: 150px">
+          <select id="camSel" style="width: 150px" class="form-select">
           </select>
           <canvas id="canvasCamSpace" class="mt-2"></canvas>
         </div>
@@ -97,11 +97,10 @@
 
       <div class="row">
         <div class="col-sm-7">
-          <div><button id="resetChartCam" disabled>Draw Reset</button> Reset the custom camera sensitivity functions.</div>
-          <div class="my-2"><button id="resetZoomCamSpece">Reset Zoom</button> Reset the zoom of the chart.</div>
+          <div class="d-flex justify-content-start"><button id="resetChartCam" class="btn btn-primary btn-sm" disabled>Reset Custom Camera</button> </div>
         </div>
         <div class="col-sm-5">
-          <div><button id="correctLocus" disabled>Corrected XYZ Locus</button> Draw the transformed spectral locus using the color correction matrix.</div>
+          <div class="d-flex justify-content-end"><button id="correctLocus" class="btn btn-primary btn-sm" disabled>Draw Corrected Locus</button> </div>
         </div>
       </div>
 
@@ -144,7 +143,6 @@
 
       <div class="row">
         <canvas id="canvasCCSpec"></canvas>
-        <div class="mt-4"><button id="resetZoomSpecR">Reset Zoom</button> Reset the zoom of the chart.</div>
       </div>
 
       <div class="row mt-2">
@@ -160,11 +158,10 @@
 
       <div class="row pt-2">
         <div class="col-sm-6">
-          <select id="whiteSel" style="width: 150px" class="my-2">
+          <select id="whiteSel" style="width: 150px" class="my-2 form-select">
           </select>
           <canvas id="canvasWhite"></canvas>
-          <div class="mt-4"><button id="resetWhite" disabled>Reset Illuminant</button> Reset the Illuminant drawing.</div>
-          <div class="my-2"><button id="resetZoomWhite">Reset Zoom</button> Reset the zoom of the chart.</div>
+          <div class="my-2 d-flex justify-content-start"><button id="resetWhite" class="btn btn-primary btn-sm" disabled>Reset Custom Illuminant</button> </div>
           <div><p>You can select an iluminant in the chart above, which shows the SPD of a few CIE Standard Illuminants normalized to peak at unity. You can also draw your own illuminant by selecting "Custom" from the drop-down list.</p></div>
         </div>
         <div class="col-sm-6">
@@ -191,7 +188,7 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 4: Calculate Color Correction Matrix</h3>
-        <p>With the illuminant selected, we now have everything to <button id="genLinSys">Generate Equations</button> to concretize the linear system:</p>
+        <p>With the illuminant selected, we now have everything to <button id="genLinSys" class="btn btn-primary btn-sm">Generate Equations</button> to concretize the linear system:</p>
         <p id="equText">
         $\begin{bmatrix}
         \boxed{??} \\
@@ -225,7 +222,7 @@
       <div class="row pt-2">
         <h4>Solving the Optimization Problem</h4>
         <p>How to find the best fit $T$? The common approach is to formulate this as a <a href="https://en.wikipedia.org/wiki/Linear_least_squares">linear least squares</a> problem, which essentially minimizes the sum of the squared differences between the reconstructed XYZ values and the "ground truth" XYZ values. Critically, squared differences represent Euclidean distances in the XYZ space. However, Euclidean distance in the XYZ space is not proportional to the <a href="https://en.wikipedia.org/wiki/MacAdam_ellipse">perceptual color difference</a>. Therefore, it is usually better to convert the color from the XYZ space to a perceptually uniform color space, such as the <a href="https://en.wikipedia.org/wiki/CIELAB_color_space#CIELAB">CIELAB</a>, before formulating the least squares. For simplicity we won't do it here, but you get the idea.</p>
-        <p>The optimal solution to the linear least squares problem in the form of $A=TB$ is: $T=AB^T (BB^T)^{-1}$, where $A$ is our XYZ matrix and $B$ is the RGB matrix. Now click <button id="calcMatrix" disabled>Calculate Matrix</button> to find $T$! The best-fit matrix is calculated as:</p>
+        <p>The optimal solution to the linear least squares problem in the form of $A=TB$ is: $T=AB^T (BB^T)^{-1}$, where $A$ is our XYZ matrix and $B$ is the RGB matrix. Now click <button id="calcMatrix" class="btn btn-primary btn-sm" disabled>Calculate Matrix</button> to find $T$! The best-fit matrix is calculated as:</p>
         <p id="ccMatText">
         ${\begin{bmatrix}
         \boxed{??} & \boxed{??} & \boxed{??} \\
@@ -243,7 +240,7 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 5: Interpreting Camera Color Space</h3>
-        <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that a typical camera's color space contains imaginary colors. While the observations we are about to make are generally true, but let's take one specific camera just so we can be concrete. Click the <button id="chooseD80">Choose Nikon D80</button> button to choose Nikon D80 as the target camera and D65 as the illuminant. Everything on this page will be updated accordingly.</p>
+        <p>With the transfromation matrix $T$ calculated, we can use it to get more insights into a particular camera's color space. The TL;DR is that a typical camera's color space contains imaginary colors. While the observations we are about to make are generally true, but let's take one specific camera just so we can be concrete. Click the <button id="chooseD80" class="btn btn-primary btn-sm">Choose Nikon D80</button> button to choose Nikon D80 as the target camera and D65 as the illuminant. Everything on this page will be updated accordingly.</p>
         <h4>Are Spectral Lights Corrected?</h4>
         <p>The first question you can ask is, does $T$ correct colors of other lights that are not used for color correction? In particular, we are interested in how the spectral lights are corrected. Go back to the spectral locus plot in Step 1 and click the "Corrected XYZ Locus" button. You will see the transformed spectral locus plotted (the "XYZ (Corrected)" curve). Ideally, you want that locus to be precisely ovelapping with the actual XYZ spectral locus, but most likely you will see that that are way off. This is perhaps not all that surprising, because the spectral lights are not used for calculating the best-fit matrix.</p>
         <p>We can gain a better understanding of the correction results in the chromaticity plot. The chart below plots the "ground truth" spectral locus and the 24 patches in the xy-chromaticity plot, and then overlays the reconstructed locus and patches transformed from the camera RGB space using matrix $T$. Hover on any point will show the coupled counterpart as well. The way to interpret a point on the corrected locus is that that's what the camera "thinks" what that spectral light's color is (in terms of xy chromaticity). The same interpretation applies to the 24 patches as well. Notice how the original 24 patches and the reconstructed ones are almost overlapped (because they are used to estimate $T$), but the true and corrected spectral locus are miles apart.</p>

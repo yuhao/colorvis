@@ -79,9 +79,9 @@
         <h3>Step 0: Picking a Color Space</h3>
         <p>While the notions of chromaticity and gamut are general, every color space has a different gamut and the same light has different chromaticities in different color spaces. To be concrete, we will use a specific color space for this tutorial. Instead of using a fixed color space, we will ask you to build one and use it to drive the rest of the tutorial. Any color space will do, and we provide you three ways to build a color space. In all cases, we will assume CIE Standard Illuminant E (Equal-Energy White) as the reference white.</p>
         <ul style="list-style-type:none;">
-          <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;Select Spectral Primaries</label>. This will allow you to select three spectral lights as the primaries, exactly like what you did in the previous tutorial.</li>
-          <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;Use Preset Primaries</label>. This is a short-cut that automatically selects spectral lights $445~nm$, $540~nm$, and $590~nm$ as the primaries.</li>
-          <li><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;Draw Primaries</label>. You can draw the spectral power distribution (SPD) of the primaries in the right chart below. You can <button id="resetPrim" disabled>Reset Draw</button> to start over.</li>
+          <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;<b>Select Spectral Primaries</b></label>. This will allow you to select three spectral lights as the primaries, exactly like what you did in the previous tutorial.</li>
+          <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;<b>Use Preset Primaries</b></label>. This is a short-cut that automatically selects spectral lights $445~nm$, $540~nm$, and $590~nm$ as the primaries.</li>
+          <li><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;<b>Draw Primaries</b></label>. You can draw the spectral power distribution (SPD) of the primaries in the right chart below. You can <button id="resetPrim" class="btn btn-primary btn-sm" disabled>Reset Draw</button> to start over.</li>
         </ul>
       </div>
 
@@ -93,7 +93,7 @@
           <canvas id="canvasRGBPrim"></canvas>
         </div>
       </div>
-      <p>Once the primaries are selected, we can <button id="plotLocus" disabled>Plot Spectral Locus</button> in your RGB color space. The locus is drawn, under the hood, by calculating the Color Matching Functions (CMFs) using the method we explored in the previous tutorial.</p>
+      <p>Once the primaries are selected, we can <button id="plotLocus" class="btn btn-primary btn-sm" disabled>Plot Spectral Locus</button> in your RGB color space. The locus is calculating, under the hood, by calculating the Color Matching Functions (CMFs) using the method we explored in the previous tutorial.</p>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
