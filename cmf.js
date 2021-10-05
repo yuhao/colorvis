@@ -1,3 +1,8 @@
+var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  return new bootstrap.Popover(popoverTriggerEl)
+})
+
 var redColor = '#da2500';
 var greenColor = '#008f00';
 var blueColor = '#011993';
@@ -90,6 +95,7 @@ function registerChartReset(buttonId, plotId, chart, canvas, resetData1, resetDa
 }
 
 function registerDrag(canvas, chart, plotId) {
+  // TODO: should make these part of the chart object
   function down_handler(event) {
     // get the intersecting data point
     const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
@@ -336,7 +342,10 @@ function plotUnscaledCMF(wlen) {
         title: {
           display: true,
           text: 'Unscaled RGB \"radiance functions\"; y-axis denotes radiance.',
-          fontSize: 24,
+          font: {
+            size: 20,
+            family: 'Helvetica Neue',
+          },
         },
       }
     }
@@ -467,9 +476,6 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
   });
 
   function selectPrims(canvas, chart, presets) {
-  //$(buttonId).on('click', function(evt) {
-    //toggleDrag(canvas, false);
-
     // dim the LMS curves
     chart.data.datasets[0].borderColor = Array(wlen.length).fill(oRedColor);
     chart.data.datasets[0].pointBackgroundColor = Array(wlen.length).fill(oRedColor);
@@ -555,56 +561,9 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
         var index = points[0].index;
         setData(numPoints, index, chart);
 
-        // https://stackoverflow.com/questions/28159595/chartjs-different-color-per-data-point
-        //chart.data.datasets[0].pointBackgroundColor[index] = redColor;
-        //chart.data.datasets[0].pointRadius[index] = 10;
-        //chart.data.datasets[1].pointBackgroundColor[index] = greenColor;
-        //chart.data.datasets[1].pointRadius[index] = 10;
-        //chart.data.datasets[2].pointBackgroundColor[index] = blueColor;
-        //chart.data.datasets[2].pointRadius[index] = 10;
-        //chart.update();
-
-        //if (numPoints == 0) {
-        //  var col = "\\Bigg[ \\begin{matrix}" +
-        //            chart.data.datasets[0].data[index].toExponential(3) +
-        //            "\\\\" +
-        //            chart.data.datasets[1].data[index].toExponential(3) +
-        //            "\\\\" +
-        //            chart.data.datasets[2].data[index].toExponential(3) +
-        //            "\\end{matrix}";
-        //  QUEUE.Push(["Text", lmat1, col]);
-        //  QUEUE.Push(["Text", text1Jax[15], chart.data.labels[index]+"~nm"]);
-        //  QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[index].toExponential(3)+","+chart.data.datasets[1].data[index].toExponential(3)+","+chart.data.datasets[2].data[index].toExponential(3)+"\\end{bmatrix}^T"]);
-        //  QUEUE.Push(["Text", text1Jax[18], chart.data.labels[index]+"~nm"]);
-        //} else if (numPoints == 1) {
-        //  var col = "\\begin{matrix}" +
-        //            chart.data.datasets[0].data[index].toExponential(3) +
-        //            "\\\\" +
-        //            chart.data.datasets[1].data[index].toExponential(3) +
-        //            "\\\\" +
-        //            chart.data.datasets[2].data[index].toExponential(3) +
-        //            "\\end{matrix}";
-        //  QUEUE.Push(["Text", lmat2, col]);
-        //} else if (numPoints == 2) {
-        //  var col = "\\begin{matrix}" +
-        //            chart.data.datasets[0].data[index].toExponential(3) +
-        //            "\\\\" +
-        //            chart.data.datasets[1].data[index].toExponential(3) +
-        //            "\\\\" +
-        //            chart.data.datasets[2].data[index].toExponential(3) +
-        //            "\\end{matrix} \\Bigg]";
-        //  QUEUE.Push(["Text", lmat3, col]);
-        //  $('#solLinSys').prop('disabled', false);
-        //} 
-        //lMat[0][numPoints] = chart.data.datasets[0].data[index];
-        //lMat[1][numPoints] = chart.data.datasets[1].data[index];
-        //lMat[2][numPoints] = chart.data.datasets[2].data[index];
-        //primIdx[numPoints] = index;
-
         numPoints++;
       }
     }
-  //});
   }
 }
 
@@ -729,8 +688,6 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
     }
   });
 
-  registerDrag(canvas, window.myChart, 'lmsDiv');
-  registerResetZoom('#resetZoomLMS', window.myChart);
   registerChartReset('#resetChartLMS', 'lmsDiv', window.myChart, canvas, window.ConeL, window.ConeM, window.ConeS);
 
   // the spectral locus
@@ -832,11 +789,21 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
     setupLinSys(window.myChart, wlen);
   });
   registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
+  registerDrawPrim('#drawPrim', canvas, window.myChart);
   registerSolLinSysPlot('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
   registerCalcCMFScale('#calcCMFScale', wlen);
   registerPlotScaleCMF('#plotScaleCMF', wlen);
 });
 
+function registerDrawPrim(boxId, canvas, chart) {
+  $(boxId).on('change', function(evt) {
+    if($(boxId).is(":checked")) {
+      registerDrag(canvas, chart, '');
+    } else {
+      toggleDrag(canvas, false);
+    }
+  });
+}
 
 function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   var stride = 5;

@@ -12,7 +12,6 @@
 
     <!-- Bootstrap core CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css"/>
 
 
     <style>
@@ -42,7 +41,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script>
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
@@ -97,8 +95,11 @@
       <div class="row">
         <div class="col-sm-6">
           <canvas id="canvasLMS"></canvas>
-          <div class="my-4">
-            <button id="resetChartLMS" class="mx-4 btn btn-outline-primary">Chart Reset</button><button id="guide" class="btn btn-outline-secondary" data-fancybox data-src="#dialog-content">Help</button>
+          <div class="mt-2">
+            <input type="checkbox" id="drawPrim" name="drawPrim">
+            <label for="drawPrim">Draw Fundamentals</label>
+            <button id="resetChartLMS" class="btn btn-outline-primary btn-sm">Chart Reset</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Move your mouse to hover the charts, both the 2D and the 3D ones. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the 3D chart will be highlighted as you hover the 2D chart. You can zoom the 2D chart by scrolling the mouse. You get to interact with the 3D plot with a lot more freedom, both zooming and panning as well as navigating the space by dragging the plot. If you hover your mouse over to the top-right corner of the 3D plot, a control panel will show up with more options.">Help</button>
           </div>
         </div>
         <div class="col-sm-6">
@@ -111,12 +112,11 @@
       <div class="row">
         <h2>Step 1: Pick the Primaries</h2>
         <p>The first step in building a color space is to pick the primary lights of the color space. We provide you two ways to do so.</p>
-        <p>Click <button id="selPrim">Pick Primaries</button>. Two things will happen; take a moment to understand what's going on before moving on.</p>
         <ul style="list-style-type:none;">
           <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;<b>Use Preset Primaries</b></label>. This is a short-cut that automatically selects spectral lights $445~nm$, $540~nm$, and $590~nm$ as the primaries.</li>
           <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;<b>Select Spectral Primaries</b></label>. This will allow you to select three spectral lights as the primaries. The LMS chart above dims. You can then point the mouse at a point on a curve and click it to pick a primary. When you click a point, the L, M, and S responses at the corresponding wavelength are highlighted, indicating that one primary has been selected. The chart will lock once three primaries are selected. We assume that the first primary selected is the blue primary, the second one is green, and the last one is red. Of course R, G, and B are just names, but if you want the colors of the charts later to match your intuition, select the primaries from <b>left to right</b>. The primaries need not be spectral lights, but we limit ourselves to spectral lights in this tutorial for simplicity purposes.</li>
         </ul>
-        <p>Meanwhile, the following system of (three) linear equations will be built as you select the primaries, which replace the $\boxed{??}$ by concrete values. The system has the form $A_{3\times 3} \times M_{3\times n} = C_{3\times n}$, where $n$ is the number of spectral lights in the LMS chart, which is $81$ in our case, since the chart spans $380~nm$ to $780~nm$ at a $5~nm$ interval. This linear system lies at the heart of building RGB CMFs from the LMS cone fundamentals. Let's unpack it a bit more.</p>
+        <p>Once the primaries are selected, the following system of (three) linear equations are built. The system has the form $A_{3\times 3} \times M_{3\times n} = C_{3\times n}$, where $n$ is the number of spectral lights in the LMS chart, which is $81$ in our case, since the chart spans $380~nm$ to $780~nm$ at a $5~nm$ interval. This linear system lies at the heart of building RGB CMFs from the LMS cone fundamentals. Let's unpack it a bit more.</p>
         <p id="primText">
           ${}$ ${}$ ${}$ ${}$ ${}$ ${}$
         </p>
@@ -124,8 +124,8 @@
         <p>This linear system essentially asks the following question: how much primary light each, in radiance, do we need to match the color of each spectral light under one unit radiance? The answer is encoded in matrix $M$, which is what we want to solve for.</p>
         <p>To answer this question, recall the key invariant in color science: to match color between two lights <b>their LMS cone responses must match</b>. Therefore, we will first express the LMS cone responeses of each spectral light, which is what matrix $C$ encodes. Each column vector in matrix $C$ corresponds to a spectral light, and represents the L, M, and S cone responses under one unit radiance of that spectral light. Naturally, numbers in each column are exactly the same as the numbers in the tooltip as you hover the mouse over the LMS chart above.</p>
         <div id="text1">
-          <p>Matrix $M$ is what we want to solve for. Each column vector of matrix $M$ corresponds to a spectral light, and represents the amount (in radiance) of the three primary lights needed to match the color of that spectral light under one unit radiance. Without losing generality, let's take L cone and spectral light $500~nm$ as an example and ask: how much primary lights do we need to match the L cone response (${}$) of the spectral light at $500~nm$? That is, what are the values of $R_{500}, G_{500}, B_{500}$? Well, for the color to match, the L cone response of the spectral light $500~nm$ must match the <i>total</i> L cone responses contributed by the three primary lights.</p>
-          <p>The L cone response contribution of a primary light is: the radiance of the primary $\times$ L cone response per unit radiance of that primary. The former is what we solve for, and the latter can be directly read from the LMS chart above and is exactly what matrix $A$ encodes. Matrix $A$ is a $3 \times 3$ matrix, where the first row represents the amount of L cone responseses contributed by the three primaries per unit radiance; the second and third rows encode the same information, but for the M cone and the S cone, respectively.</p>
+          <p>Matrix $M$ is what we want to solve for. Each column vector of matrix $M$ corresponds to a spectral light, and represents the amount (in radiance) of the three primary lights needed to match the color of that spectral light under one unit radiance. Without losing generality, let's take L cone and spectral light $500~nm$ as an example and ask: how much primary lights do we need to match the L cone response (${}$) of the spectral light at $500~nm$? That is, what are the values of $R_{500}, G_{500}, B_{500}$?</p>
+          <p>For the color to match, the L cone response of the spectral light $500~nm$ must match the <i>total</i> L cone responses contributed by the three primary lights. The L cone response contribution of a primary light is: the radiance of the primary $\times$ L cone response per unit radiance of that primary. The former is what we solve for, and the latter can be directly read from the LMS chart above and is exactly what matrix $A$ encodes. Matrix $A$ is a $3 \times 3$ matrix, where the first row represents the amount of L cone responseses contributed by the three primaries per unit radiance; the second and third rows encode the same information, but for the M cone and the S cone, respectively.</p>
           <p>Naturally, matrix $A$ depends on what exactly the three primaries are. Before the primaries are selected, matrix $A$ is unknown (thus the question marks in the matrix). As you select your primaries, matrix $A$ will be dymamically updated. If you think about it, each column in matrix $A$ is same as the LMS cone responses of the corresponding wavelength in the LMS chart above. For instance, the first primary you choose is ${\boxed{??}}$ and the first column in matrix $A$ is ${\boxed{??}}$; if you hover the mouse at wavelength ${\boxed{??}}$, you will see the same three numbers.</p>
         </div>
         <h4>Trichromacy</h4>
@@ -138,7 +138,7 @@
       <div class="bg-light border rounded-3 pt-3 mb-4 px-4">
         <div class="row">
           <h2>Step 2: Solve the Linear System</h2>
-          <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" class="btn btn-outline-primary" disabled>Solve and Plot</button> to solve the linear system and plot the resulting matrix $M$. If you change your primary selection or the LMS cone fundamentals, simply click the button again; the results will be updated.</p>
+          <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" class="btn btn-outline-primary btn-sm" disabled>Solve and Plot</button> to solve the linear system and plot the resulting matrix $M$. If you change your primary selection or the LMS cone fundamentals, simply click the button again; the results will be updated.</p>
           <canvas id="canvasUnscaledCMF"></canvas>
         </div>
         <div class="row pt-4">
@@ -173,7 +173,7 @@
       <div class="row">
         <h2>Step 4: Generate Color Matching Functions!</h2>
         <div id = "text4">
-          <p>Given the specific white, we can now convert the radiance chart above to the CMFs. Here is the process. We first calculate how many primary lights in terms of <i>radiance</i> are needed to match the color of the given white. We can <button id="calcCMFScale" class="btn btn-outline-primary" disabled>Calculate</button> this by:</p>
+          <p>Given the specific white, we can now convert the radiance chart above to the CMFs. Here is the process. We first calculate how many primary lights in terms of <i>radiance</i> are needed to match the color of the given white. We can <button id="calcCMFScale" class="btn btn-outline-primary btn-sm" disabled>Calculate</button> this by:</p>
             <p>$\sum_{380}^{780}W(\lambda)R(\lambda)$ = ${\boxed{??}}$,</p>
             <p>$\sum_{380}^{780}W(\lambda)G(\lambda)$ = ${\boxed{??}}$,</p>
             <p>$\sum_{380}^{780}W(\lambda)B(\lambda)$ = ${\boxed{??}}$,</p>
@@ -185,7 +185,7 @@
           <p>$\bar{r}(\lambda) = R(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
           <p>$\bar{g}(\lambda) = G(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
           <p>$\bar{b}(\lambda) = B(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
-          <p>where $\bar{r}$, $\bar{g}$, and $\bar{b}$ are the CMFs. Let's <button id="plotScaleCMF" class="btn btn-outline-primary" disabled>Plot</button> them. If you make any changes to the cone fundamentals or to the white light, simply click the calculate and the plot buttons again; the new CMFs will be updated.</p>
+          <p>where $\bar{r}$, $\bar{g}$, and $\bar{b}$ are the CMFs. Let's <button id="plotScaleCMF" class="btn btn-outline-primary btn-sm" disabled>Plot</button> them. If you make any changes to the cone fundamentals or to the white light, simply click the calculate and the plot buttons again; the new CMFs will be updated.</p>
         </div>
       </div>
     </div>
@@ -206,7 +206,7 @@
 
       <div class="row">
         <h4>How to Interact With the Charts:</h4>
-        <p>The chart on the left plots the color matching functions of the RGB color space that you just built. The chart on the right plots the spectral locus in that color space. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" class="btn btn-outline-primary" disabled>Plot Locus in Chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course go back and <button id="rgb2RGB" class="btn btn-outline-primary" disabled>Plot Locus in RGB</button>. Finally, you can <button id="showPrim" class="btn btn-outline-primary" disabled>Highlight Primaries</button> that you chose for this color space.</p>
+        <p>The chart on the left plots the color matching functions of the RGB color space that you just built. The chart on the right plots the spectral locus in that color space. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" class="btn btn-outline-primary btn-sm" disabled>Plot Locus in Chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course go back and <button id="rgb2RGB" class="btn btn-outline-primary btn-sm" disabled>Plot Locus in RGB</button>. Finally, you can <button id="showPrim" class="btn btn-outline-primary btn-sm" disabled>Highlight Primaries</button> that you chose for this color space.</p>
       </div>
 
       <div class="row">
