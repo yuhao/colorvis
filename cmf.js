@@ -191,9 +191,9 @@ function registerCalcCMFScale(buttonId, wlen) {
     QUEUE.Push(["Text", text4Jax[21], gRad]);
     QUEUE.Push(["Text", text4Jax[23], bRad]);
 
-    QUEUE.Push(["Text", text4Jax[25], rRad]);
-    QUEUE.Push(["Text", text4Jax[26], gRad]);
-    QUEUE.Push(["Text", text4Jax[27], bRad]);
+    QUEUE.Push(["Text", text4Jax[26], rRad]);
+    QUEUE.Push(["Text", text4Jax[27], gRad]);
+    QUEUE.Push(["Text", text4Jax[28], bRad]);
 
     QUEUE.Push(["Text", text4Jax[30], rRad]);
     QUEUE.Push(["Text", text4Jax[33], gRad]);
