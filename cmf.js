@@ -451,14 +451,24 @@ function setupLinSys(chart, wlen) {
 }
 
 function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
-  $(buttonId).on('click', function(evt) {
-    toggleDrag(canvas, false);
+  function getWaveId(chart, wave) {
+    var stride = 5;
+    var wlen = chart.data.labels;
+    return (wave - wlen[0]) / stride;
+  };
 
-    var lmat1 = allJax[0];
-    var lmat2 = allJax[1];
-    var lmat3 = allJax[2];
-    //mmat = allJax[3];
-    //rmat = allJax[4];
+  $('input[type=radio][name=prim]').change(function() {
+    toggleDrag(canvas, false);
+    if (this.value == 'selPrim') {
+      selectPrims(canvas, chart, []);
+    } else if (this.value == 'usePreset') {
+      selectPrims(canvas, chart, [getWaveId(chart, 445), getWaveId(chart, 540), getWaveId(chart, 590)]);
+    }
+  });
+
+  function selectPrims(canvas, chart, presets) {
+  //$(buttonId).on('click', function(evt) {
+    //toggleDrag(canvas, false);
 
     // dim the LMS curves
     chart.data.datasets[0].borderColor = Array(wlen.length).fill(oRedColor);
@@ -472,12 +482,69 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
     chart.data.datasets[2].pointRadius = Array(wlen.length).fill(3);
     chart.update();
 
-    // setup the equation again, erasing the prior selections.
-    //setupLinSys();
+    var lmat1 = allJax[0];
+    var lmat2 = allJax[1];
+    var lmat3 = allJax[2];
+
+    function setData(numPoints, index, chart) {
+      // https://stackoverflow.com/questions/28159595/chartjs-different-color-per-data-point
+      chart.data.datasets[0].pointBackgroundColor[index] = redColor;
+      chart.data.datasets[0].pointRadius[index] = 10;
+      chart.data.datasets[1].pointBackgroundColor[index] = greenColor;
+      chart.data.datasets[1].pointRadius[index] = 10;
+      chart.data.datasets[2].pointBackgroundColor[index] = blueColor;
+      chart.data.datasets[2].pointRadius[index] = 10;
+      chart.update();
+
+      if (numPoints == 0) {
+        var col = "\\Bigg[ \\begin{matrix}" +
+                  chart.data.datasets[0].data[index].toExponential(3) +
+                  "\\\\" +
+                  chart.data.datasets[1].data[index].toExponential(3) +
+                  "\\\\" +
+                  chart.data.datasets[2].data[index].toExponential(3) +
+                  "\\end{matrix}";
+        QUEUE.Push(["Text", lmat1, col]);
+        QUEUE.Push(["Text", text1Jax[15], chart.data.labels[index]+"~nm"]);
+        QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[index].toExponential(3)+","+chart.data.datasets[1].data[index].toExponential(3)+","+chart.data.datasets[2].data[index].toExponential(3)+"\\end{bmatrix}^T"]);
+        QUEUE.Push(["Text", text1Jax[18], chart.data.labels[index]+"~nm"]);
+      } else if (numPoints == 1) {
+        var col = "\\begin{matrix}" +
+                  chart.data.datasets[0].data[index].toExponential(3) +
+                  "\\\\" +
+                  chart.data.datasets[1].data[index].toExponential(3) +
+                  "\\\\" +
+                  chart.data.datasets[2].data[index].toExponential(3) +
+                  "\\end{matrix}";
+        QUEUE.Push(["Text", lmat2, col]);
+      } else if (numPoints == 2) {
+        var col = "\\begin{matrix}" +
+                  chart.data.datasets[0].data[index].toExponential(3) +
+                  "\\\\" +
+                  chart.data.datasets[1].data[index].toExponential(3) +
+                  "\\\\" +
+                  chart.data.datasets[2].data[index].toExponential(3) +
+                  "\\end{matrix} \\Bigg]";
+        QUEUE.Push(["Text", lmat3, col]);
+        $('#solLinSys').prop('disabled', false);
+      } 
+      lMat[0][numPoints] = chart.data.datasets[0].data[index];
+      lMat[1][numPoints] = chart.data.datasets[1].data[index];
+      lMat[2][numPoints] = chart.data.datasets[2].data[index];
+      primIdx[numPoints] = index;
+    }
+
+    // use presets
+    if (presets.length != 0) {
+      for (var numPoints = 0; numPoints < presets.length; numPoints++) {
+        var index = presets[numPoints];
+        setData(numPoints, index, chart);
+      }
+      return;
+    }
 
     // https://www.chartjs.org/docs/latest/configuration/interactions.html
     var numPoints = 0;
-    var row1 = "", row2 = "", row3 = "";
     chart.options.onClick = function(event) {
       if (numPoints == 3) {
         return;
@@ -485,58 +552,60 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
 
       const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
       if (points.length > 0) {
-        var point = points[0];
+        var index = points[0].index;
+        setData(numPoints, index, chart);
 
         // https://stackoverflow.com/questions/28159595/chartjs-different-color-per-data-point
-        chart.data.datasets[0].pointBackgroundColor[point.index] = redColor;
-        chart.data.datasets[0].pointRadius[point.index] = 10;
-        chart.data.datasets[1].pointBackgroundColor[point.index] = greenColor;
-        chart.data.datasets[1].pointRadius[point.index] = 10;
-        chart.data.datasets[2].pointBackgroundColor[point.index] = blueColor;
-        chart.data.datasets[2].pointRadius[point.index] = 10;
-        chart.update();
+        //chart.data.datasets[0].pointBackgroundColor[index] = redColor;
+        //chart.data.datasets[0].pointRadius[index] = 10;
+        //chart.data.datasets[1].pointBackgroundColor[index] = greenColor;
+        //chart.data.datasets[1].pointRadius[index] = 10;
+        //chart.data.datasets[2].pointBackgroundColor[index] = blueColor;
+        //chart.data.datasets[2].pointRadius[index] = 10;
+        //chart.update();
 
-        if (numPoints == 0) {
-          var col = "\\Bigg[ \\begin{matrix}" +
-                    chart.data.datasets[0].data[point.index].toExponential(3) +
-                    "\\\\" +
-                    chart.data.datasets[1].data[point.index].toExponential(3) +
-                    "\\\\" +
-                    chart.data.datasets[2].data[point.index].toExponential(3) +
-                    "\\end{matrix}";
-          QUEUE.Push(["Text", lmat1, col]);
-          QUEUE.Push(["Text", text1Jax[15], chart.data.labels[point.index]+"~nm"]);
-          QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[point.index].toExponential(3)+","+chart.data.datasets[1].data[point.index].toExponential(3)+","+chart.data.datasets[2].data[point.index].toExponential(3)+"\\end{bmatrix}^T"]);
-          QUEUE.Push(["Text", text1Jax[18], chart.data.labels[point.index]+"~nm"]);
-        } else if (numPoints == 1) {
-          var col = "\\begin{matrix}" +
-                    chart.data.datasets[0].data[point.index].toExponential(3) +
-                    "\\\\" +
-                    chart.data.datasets[1].data[point.index].toExponential(3) +
-                    "\\\\" +
-                    chart.data.datasets[2].data[point.index].toExponential(3) +
-                    "\\end{matrix}";
-          QUEUE.Push(["Text", lmat2, col]);
-        } else if (numPoints == 2) {
-          var col = "\\begin{matrix}" +
-                    chart.data.datasets[0].data[point.index].toExponential(3) +
-                    "\\\\" +
-                    chart.data.datasets[1].data[point.index].toExponential(3) +
-                    "\\\\" +
-                    chart.data.datasets[2].data[point.index].toExponential(3) +
-                    "\\end{matrix} \\Bigg]";
-          QUEUE.Push(["Text", lmat3, col]);
-          $('#solLinSys').prop('disabled', false);
-        } 
-        lMat[0][numPoints] = chart.data.datasets[0].data[point.index];
-        lMat[1][numPoints] = chart.data.datasets[1].data[point.index];
-        lMat[2][numPoints] = chart.data.datasets[2].data[point.index];
-        primIdx[numPoints] = point.index;
+        //if (numPoints == 0) {
+        //  var col = "\\Bigg[ \\begin{matrix}" +
+        //            chart.data.datasets[0].data[index].toExponential(3) +
+        //            "\\\\" +
+        //            chart.data.datasets[1].data[index].toExponential(3) +
+        //            "\\\\" +
+        //            chart.data.datasets[2].data[index].toExponential(3) +
+        //            "\\end{matrix}";
+        //  QUEUE.Push(["Text", lmat1, col]);
+        //  QUEUE.Push(["Text", text1Jax[15], chart.data.labels[index]+"~nm"]);
+        //  QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[index].toExponential(3)+","+chart.data.datasets[1].data[index].toExponential(3)+","+chart.data.datasets[2].data[index].toExponential(3)+"\\end{bmatrix}^T"]);
+        //  QUEUE.Push(["Text", text1Jax[18], chart.data.labels[index]+"~nm"]);
+        //} else if (numPoints == 1) {
+        //  var col = "\\begin{matrix}" +
+        //            chart.data.datasets[0].data[index].toExponential(3) +
+        //            "\\\\" +
+        //            chart.data.datasets[1].data[index].toExponential(3) +
+        //            "\\\\" +
+        //            chart.data.datasets[2].data[index].toExponential(3) +
+        //            "\\end{matrix}";
+        //  QUEUE.Push(["Text", lmat2, col]);
+        //} else if (numPoints == 2) {
+        //  var col = "\\begin{matrix}" +
+        //            chart.data.datasets[0].data[index].toExponential(3) +
+        //            "\\\\" +
+        //            chart.data.datasets[1].data[index].toExponential(3) +
+        //            "\\\\" +
+        //            chart.data.datasets[2].data[index].toExponential(3) +
+        //            "\\end{matrix} \\Bigg]";
+        //  QUEUE.Push(["Text", lmat3, col]);
+        //  $('#solLinSys').prop('disabled', false);
+        //} 
+        //lMat[0][numPoints] = chart.data.datasets[0].data[index];
+        //lMat[1][numPoints] = chart.data.datasets[1].data[index];
+        //lMat[2][numPoints] = chart.data.datasets[2].data[index];
+        //primIdx[numPoints] = index;
 
         numPoints++;
       }
     }
-  });
+  //});
+  }
 }
 
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
@@ -1307,10 +1376,3 @@ function registerSelWhite(chart, canvas, d65, a, e, draw) {
   });
 }
 
-function openNav() {
-  document.getElementById("myNav").style.height = "100%";
-}
-
-function closeNav() {
-  document.getElementById("myNav").style.height = "0%";
-}
