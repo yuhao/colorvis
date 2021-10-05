@@ -603,6 +603,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
       ]
     },
     options: {
+      aspectRatio: 1.5,
       animation: {
         duration: 10
       },
@@ -700,7 +701,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
     legend: {
       x: 1,
       xanchor: 'right',
-      y: 0.5,
+      y: 0.9,
     },
     margin: {
       l: 0,
@@ -1304,4 +1305,12 @@ function registerSelWhite(chart, canvas, d65, a, e, draw) {
     }
     chart.update();
   });
+}
+
+function openNav() {
+  document.getElementById("myNav").style.height = "100%";
+}
+
+function closeNav() {
+  document.getElementById("myNav").style.height = "0%";
 }
