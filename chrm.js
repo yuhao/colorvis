@@ -191,21 +191,152 @@ function formatRGB(rgb) {
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   var stride = 5;
 
-  // points to the cone arrays that will be used to plot the chart;
-  var dConeL = unpack(rows, 'l');
-  var dConeM = unpack(rows, 'm');
-  var dConeS = unpack(rows, 's');
-
   var wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
 
-  // LMS plot
-  // https://stackoverflow.com/questions/43757979/chart-js-drag-points-on-linear-chart/48062137
   var x_data = range(firstW, lastW, stride);
-  var y_data_1 = dConeL;
-  var y_data_2 = dConeM;
-  var y_data_3 = dConeS;
+
+  // LMS plot; sets window.lmsChart, window.lmsCanvas
+  plotCones(rows, x_data);
+
+  // sets window.rgbPrimCanvas and window.rgbPrimChart
+  plotCustomPrims(x_data);
+
+  registerSelPrim('#selPrimForm', window.lmsChart, window.lmsCanvas, window.rgbPrimChart, window.rgbPrimCanvas);
+  registerChartReset('#resetPrim', undefined, window.rgbPrimChart, window.rgbPrimCanvas, [0, 1, 2],
+      [[Array(wlen.length).fill(0.8), redColor],
+       [Array(wlen.length).fill(0.9), greenColor],
+       [Array(wlen.length).fill(0.6), blueColor]]);
+
+  registerPlotLocus('#plotLocus', window.lmsChart);
+});
+
+var lMat = [[], [], []];
+function registerPlotLocus(buttonId, chart) {
+  $(buttonId).on('click', function(evt) {
+    var val = $('input[type=radio][name=prim]:checked').val();
+    var rMat = [chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data];
+    var lMatInv = math.inv(lMat);
+    resMat = math.multiply(lMatInv, rMat);
+
+    var unscaledR = resMat[2];
+    var unscaledG = resMat[1];
+    var unscaledB = resMat[0];
+
+    var whiteSPD = Array(unscaledR.length).fill(1.0);
+
+    rRad = math.dot(unscaledR, whiteSPD);
+    gRad = math.dot(unscaledG, whiteSPD);
+    bRad = math.dot(unscaledB, whiteSPD);
+
+    var sCMFR = math.dotDivide(unscaledR, rRad).map(element => element.toFixed(5));
+    var sCMFG = math.dotDivide(unscaledG, gRad).map(element => element.toFixed(5));
+    var sCMFB = math.dotDivide(unscaledB, bRad).map(element => element.toFixed(5));
+
+    plotLocus(sCMFR, sCMFG, sCMFB, chart.data.labels);
+  });
+}
+
+function plotLocus(sCMFR, sCMFG, sCMFB, wlen) {
+  var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
+  var trace = {
+    x: sCMFR, y: sCMFG, z: sCMFB,
+    text: wlen,
+    mode: 'lines+markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: rgbLocusMarkerColors,
+    },
+    line: {
+      color: '#888888',
+      width: 2
+    },
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'Spectral locus',
+  };
+
+  var data = [trace];
+ 
+  var layout = {
+    height: 600,
+    margin: {
+      l: 0,
+      r: 0,
+      b: 0,
+      t: 0
+    },
+    name: 'Spectral locus',
+    //showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.5,
+    },
+    //title: 'Spectral locus in RGB color space',
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    scene: {
+      camera: {
+        projection: {
+          type: 'orthographic'
+        }
+      },
+      // https://plotly.com/javascript/3d-axes/
+      aspectmode: 'cube',
+      xaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'R'
+        }
+      },
+      yaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'G'
+        }
+      },
+      zaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'B'
+        }
+      },
+    }
+  };
+ 
+  window.locusPlot = document.getElementById('rgbLocusDiv');
+  Plotly.newPlot(window.locusPlot, data, layout);
+}
+
+function plotCones(rows, x_data) {
+  // points to the cone arrays that will be used to plot the chart;
+  var coneL = unpack(rows, 'l');
+  var coneM = unpack(rows, 'm');
+  var coneS = unpack(rows, 's');
+
+  var y_data_1 = coneL;
+  var y_data_2 = coneM;
+  var y_data_3 = coneS;
 
   // draw a line chart on the canvas context
   window.lmsCanvas = document.getElementById("canvasLMS");
@@ -285,16 +416,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
       }
     }
   });
-
-  // sets window.rgbPrimCanvas and window.rgbPrimChart
-  plotCustomPrims(x_data);
-
-  registerSelPrim('#selPrimForm', window.lmsChart, window.lmsCanvas, window.rgbPrimChart, window.rgbPrimCanvas);
-  registerChartReset('#resetPrim', undefined, window.rgbPrimChart, window.rgbPrimCanvas, [0, 1, 2],
-      [[Array(wlen.length).fill(0.8), redColor],
-       [Array(wlen.length).fill(0.9), greenColor],
-       [Array(wlen.length).fill(0.6), blueColor]]);
-});
+}
 
 function plotCustomPrims(label) {
   var len = label.length;
@@ -400,6 +522,7 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
   };
 
   $('input[type=radio][name=prim]').change(function() {
+    $('#plotLocus').prop('disabled', false);
     if (this.value == 'selPrim') {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
@@ -438,8 +561,13 @@ function selectPrims(canvas, chart, presets) {
         chart.data.datasets[1].pointRadius[index] = 10;
         chart.data.datasets[2].pointBackgroundColor[index] = blueColor;
         chart.data.datasets[2].pointRadius[index] = 10;
-        chart.update();
+
+        lMat[0][i] = chart.data.datasets[0].data[index];
+        lMat[1][i] = chart.data.datasets[1].data[index];
+        lMat[2][i] = chart.data.datasets[2].data[index];
+
       }
+      chart.update();
       return;
     }
 
@@ -462,6 +590,10 @@ function selectPrims(canvas, chart, presets) {
         chart.data.datasets[2].pointBackgroundColor[point.index] = blueColor;
         chart.data.datasets[2].pointRadius[point.index] = 10;
         chart.update();
+
+        lMat[0][numPoints] = chart.data.datasets[0].data[point.index];
+        lMat[1][numPoints] = chart.data.datasets[1].data[point.index];
+        lMat[2][numPoints] = chart.data.datasets[2].data[point.index];
 
         numPoints++;
       }

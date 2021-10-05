@@ -64,7 +64,7 @@
   <div class="container">
     <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
       <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-        <h2>Tutorial 2: Chromaticity Plot and Gamut</h2>
+        <h2>Tutorial 2: Chromaticity and Gamut</h2>
       </a>
     </header>
 
@@ -76,28 +76,42 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Step 1: Separating Quality from Quantity</h3>
+        <h3>Step 0: Picking a Color Space</h3>
+        <p>While the notions of chromaticity and gamut are general, every color space has a different gamut and the same light has different chromaticities in different color spaces. To be concrete, we will use a specific color space for this tutorial. Instead of using a fixed color space, we will ask you to build one and use it to drive the rest of the tutorial. Any color space will do, and we provide you three ways to build a color space. In all cases, we will assume CIE Standard Illuminant E (Equal-Energy White) as the reference white.</p>
+        <ul style="list-style-type:none;">
+          <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;Select Spectral Primaries</label>. This will allow you to select three spectral lights as the primaries, exactly like what you did in the previous tutorial.</li>
+          <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;Use Preset Primaries</label>. This is a short-cut that automatically selects spectral lights $445~nm$, $540~nm$, and $590~nm$ as the primaries.</li>
+          <li><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;Draw Primaries</label>. You can draw the spectral power distribution (SPD) of the primaries in the right chart below. You can <button id="resetPrim" disabled>Reset Draw</button> to start over.</li>
+        </ul>
       </div>
 
       <div class="row">
-        <div class="row">
-          <div class="col-sm-6">
-            <canvas id="canvasLMS" class="mt-2"></canvas>
-          </div>
-          <div class="col-sm-6">
-            <canvas id="canvasRGBPrim" class="mt-2"></canvas>
-          </div>
+        <div class="col-sm-6">
+          <canvas id="canvasLMS"></canvas>
         </div>
+        <div class="col-sm-6">
+          <canvas id="canvasRGBPrim"></canvas>
+        </div>
+      </div>
+      <p>Once the primaries are selected, we can <button id="plotLocus" disabled>Plot Spectral Locus</button> in your RGB color space. The locus is drawn, under the hood, by calculating the Color Matching Functions (CMFs) using the method we explored in the previous tutorial.</p>
+    </div>
 
-        <div class="row">
-          <div class="col-sm-6">
-            <div><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;Select Spectral Primaries</label></div>
-            <div><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;Use Preset Primaries</label></div>
-          </div>
-          <div class="col-sm-6">
-            <div><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;Draw Primaries</label>&nbsp;&nbsp;&nbsp;&nbsp;<button id="resetPrim" disabled>Draw Reset</button></div>
-          </div>
-        </div>
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 1: Decoupling Quality and Quantity from a Color</h3>
+        <p>The plot below is the spectral locus in your RGB space. Hover over any point on the locus to reveal the coordinates of the corresponding spectral light. Recall what the coordinates mean: they represent the amount of primaries needed to match the color of that spectral light. In fact, any point in this space corresponds to a color, and the coordinates of the point represent the amount of primaries needed to match that color.</p>
+      </div>
+
+      <div class="row">
+        <div id="rgbLocusDiv" class="mt-2"></div>
+      </div>
+
+      <div class="row">
+        <p>Now click any spectral light, a line that connects the spectral light with the origin will be shown. You will see that all the points on the same line, while requiring different absolute amounts of RGB primaries, all have the same R:G:B ratio. This is just a natural implication of points on a straight line in a 3D space. This conclusion generalizes too any line, not just the lines that go through the locus.</p>
+        <p>How do a color that's mixed from 1:2:4 units of RGB primaries and a color that's mixed from a 2:4:8 units of the primaries relate? Well, recall from the previous tutorial that the amount of a primary is directly proportional to the absolute energy/number of photons of that primary. So the second color can be obtained by doubling the power of each primary in the first color; similarly, and the power of each primary in the second color gets us the first color.</p>
+        <p>Intuitively, lights that have the same primary quantity <i>ratio</i> are said to have the same "objective color quality" while differing in the intensity. More formally, we normalize the amount of each primary in such a way that total amount of the normalized quantity add up to 1 (100%). The normalized primary quantities of a color are called the <b>chromaticity</b> of that color. Mathematically, the chromaticities of a color, usually denoted as $r, g, b$, are calculated from its absolute quantity by:</p>
+        <p>$r = \frac{R}{R+G+B},~~~g = \frac{G}{R+G+B},~~~b = \frac{B}{R+G+B}$</p>
+        <p>Knowing the chromaticities of a color tells us the objective quality of the color, and we can make that color brighter or darker by increasing or decreasing the amount of the primaries <i>while keeping the chromaticities constant</i>. Obviously, the chromaticities of a color depend on the particular color space used to represent that color.</p>
       </div>
     </div>
 
