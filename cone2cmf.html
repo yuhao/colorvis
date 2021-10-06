@@ -96,22 +96,30 @@
         <div class="col-sm-6">
           <canvas id="canvasLMS"></canvas>
           <div class="mt-2">
-            <input type="checkbox" id="drawPrim" name="drawPrim">
-            <label for="drawPrim">Draw Fundamentals</label>
             <button id="resetChartLMS" class="btn btn-primary btn-sm">Reset</button>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Move your mouse to hover the charts, both the 2D and the 3D ones. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the 3D chart will be highlighted as you hover the 2D chart. You can zoom the 2D chart by scrolling the mouse. You get to interact with the 3D plot with a lot more freedom, both zooming and panning as well as navigating the space by dragging the plot. If you hover your mouse over to the top-right corner of the 3D plot, a control panel will show up with more options.">Help</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Move your mouse to hover the charts to see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus on the right will be highlighted as you hover over the 2D chart. You can zoom, pan, and spin the 3D plot. If you hover your mouse over to the top-right corner of the 3D plot, a control panel will show up with more options.">Help</button>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="drawPrim">
+              <label class="form-check-label" for="drawPrim"><b>Draw Custom Cone Fundamentals.</b> Toggle this switch and start drawing your own cone fundamentals. By changing the LMS cone sensitivities, you are building an atypical kind of human being with unique color perception. </label>
+            </div>
           </div>
         </div>
         <div class="col-sm-6">
           <div id="lmsDiv"></div>
         </div>
       </div>
+      <div class="row">
+        <!--<div>
+          <input type="checkbox" id="drawPrim" name="drawPrim">
+          <label for="drawPrim">Draw Fundamentals</label>
+        </div>-->
+      </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h2>Step 1: Pick the Primaries</h2>
-        <p>The first step in building a color space is to pick the primary lights of the color space. We provide you two ways to do so.</p>
+        <p>The first step is to pick the primary lights of a color space. We provide you two ways to do so.</p>
         <ul style="list-style-type:none;">
           <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;<b>Use Preset Primaries</b></label>. This is a short-cut that automatically selects spectral lights $445~nm$, $540~nm$, and $590~nm$ as the primaries.</li>
           <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;<b>Select Spectral Primaries</b></label>. This will allow you to select three spectral lights as the primaries. The LMS chart above dims. You can then point the mouse at a point on a curve and click it to pick a primary. When you click a point, the L, M, and S responses at the corresponding wavelength are highlighted, indicating that one primary has been selected. The chart will lock once three primaries are selected. We assume that the first primary selected is the blue primary, the second one is green, and the last one is red. Of course R, G, and B are just names, but if you want the colors of the charts later to match your intuition, select the primaries from <b>left to right</b>. The primaries need not be spectral lights, but we limit ourselves to spectral lights in this tutorial for simplicity purposes.</li>
@@ -179,13 +187,13 @@
             <p>$\sum_{380}^{780}W(\lambda)B(\lambda)$ = ${\boxed{??}}$,</p>
           <p>for $\lambda\in[380~nm, 780~nm]$ at a $5~nm$ interval; $W(\lambda)$ is the SPD of the white you choose on the left; and $R(\lambda)$, $G(\lambda)$, and $B(\lambda)$ are the spectral radiance curves plotted above.</p>
           <p>Under the white and the primaries that you selected, the calculation shows that we need to mix ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of blue primary, in order to match the color of $1 \frac{W}{m^{2} \cdot sr}$ of the chosen white.</p>
-          <p>As established earlier, the unit system is so defined that white color is produced by mixing <i>equal units of the primary lights</i>. Therefore, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the blue primary must correspond to the same unit of the three primaries, respectively. Whether they correspond to 1 unit each, 10 units each, or 1 million units each depends on the exact radiance of the reference white we match, but is also not important as we usually just care about the ratio of the primary quantities.</p>
+          <p>As established earlier, the unit system is so defined that white color is produced by mixing <i>equal units of the primary lights</i>. Therefore, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the blue primary must correspond to the same unit of the three primaries. Do they correspond to 1 unit each, 10 units each, or 1 million units each? Doesn't matter, if we care about just the ratio of the primary quantities, as is often the case in colorimetry.</p>
           <!--The way the CIE 1931 RGB CMFs worked out, they essentially assumed that 1 unit of primaries match the color of $3.782 \frac{W}{m^{2} \cdot sr}$ reference white.-->
-          <p>For simplicity, here we will just assume that $1 \frac{W}{m^{2} \cdot sr}$ reference white is matched with exactly 1 unit of the three primaries. Therefore, to convert from radiance to units, we would simply divide each red radiance value in the chart above by ${\boxed{??}}$, each green radiance value by ${\boxed{??}}$, and each blue radiance value by ${\boxed{??}}$:</p>
+          <p>For simplicity, here we will just assume that $1 \frac{W}{m^{2} \cdot sr}$ reference white is matched with exactly 1 unit of the three primaries. Therefore, to convert from radiance to units, we would simply divide each red radiance value in the chart above by ${\boxed{??}}$, each green radiance value by ${\boxed{??}}$, and each blue radiance value by ${\boxed{??}}$. The results are the CMFs, which are usually denoted as $\bar{r}$, $\bar{g}$, and $\bar{b}$.</p>
           <p>$\bar{r}(\lambda) = R(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
           <p>$\bar{g}(\lambda) = G(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
           <p>$\bar{b}(\lambda) = B(\lambda)/$${\boxed{??}}$$,\lambda \in [380~nm, 780~nm]$</p>
-          <p>where $\bar{r}$, $\bar{g}$, and $\bar{b}$ are the CMFs. Let's <button id="plotScaleCMF" class="btn btn-primary btn-sm" disabled>Plot</button> them. If you make any changes to the cone fundamentals or to the white light, simply click the calculate and the plot buttons again; the new CMFs will be updated.</p>
+          <p>Let's <button id="plotScaleCMF" class="btn btn-primary btn-sm" disabled>Plot the CMFs</button>. If you make changes to the cone fundamentals or the white light, click the calculate and the plot buttons again; the new CMFs will be updated.</p>
         </div>
       </div>
     </div>
