@@ -191,9 +191,88 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
        [Array(wlen.length).fill(0.6), blueColor]]);
 
   registerPlotLocus('#plotLocus', window.lmsChart);
+  registerShowChrm('#showChrm');
 });
 
+function registerShowChrm(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.locusPlot;
+    var len = plot.data[0].x.length;
+    if($(id).is(":checked")) {
+      if (plot.data.length != 1) {
+        var data_update = {'visible': true};
+        Plotly.restyle(plot, data_update, [...Array(len+2).keys()].slice(1));
+        return;
+      }
+
+      var traces = [];
+
+      var sumRGB = math.add(math.add(sCMFR, sCMFG), sCMFB);
+      var cR = math.dotDivide(sCMFR, sumRGB);
+      var cG = math.dotDivide(sCMFG, sumRGB);
+      var cB = math.dotDivide(sCMFB, sumRGB);
+
+      var ratios = [];
+      for (var i = 0; i < len; i++) {
+        var ratio;
+        if (cR[i].toFixed(5) == 0 || cG[i].toFixed(5) == 0 || cB[i].toFixed(5) == 0)
+          ratio = cR[i].toFixed(3) + ":" + cG[i].toFixed(3) + ":" + cB[i].toFixed(3);
+        else ratio = "1:" + (cG[i]/cR[i]).toFixed(3) + ":" + (cB[i]/cR[i]).toFixed(3);
+        ratios.push(ratio);
+      }
+
+      var trace = {
+        x: cR.map(element => element.toFixed(5)),
+        y: cG.map(element => element.toFixed(5)),
+        z: cB.map(element => element.toFixed(5)),
+        text: plot.data[0].text,
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        line: {
+          color: '#32a852',
+          shape: 'spline',
+        },
+        marker: {
+          size: 4,
+          opacity: 0.8,
+        },
+        customdata: ratios,
+        hovertemplate: 'r: %{x}' +
+          '<br>g: %{y}' +
+          '<br>b: %{z}' +
+          '<br>wavelength: %{text}' +
+          '<br>ratio: %{customdata}<extra></extra>',
+          //hoverinfo: 'skip',
+      };
+      traces.push(trace);
+
+      for (i = 0; i < len; i++) {
+        var trace = {
+          x: [0, cR[i]],
+          y: [0, cG[i]],
+          z: [0, cB[i]],
+          mode: 'lines',
+          type: 'scatter3d',
+          line: {
+            color: greyColor,
+            width: 1,
+          },
+          hoverinfo: 'skip',
+        };
+        traces.push(trace);
+      }
+
+      Plotly.addTraces(plot, traces);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+
+      Plotly.restyle(plot, data_update, [...Array(len+2).keys()].slice(1));
+    }
+  });
+}
+
 var lMat = [[], [], []];
+var sCMFR = [], sCMFG = [], sCMFB = []; // these are precise values without rounding
 function registerPlotLocus(buttonId, chart) {
   $(buttonId).on('click', function(evt) {
     var val = $('input[type=radio][name=prim]:checked').val();
@@ -211,33 +290,50 @@ function registerPlotLocus(buttonId, chart) {
     gRad = math.dot(unscaledG, whiteSPD);
     bRad = math.dot(unscaledB, whiteSPD);
 
-    var sCMFR = math.dotDivide(unscaledR, rRad).map(element => element.toFixed(5));
-    var sCMFG = math.dotDivide(unscaledG, gRad).map(element => element.toFixed(5));
-    var sCMFB = math.dotDivide(unscaledB, bRad).map(element => element.toFixed(5));
+    // *10 just so that the RGB andd rgb are comparable in magnitude and can shown in the same plot
+    sCMFR = math.dotDivide(unscaledR, rRad).map(element => element * 10);
+    sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
+    sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * 10);
 
-    plotLocus(sCMFR, sCMFG, sCMFB, chart.data.labels);
+    plotLocus(chart.data.labels);
+
+    $('#showChrm').prop('disabled', false);
   });
 }
 
-function plotLocus(sCMFR, sCMFG, sCMFB, wlen) {
-  var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
+function plotLocus(wlen) {
+  var ratios = [];
+  for (var i = 0; i < sCMFR.length; i++) {
+    var ratio;
+    if (sCMFR[i].toFixed(5) == 0 || sCMFG[i].toFixed(5) == 0 || sCMFB[i].toFixed(5) == 0)
+      ratio = sCMFR[i].toFixed(3) + ":" + sCMFG[i].toFixed(3) + ":" + sCMFB[i].toFixed(3);
+    else ratio = "1:" + (sCMFG[i]/sCMFR[i]).toFixed(3) + ":" + (sCMFB[i]/sCMFR[i]).toFixed(3);
+    ratios.push(ratio);
+  }
+
   var trace = {
-    x: sCMFR, y: sCMFG, z: sCMFB,
+    x: sCMFR.map(element => element.toFixed(5)),
+    y: sCMFG.map(element => element.toFixed(5)),
+    z: sCMFB.map(element => element.toFixed(5)),
     text: wlen,
     mode: 'lines+markers',
     marker: {
-      size: 6,
+      size: 4,
       opacity: 0.8,
-      color: rgbLocusMarkerColors,
+      color: Array(wlen.length).fill(greyColor),
     },
     line: {
-      color: '#888888',
-      width: 2
+      color: greyColor,
+      width: 2,
+      shape: 'spline',
     },
+    customdata: ratios,
     hovertemplate: 'R: %{x}' +
       '<br>G: %{y}' +
       '<br>B: %{z}' +
-      '<br>wavelength: %{text}<extra></extra>' ,
+      '<br>wavelength: %{text}' +
+      '<br>ratio: %{customdata}<extra></extra>',
+      //hoverinfo: 'skip',
     type: 'scatter3d',
     name: 'Spectral locus',
   };
@@ -253,7 +349,7 @@ function plotLocus(sCMFR, sCMFG, sCMFB, wlen) {
       t: 0
     },
     name: 'Spectral locus',
-    //showlegend: true,
+    showlegend: false,
     legend: {
       x: 1,
       xanchor: 'right',
@@ -268,7 +364,7 @@ function plotLocus(sCMFR, sCMFG, sCMFB, wlen) {
         }
       },
       // https://plotly.com/javascript/3d-axes/
-      aspectmode: 'cube',
+      //aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1],
@@ -511,7 +607,7 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
     } else if (this.value == 'usePreset') {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
-      selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 445), getWaveId(lmsChart, 540), getWaveId(lmsChart, 590)]);
+      selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 435), getWaveId(lmsChart, 545), getWaveId(lmsChart, 700)]);
     } else if (this.value == 'drawPrim') {
       drawPrims(rgbChart, rgbCanvas);
     }
