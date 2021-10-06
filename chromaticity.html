@@ -107,15 +107,18 @@
           <div>
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm" disabled>
-              <label class="form-check-label" for="showChrm">&nbsp;&nbsp;<b>Show Chromaticity Diagram</b></label>
+              <label class="form-check-label" for="showChrm">&nbsp;&nbsp;<b>Show Chromaticities</b></label>
+              <p>Show the equi-rgb-ratio lines and the chromacitities of the spectral lights.</p>
             </div>
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane" disabled>
               <label class="form-check-label" for="showPlane">&nbsp;&nbsp;<b>Show r+g+b=1 Plane</b></label>
+              <p>The chromacities of all colors line on this plane. Enabled only after the chromaticities are shown.</p>
             </div>
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="showPrims" disabled>
-              <label class="form-check-label" for="showPrims">&nbsp;&nbsp;<b>Show Primaries</b></label>
+              <label class="form-check-label" for="showPrims">&nbsp;&nbsp;<b>Highlight Primaries</b></label>
+              <p>Show the primaries both in the RGB space and in the chromaticities space. Notice how the primaries always sit along the axes.</p>
             </div>
           </div>
         </div>
@@ -125,16 +128,16 @@
       </div>
 
       <div class="row">
-        <p>Now click any spectral light, a line that connects the spectral light with the origin will be shown. You will see that all the points on the same line, while requiring different absolute amounts of RGB primaries, all have the same R:G:B ratio. This is just a natural implication of points on a straight line in a 3D space. This conclusion generalizes too any line, not just the lines that go through the locus.</p>
+        <p>Now toggle the "Show Chromaticities " switch. You will see a set of lines, each of which starts from the origin and goes through a spectral light. By simple geometry, points on a line, while requiring different absolute amounts of RGB primaries (different coordinates in the RGB space), all have the same R:G:B ratio. This conclusion generalizes too any line, not just the lines that go through the locus.</p>
         <p>How do a color that's mixed from 1:2:4 units of RGB primaries and a color that's mixed from a 2:4:8 units of the primaries relate? Well, recall from the previous tutorial that the amount of a primary is directly proportional to the power of that primary. So the second color can be obtained by doubling the power of each primary in the first color; similarly, halving the power of each primary in the second color gets us the first color. Intuitively, lights that have the same primary quantity ratio are said to have the same "objective color quality" while differing in the intensity.</p>
         <h4>Chromaticities</h4>
-        <p>More formally, we calculate the primary ratio $r:g:b$ of a color and then normalize it such that $r+g+b = 1$ (100%). The so-calculated $r, g, b$ values of a color are called the <b>chromaticity</b> of that color. Mathematically, the chromaticities of a color are calculated from its absolute quantity by:</p>
+        <p>More formally, we can calculate the primary ratio $r:g:b$ of a color and then normalize it such that $r+g+b = 1$ (100%). The so-calculated $r, g, b$ values of a color are called the <b>chromaticities</b> of that color. Mathematically, the chromaticities of a color are calculated from its absolute quantity by:</p>
         <p>$r = \frac{R}{R+G+B},~~~g = \frac{G}{R+G+B},~~~b = \frac{B}{R+G+B}$.</p>
-        <p>Obviously, the chromaticities of a color depend on the particular color space used to represent that color.</p>
+        <p>Each color now has an rgb triplet, representing the color's chromaticities. Similar to how we represent colors in the RGB space, we can also plot the colors using their chromaticities. The green curve in the chart above shows the chromaticities of the spectral lights. Hover over the points on the same line and check the primary ratio in the tooltip; you can see that the primary ratio doesn't change when you plot the spectral lights using their chromacitities. Obviously, the exact chromaticity values of a color depend on the particular color space used to represent that color.</p>
         <p>Knowing the chromaticities of a color tells us the objective quality of the color, and we can make that color brighter or darker by increasing or decreasing the amount of the primaries <i>while keeping the chromaticities constant</i>. In many practical color applications such as color photography and digital displays, chromaticities of a color is what we strive to capture (in the case of photography) and reproduce (in the case of display), and we are almost never be able to capture/reproduce the exact intensity of light in the scene (think about the power of the sun!).</p>
+        <p>Spin around the plot. Notice how all the spectral lights are now on the same plane. That's the natural implication of how chromaticities are defined: since we enforce $r+g+b=1$, all the colors in the chromaticity plot naturally lie on the $r+g+b=1$ plane. Toggle the "Show r+g+b=1 Plane" switch to convince yourself of that. If we were to define chromaticities such that $r+g+b=1.5$, all the colors will then lie on that plane. One way to think of the chromaticity plot is that we shoot rays from the origin to go through all the spectral lights, and then take a cut of all those lines with the $r+g+b=1$ plane. Mathematically, it is performing a perspective projection of the RGB colors onto the plane where the point of projection is the origin.</p>
         <h4>Understanding Chromaticity Plot</h4>
-        <p>Each color now has an rgb triplet. Similar to how we represent colors in the RGB space, we can plot the colors in the rgb space, which we call the chromaticity plot. Click "Show Chromaticity Plot" and you will see the spectral locus in the chromaticity plot. Spin around the curve. Notice how all the spectral lights are now on the same plane. That's the natural implication of how chromaticities are defined: since we enforce $r+g+b=1$, all the colors in the chromaticity plot naturally lie on the $r+g+b=1$ plane. If we were to define chromaticities such that $r+g+b=1.5$, all the colors will then lie on that plane.</p>
-        <p>One way to think of the chromaticity plot is that we have projected all the colors in the RGB space to a plane; each RGB point is projected by connecting the origin with the RGB point and finding the intersection of that line with the plane.</p>
+        <p>Chromaticities are inherently a 3D concept, but since the chromaticities of all colors lie on one plane, we can represent them in a 2D plot. The convention is to project the $r+g+b=1$ plane onto the r-g plane, and the resulting plot is called the <i>rg-chromaciticy plot</i>. You are encouraged to spin the 3D plot around to project yourself, and you can also togge the "Project" switch, which will generate a real 2D plot.</p>
       </div>
     </div>
 

@@ -169,104 +169,16 @@ function formatRGB(rgb) {
   return 'rgba('+ rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + '1)';
 }
 
-d3.csv('linss2_10e_5_ext.csv', function(err, rows){
-  var stride = 5;
-
-  var wlen = unpack(rows, 'wavelength');
-  var firstW = wlen[0];
-  var lastW = wlen[wlen.length - 1];
-
-  var x_data = range(firstW, lastW, stride);
-
-  // LMS plot; sets window.lmsChart, window.lmsCanvas
-  plotCones(rows, x_data);
-
-  // sets window.rgbPrimCanvas and window.rgbPrimChart
-  plotCustomPrims(x_data);
-
-  registerSelPrim('#selPrimForm', window.lmsChart, window.lmsCanvas, window.rgbPrimChart, window.rgbPrimCanvas);
-  registerChartReset('#resetPrim', undefined, window.rgbPrimChart, window.rgbPrimCanvas, [0, 1, 2],
-      [[Array(wlen.length).fill(0.8), redColor],
-       [Array(wlen.length).fill(0.9), greenColor],
-       [Array(wlen.length).fill(0.6), blueColor]]);
-
-  registerPlotLocus('#plotLocus', window.lmsChart);
-  registerShowChrm('#showChrm');
-});
-
 function registerShowChrm(id) {
   $(id).on('change', function(evt) {
     var plot = window.locusPlot;
-    var len = plot.data[0].x.length;
+    var numWaves = plot.data[0].x.length;
     if($(id).is(":checked")) {
-      if (plot.data.length != 1) {
-        var data_update = {'visible': true};
-        Plotly.restyle(plot, data_update, [...Array(len+2).keys()].slice(1));
-        return;
-      }
-
-      var traces = [];
-
-      var sumRGB = math.add(math.add(sCMFR, sCMFG), sCMFB);
-      var cR = math.dotDivide(sCMFR, sumRGB);
-      var cG = math.dotDivide(sCMFG, sumRGB);
-      var cB = math.dotDivide(sCMFB, sumRGB);
-
-      var ratios = [];
-      for (var i = 0; i < len; i++) {
-        var ratio;
-        if (cR[i].toFixed(5) == 0 || cG[i].toFixed(5) == 0 || cB[i].toFixed(5) == 0)
-          ratio = cR[i].toFixed(3) + ":" + cG[i].toFixed(3) + ":" + cB[i].toFixed(3);
-        else ratio = "1:" + (cG[i]/cR[i]).toFixed(3) + ":" + (cB[i]/cR[i]).toFixed(3);
-        ratios.push(ratio);
-      }
-
-      var trace = {
-        x: cR.map(element => element.toFixed(5)),
-        y: cG.map(element => element.toFixed(5)),
-        z: cB.map(element => element.toFixed(5)),
-        text: plot.data[0].text,
-        mode: 'lines+markers',
-        type: 'scatter3d',
-        line: {
-          color: '#32a852',
-          shape: 'spline',
-        },
-        marker: {
-          size: 4,
-          opacity: 0.8,
-        },
-        customdata: ratios,
-        hovertemplate: 'r: %{x}' +
-          '<br>g: %{y}' +
-          '<br>b: %{z}' +
-          '<br>wavelength: %{text}' +
-          '<br>ratio: %{customdata}<extra></extra>',
-          //hoverinfo: 'skip',
-      };
-      traces.push(trace);
-
-      for (i = 0; i < len; i++) {
-        var trace = {
-          x: [0, cR[i]],
-          y: [0, cG[i]],
-          z: [0, cB[i]],
-          mode: 'lines',
-          type: 'scatter3d',
-          line: {
-            color: greyColor,
-            width: 1,
-          },
-          hoverinfo: 'skip',
-        };
-        traces.push(trace);
-      }
-
-      Plotly.addTraces(plot, traces);
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
     } else {
       var data_update = {'visible': 'legendonly'};
-
-      Plotly.restyle(plot, data_update, [...Array(len+2).keys()].slice(1));
+      Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
     }
   });
 }
@@ -291,14 +203,109 @@ function registerPlotLocus(buttonId, chart) {
     bRad = math.dot(unscaledB, whiteSPD);
 
     // *10 just so that the RGB andd rgb are comparable in magnitude and can shown in the same plot
+    // TODO: automatically calculate this scaling factor
     sCMFR = math.dotDivide(unscaledR, rRad).map(element => element * 10);
     sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
     sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * 10);
 
     plotLocus(chart.data.labels);
+    plotChrm();
+    plotPlane();
 
     $('#showChrm').prop('disabled', false);
+    $('#showPlane').prop('disabled', false);
   });
+}
+
+function plotPlane() {
+  var plot = window.locusPlot;
+  var trace = {
+    x: [0, 0, 1],
+    y: [0, 1, 0],
+    z: [1, 0, 0],
+    i: [0],
+    j: [1],
+    k: [2],
+    //text: [],
+    //mode: 'lines',
+    type: 'mesh3d',
+    visible: 'legendonly',
+    opacity:0.8,
+    color: '#000000',
+    //name: 'Primaries',
+    hoverinfo: 'skip',
+    //hovertemplate: 'R: %{x}' +
+    //  '<br>G: %{y}' +
+    //  '<br>B: %{z}' +
+    //  '<br>wavelength: %{text}<extra></extra>' ,
+  };
+  Plotly.addTraces(plot, [trace]);
+}
+
+function plotChrm() {
+  var plot = window.locusPlot;
+  var numWaves = plot.data[0].x.length;
+
+  var sumRGB = math.add(math.add(sCMFR, sCMFG), sCMFB);
+  var cR = math.dotDivide(sCMFR, sumRGB);
+  var cG = math.dotDivide(sCMFG, sumRGB);
+  var cB = math.dotDivide(sCMFB, sumRGB);
+
+  var ratios = [];
+  for (var i = 0; i < numWaves; i++) {
+    var ratio;
+    if (cR[i].toFixed(5) == 0 || cG[i].toFixed(5) == 0 || cB[i].toFixed(5) == 0)
+      ratio = cR[i].toFixed(3) + ":" + cG[i].toFixed(3) + ":" + cB[i].toFixed(3);
+    else ratio = "1:" + (cG[i]/cR[i]).toFixed(3) + ":" + (cB[i]/cR[i]).toFixed(3);
+    ratios.push(ratio);
+  }
+
+  var trace = {
+    x: cR.map(element => element.toFixed(5)),
+    y: cG.map(element => element.toFixed(5)),
+    z: cB.map(element => element.toFixed(5)),
+    text: plot.data[0].text,
+    mode: 'lines+markers',
+    type: 'scatter3d',
+    visible: 'legendonly',
+    line: {
+      color: '#32a852',
+      shape: 'spline',
+    },
+    marker: {
+      size: 4,
+      opacity: 0.8,
+    },
+    customdata: ratios,
+    hovertemplate: 'r: %{x}' +
+      '<br>g: %{y}' +
+      '<br>b: %{z}' +
+      '<br>wavelength: %{text}' +
+      '<br>ratio: %{customdata}<extra></extra>',
+      //hoverinfo: 'skip',
+  };
+
+  var traces = [];
+  traces.push(trace);
+
+  for (i = 0; i < numWaves; i++) {
+    var trace = {
+      x: [0, cR[i]],
+      y: [0, cG[i]],
+      z: [0, cB[i]],
+      mode: 'lines',
+      type: 'scatter3d',
+      visible: 'legendonly',
+      line: {
+        color: greyColor,
+        width: 1,
+      },
+      hoverinfo: 'skip',
+    };
+    traces.push(trace);
+  }
+
+  Plotly.addTraces(plot, traces);
 }
 
 function plotLocus(wlen) {
@@ -371,6 +378,8 @@ function plotLocus(wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        constrain: 'domain',
+        dtick: 0.2,
         showspikes: false,
         title: {
           text: 'R'
@@ -382,6 +391,8 @@ function plotLocus(wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        scaleanchor: 'x',
+        dtick: 0.2,
         showspikes: false,
         title: {
           text: 'G'
@@ -402,7 +413,8 @@ function plotLocus(wlen) {
   };
  
   window.locusPlot = document.getElementById('rgbLocusDiv');
-  Plotly.newPlot(window.locusPlot, data, layout);
+  var plot = window.locusPlot;
+  Plotly.newPlot(plot, data, layout);
 }
 
 function plotCones(rows, x_data) {
@@ -676,4 +688,52 @@ function selectPrims(canvas, chart, presets) {
       }
     }
 }
+
+function registerShowPlane(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.locusPlot;
+    if($(id).is(":checked")) {
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+    }
+  });
+}
+
+function registerShowPrims(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.locusPlot;
+    if($(id).is(":checked")) {
+    }
+  });
+}
+
+d3.csv('linss2_10e_5_ext.csv', function(err, rows){
+  var stride = 5;
+
+  var wlen = unpack(rows, 'wavelength');
+  var firstW = wlen[0];
+  var lastW = wlen[wlen.length - 1];
+
+  var x_data = range(firstW, lastW, stride);
+
+  // LMS plot; sets window.lmsChart, window.lmsCanvas
+  plotCones(rows, x_data);
+
+  // sets window.rgbPrimCanvas and window.rgbPrimChart
+  plotCustomPrims(x_data);
+
+  registerSelPrim('#selPrimForm', window.lmsChart, window.lmsCanvas, window.rgbPrimChart, window.rgbPrimCanvas);
+  registerChartReset('#resetPrim', undefined, window.rgbPrimChart, window.rgbPrimCanvas, [0, 1, 2],
+      [[Array(wlen.length).fill(0.8), redColor],
+       [Array(wlen.length).fill(0.9), greenColor],
+       [Array(wlen.length).fill(0.6), blueColor]]);
+
+  registerPlotLocus('#plotLocus', window.lmsChart);
+  registerShowChrm('#showChrm');
+  registerShowPlane('#showPlane');
+  registerShowPrims('#showPrims');
+});
 
