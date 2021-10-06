@@ -185,10 +185,27 @@ function registerShowChrm(id) {
 
 var lMat = [[], [], []];
 var sCMFR = [], sCMFG = [], sCMFB = []; // these are precise values without rounding
-function registerPlotLocus(buttonId, chart) {
+function registerPlotLocus(buttonId, lmsChart, primChart) {
   $(buttonId).on('click', function(evt) {
     var val = $('input[type=radio][name=prim]:checked').val();
-    var rMat = [chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data];
+    if (val == 'drawPrim') {
+      // B
+      lMat[0][0] = math.dot(lmsChart.data.datasets[0].data, primChart.data.datasets[0].data);
+      lMat[1][0] = math.dot(lmsChart.data.datasets[1].data, primChart.data.datasets[0].data);
+      lMat[2][0] = math.dot(lmsChart.data.datasets[2].data, primChart.data.datasets[0].data);
+
+      // G
+      lMat[0][1] = math.dot(lmsChart.data.datasets[0].data, primChart.data.datasets[1].data);
+      lMat[1][1] = math.dot(lmsChart.data.datasets[1].data, primChart.data.datasets[1].data);
+      lMat[2][1] = math.dot(lmsChart.data.datasets[2].data, primChart.data.datasets[1].data);
+
+      // R
+      lMat[0][2] = math.dot(lmsChart.data.datasets[0].data, primChart.data.datasets[2].data);
+      lMat[1][2] = math.dot(lmsChart.data.datasets[1].data, primChart.data.datasets[2].data);
+      lMat[2][2] = math.dot(lmsChart.data.datasets[2].data, primChart.data.datasets[2].data);
+    }
+
+    var rMat = [lmsChart.data.datasets[0].data, lmsChart.data.datasets[1].data, lmsChart.data.datasets[2].data];
     var lMatInv = math.inv(lMat);
     resMat = math.multiply(lMatInv, rMat);
 
@@ -196,6 +213,7 @@ function registerPlotLocus(buttonId, chart) {
     var unscaledG = resMat[1];
     var unscaledB = resMat[0];
 
+    // assuming EEW
     var whiteSPD = Array(unscaledR.length).fill(1.0);
 
     rRad = math.dot(unscaledR, whiteSPD);
@@ -208,7 +226,7 @@ function registerPlotLocus(buttonId, chart) {
     sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
     sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * 10);
 
-    plotLocus(chart.data.labels);
+    plotLocus(lmsChart.data.labels);
     plotChrm();
     plotPlane();
 
@@ -522,12 +540,12 @@ function plotCustomPrims(label) {
       labels: label,
       datasets: [
         {
-          data: r_data,
-          label: "R Primary",
-          borderColor: redColor,
+          data: b_data,
+          label: "B Primary",
+          borderColor: blueColor,
           fill: false,
           pointHoverRadius: 10,
-          pointBackgroundColor: redColor,
+          pointBackgroundColor: blueColor,
           pointRadius: 3,
           borderWidth: 1,
         },
@@ -542,12 +560,12 @@ function plotCustomPrims(label) {
           borderWidth: 1,
         },
         {
-          data: b_data,
-          label: "B Primary",
-          borderColor: blueColor,
+          data: r_data,
+          label: "R Primary",
+          borderColor: redColor,
           fill: false,
           pointHoverRadius: 10,
-          pointBackgroundColor: blueColor,
+          pointBackgroundColor: redColor,
           pointRadius: 3,
           borderWidth: 1,
         },
@@ -731,7 +749,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
        [Array(wlen.length).fill(0.9), greenColor],
        [Array(wlen.length).fill(0.6), blueColor]]);
 
-  registerPlotLocus('#plotLocus', window.lmsChart);
+  registerPlotLocus('#plotLocus', window.lmsChart, window.rgbPrimChart);
   registerShowChrm('#showChrm');
   registerShowPlane('#showPlane');
   registerShowPrims('#showPrims');
