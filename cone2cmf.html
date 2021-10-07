@@ -52,8 +52,8 @@
           }
         });
         MathJax.Hub.Register.StartupHook("End",function () {
-          console.log("Mathjax loaded");
-          console.log(typeof MathJax);
+          //console.log("Mathjax loaded");
+          //console.log(typeof MathJax);
           MathJax.Hub.Queue(["Typeset", MathJax.Hub, "TFS"]);
         });
     </script>
@@ -64,7 +64,7 @@
   <div class="container">
     <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
       <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-        <h2>Tutorial 1: Deriving Color Matching Functions From Cone Fundamentals</h2>
+        <h2>Tutorial 1: Building Color Spaces From Cone Fundamentals</h2>
       </a>
     </header>
 
@@ -73,7 +73,7 @@
         <h3>Introduction</h3>
         <p>This tutorial shows you how to build a color space from the cone fundamentals by deriving the Color Matching Functions (CMFs) of a color space. We explore the linear transformation between the cone fundamentals and the CMFs, which allows you to understand why human vision is (mostly) trichromatic. You will get to appreciate the critical but subtle difference between absolute quantity of light (e.g., radiance) and relative units used in a particular color space, and the importance of the reference white in a color space.</p>
         <p>The tutorial is interactive, which means you get to build the CMFs step by step yourself, but you have to <b>follow the steps</b>! You get to pick the primaries and the reference white, and can even build your own exotic LMS cone fundamentals to drive the rest of the tutorial. You will see some of the fields in the texts are initially ${\boxed{??}}$. They are numbers that depend on your actions, e.g., the selection of the primaries, and will be dynamically updated as you go.</p>
-        <p><b>Caveats</b>: this is not how the CIE 1931 RGB CMFs are derived. We describe that process in this <a href="http://yuhaozhu.com/blog/cmf.html">post</a>. Among many tricky details, CIE 1931 RGB CMFs did not make use of the cone fundamentals; they started from earlier color matching experiments (by <a href="https://www.colour.org.uk/w-d-wright-obituary/">William David Wright</a> and <a href="https://link.springer.com/chapter/10.1007/978-3-319-30811-1_64">John Guild</a>) that provided the chromaticity coordinates, adjusted the primaries and the reference white, and used the CIE 1924 photopic lumininous efficiency function to convert the chromaticity coordinates to absolute quantities.</p>
+        <p><b>Caveats</b>: this is not how the CIE 1931 RGB color space/CMFs are derived. We describe that process in this <a href="http://yuhaozhu.com/blog/cmf.html">post</a>. Among many tricky details, CIE 1931 RGB CMFs did not make use of the cone fundamentals; they started from earlier color matching experiments (by <a href="https://www.colour.org.uk/w-d-wright-obituary/">William David Wright</a> and <a href="https://link.springer.com/chapter/10.1007/978-3-319-30811-1_64">John Guild</a>) that provided the chromaticity coordinates, adjusted the primaries and the reference white, and used the CIE 1924 photopic lumininous efficiency function to convert the chromaticity coordinates to the absolute primary units.</p>
         <p>Modern-day research usually experimentally obtain both the cone fundamentals and the CMFs and calibrate the results with each other to derive a best-fit linear transformation, which is then applied to the CMFs to derive a "clean" set of cone fundamentals. In fact, the cone fundamentals that we will use in this tutorial are derived that way. See, for instance, <a href="https://www.osapublishing.org/josaa/fulltext.cfm?uri=josaa-10-12-2491&id=4871">Stockman et al. (1993)</a> and <a href="https://www.sciencedirect.com/science/article/pii/S0042698900000213">Stockman and Sharpe (2000)</a>.</p>
       </div>
     </div>
@@ -220,11 +220,29 @@
       </div>
 
       <div class="row">
-        <h4>Expressing Colors Using CMFs</h4>
+        <h4>CMFs Give Us a Color Space</h4>
           <p>The triplets at each wavelength in the CMFs tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in a color space. Using the tristimulus values as the 3D coordinates we can plot all the spectral lights, which is shown in the plot on the right.</p>
           <p>We can get tristimulus values of non-spectral lights too. If a light has an SPD of $\Phi(\lambda)$, we can calculate the amount of primaries needed to match its color by:</p>
-          <p>$[\sum_{380}^{780}\Phi(\lambda)\bar{r}(\lambda),~~~\sum_{380}^{780}\Phi(\lambda)\bar{g}(\lambda),~~~\sum_{380}^{780}\Phi(\lambda)\bar{b}(\lambda)] \label{a}\tag{1},$ where $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$ are the CMFs.</p>
-          <p>Any light can be converted into the RGB values in this way. This is what a color space provides us. It allows us to precisely describe the color of any light in a 3D space.</p>
+          <p>$
+          \begin{bmatrix}
+          R \\
+          G \\
+          B
+          \end{bmatrix} =
+          \begin{bmatrix}
+          -\bar{r}(\lambda)- \\
+          -\bar{g}(\lambda)- \\
+          -\bar{b}(\lambda)-
+          \end{bmatrix} \times
+          \begin{bmatrix}
+          \big | \\
+          \Phi(\lambda) \\
+          \big |
+          \end{bmatrix}, \label{a}\tag{1}
+          $ where $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$ are the CMFs.</p>
+          <p>Any light can be converted into the RGB values in this way. This is what a color space provides us. It allows us to precisely describe the color of any light using a triplet, which describes how many units of the primaries each is needed to match the color. Geometrically, the color of a light is a point in a 3D space.</p>
+          <p>One subtle thing that often gets overlooked is that the RGB value of a light depends on not only the primaries, but also the reference white. Change the reference white in Step 3 while keeping the primaries unchanged. You will see that the RGB values of the same light will change, too.</p>
+          <p><b>Metamerism.</b> Two lights that have different SPDs but have the same color are called metamers. Why does metamerism exist? Look at the equation above. It's an under-determined system, where we have many wavelengths in a spectrum but only three values in the RGB triplet. Therefore, in generally there are infinitely many SPDs that have the same RGB triplet and, thus, the same color.</p>
         <h4>The Locus in the RGB Space</h4>
         <div id="cmftext">
           <p><b>Primaries Sit on the Axes.</b> Click the "Show Primaries" button and confirm that the three primary lights sit on the axes, each on one axis. What this means is that, naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; the RGB tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ &#8212; the first two values being 0 (If you see something like $-0.000$, that's just a very small negative number where the negative sign sticks around after rounding). Note the value for the blue primary: it means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$.</p>
