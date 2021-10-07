@@ -60,14 +60,6 @@
   </head>
   <body>
 
-<div id="dialog-content" style="display:none;">
-  <h2>Interaction Guide</h2>
-  <p>Move your mouse to hover the charts, both the 2D and the 3D ones. You will see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus in the 3D chart will be highlighted as you hover the 2D chart.</p>
-  <p>Point your mouse at a particular point on any of the curves in the 2D chart, you can then start dragging the curve to build a set of new, hypothetical LMS cone fundamentals. Notice that the LMS spectral locus on the right will change too. If you do so, the rest of the steps in this tutorial will assume the new set of cone fundamentals.</p>
-  <p>You can zoom the 2D chart by scrolling the mouse. You get to interact with the 3D plot with a lot more freedom, both zooming and panning as well as navigating the space by dragging the plot. If you hover your mouse over to the top-right corner of the 3D plot, a control panel will show up with more options.</p>
-  </p>
-</div>
-
 <main>
   <div class="container">
     <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
@@ -89,7 +81,7 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 0: Understanding the LMS Cone Fundamentals</h3>
-        <p>The chart above shows the spectral sensitivities of the three cone types (L, M, and S), which are also called the cone fundamentals. The sensitivity chart tells us the amount of cone responses (y-axis) stimulated from different spectral lights (x-axis) that have the same energy/power/radiance. The absolute values of the responses don't matter, and they are customarily normalized to peak at unity. By treating the LMS responses of a spectral light as its 3D coordinates and then plot the spectral lights in the 3D space, we get what's called the <i>spectral locus</i>, which is shown in the plot on the right.</p>
+        <p>The chart above shows the spectral sensitivities of the three cone types (L, M, and S), which are also called the cone fundamentals. The sensitivity chart tells us the amount of cone responses (y-axis) stimulated from different spectral lights (x-axis) that have the same energy/power/radiance. The absolute values of the responses don't matter, and they are customarily normalized to peak at unity. By treating the three cone responses of a spectral light as 3D coordinates and then plotting the spectral lights in the 3D space, we get what's called the <i>spectral locus</i>, which is shown in the plot on the right.</p>
         <p>The specific cone fundamentals we use are the <a href="http://cvrl.ioo.ucl.ac.uk/cones.htm">2-deg fundamentals by Stockman and Sharpe (2000)</a>, which is originally given between $390~nm$ and $830~nm$ at a $5~nm$ inverval. We clip anything beyond $780~nm$ and replicate the data at $390~nm$ for $380~nm$ and $385~nm$. You might sometimes see <a href="http://cvrl.ioo.ucl.ac.uk/conerequest_ss2.php">a different version</a> of the cone sensitivities, where the y-axis is in log-scale and the x-axis is equal-quantal rather than equal-energy. "Equal quantal" means the cone responses are given assuming the spectral lights have the same amount of photons rather than the same energy.</p>
       </div>
       <div class="row">
@@ -120,7 +112,7 @@
         </ul>
         <p>Once the primaries are selected, the following system of (three) linear equations are built. The system has the form $A_{3\times 3} \times M_{3\times n} = C_{3\times n}$, where $n$ is the number of spectral lights in the LMS chart, which is $81$ in our case, since the chart spans $380~nm$ to $780~nm$ at a $5~nm$ interval. This linear system lies at the heart of building RGB CMFs from the LMS cone fundamentals. Let's unpack it a bit more.</p>
         <p id="primText">
-          ${}$ ${}$ ${}$ ${}$ ${}$ ${}$
+          ${}$ ${}$ ${}$ ${}$ ${}$
         </p>
         <h4>Matching Cone Responses</h4>
         <p>This linear system essentially asks the following question: how much primary light each, in radiance, do we need to match the color of each spectral light under one unit radiance? The answer is encoded in matrix $M$, which is what we want to solve for.</p>
@@ -164,7 +156,7 @@
         </div>
         <div class="row pt-4">
           <h4>What is White?</h4>
-          <p>White, as common as it is, does not refer to a specific light. Instead, many different light spectra are perceived "white-ish" and can be used as the reference white. CIE publishes a set of so-called <a href="https://en.wikipedia.org/wiki/Standard_illuminant">Standard Illuminants</a>, which are commonly used as reference whites for color spaces. For instance, Standard Illuminant D65 resembles noon daylight and is used in the sRGB color space among others; Standard Illuminant A resembles incandescent light. A special Standard Illuminant E, a.k.a., Equal-Energy White, has a flat SPD; it is used as the reference white in the CIE 1931 RGB color space and the CMFs.</p>
+          <p>White, as common as it is, does not refer to a specific light. Instead, many different light spectra are perceived "white-ish" and can be used as the reference white. CIE publishes a set of so-called <a href="https://en.wikipedia.org/wiki/Standard_illuminant">Standard Illuminants</a>, which are commonly used as reference whites for color spaces. For instance, Standard Illuminant D65 resembles noon daylight and is used in the sRGB color space among others; Standard Illuminant A resembles incandescent light. A special Standard Illuminant E, a.k.a., Equal-Energy White, has a flat Spectral Power Distribution (SPD); it is used as the reference white in the CIE 1931 RGB color space and the CMFs.</p>
           <p>Use the select box above to choose between D65, A, and E. You can also draw your own reference white. The original SPDs in the CIE standard are normalized to a value of 100 at the wavelength of $560~nm$. For simplicity, we normalize the SPDs such that the peak is 1.0. That is, the maximum radiance of each illuminant is $1 \frac{W}{m^{2} \cdot sr}$.</p>
         </div>
       </div>
@@ -178,7 +170,7 @@
             <p>$\sum_{380}^{780}W(\lambda)R(\lambda)$ = ${\boxed{??}}$,</p>
             <p>$\sum_{380}^{780}W(\lambda)G(\lambda)$ = ${\boxed{??}}$,</p>
             <p>$\sum_{380}^{780}W(\lambda)B(\lambda)$ = ${\boxed{??}}$,</p>
-          <p>for $\lambda\in[380~nm, 780~nm]$ at a $5~nm$ interval; $W(\lambda)$ is the SPD of the white you choose on the left; and $R(\lambda)$, $G(\lambda)$, and $B(\lambda)$ are the spectral radiance curves plotted above.</p>
+          <p>for $\lambda\in[380~nm, 780~nm]$ at a $5~nm$ interval; $W(\lambda)$ is the SPD of the white you choose before; and $R(\lambda)$, $G(\lambda)$, and $B(\lambda)$ are the spectral radiance curves plotted above.</p>
           <p>Under the white and the primaries that you selected, the calculation shows that we need to mix ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of blue primary, in order to match the color of $1 \frac{W}{m^{2} \cdot sr}$ of the chosen white.</p>
           <p>As established earlier, the unit system is so defined that white color is produced by mixing <i>equal units of the primary lights</i>. Therefore, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the red primary, ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the green primary, and ${\boxed{??}}$$\frac{W}{m^{2} \cdot sr}$ of the blue primary must correspond to the same unit of the three primaries. Do they correspond to 1 unit each, 10 units each, or 1 million units each? Doesn't matter, if we care about just the ratio of the primary quantities, as is often the case in colorimetry.</p>
           <!--The way the CIE 1931 RGB CMFs worked out, they essentially assumed that 1 unit of primaries match the color of $3.782 \frac{W}{m^{2} \cdot sr}$ reference white.-->
@@ -228,17 +220,49 @@
       </div>
 
       <div class="row">
+        <h4>Expressing Colors Using CMFs</h4>
+          <p>The triplets at each wavelength in the CMFs tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in a color space. Using the tristimulus values as the 3D coordinates we can plot all the spectral lights, which is shown in the plot on the right.</p>
+          <p>We can get tristimulus values of non-spectral lights too. If a light has an SPD of $\Phi(\lambda)$, we can calculate the amount of primaries needed to match its color by:</p>
+          <p>$[\sum_{380}^{780}\Phi(\lambda)\bar{r}(\lambda),~~~\sum_{380}^{780}\Phi(\lambda)\bar{g}(\lambda),~~~\sum_{380}^{780}\Phi(\lambda)\bar{b}(\lambda)] \label{a}\tag{1},$ where $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$ are the CMFs.</p>
+          <p>Any light can be converted into the RGB values in this way. This is what a color space provides us. It allows us to precisely describe the color of any light in a 3D space.</p>
         <h4>The Locus in the RGB Space</h4>
         <div id="cmftext">
-          <p>The triplets at each wavelength in the CMFs tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in a color space. Using the tristimulus values as the 3D coordinates we can plot all the spectral lights, which is shown in the plot on the right.</p>
-          <p>Click the "Show Primaries" button and confirm that the three primary lights sit on the axes, each on one axis. What this means is that, naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; the RGB tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ &#8212; the first two values being 0 (If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around). Note that the value for the blue primary isn't 1. Nothing wrong with that; it means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$.</p>
+          <p><b>Primaries Sit on the Axes.</b> Click the "Show Primaries" button and confirm that the three primary lights sit on the axes, each on one axis. What this means is that, naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; the RGB tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ &#8212; the first two values being 0 (If you see something like $-0.000$, that's just a very small negative number where the negative sign sticks around after rounding). Note the value for the blue primary: it means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$.</p>
+          <p>Since the primaries you choose are spectral lights, the primaries naturally sit on the spectral locus, too. But primaries don't have to be spectral lights. The <a href="chromaticity.html">next tutorial</a> allows you to pick non-spectral primaries, and there you will see that the primaries do not sit on the spectral locus, but they still sit on the axes in the color space.</p>
+          <p><b>Negative Primaries.</b> If you use the original cone fundamentals, you will see that all the spectral lights (except the primaries) require a negative amount of some primaries. Hover over the spectral locus to confirm this. If a spectral light requires $-0.2$ units of R, $1.1$ unit of G, and $0.4$ units of B, it just means if you mix $0.2$ units of R with that spectral light, you get the same color as mixing $1.1$ unit of G and $0.4$ units of B. There is nothing wrong with that both mathematically and physically. It doesn't mean that that spectral light doesn't exist; it's a real light. However, it does mean that you can't match the color of that spectral light by mixing the particular primaries that you chose.</p>
+          <p>In fact, it's generally true that you won't be able to produce the colors of all the spectral lights at the same time no matter how you choose the primaries &#8212; even if they are not spectral lights! Try picking different primaries at the top and confirm this. We will provide an intuitive and semi-rigorous explaination to this in the <a href="chromaticity.html">next tutorial</a>.</p>
         </div>
-        <h4>What Does an Arbitrary Point in the RGB Space Mean?</h4>
+        <h4>Off-Locus Points, Physically-Unrealizable Lights, and Imaginary Colors</h4>
         <div>
+          <p>We now know what points on the spectral locus mean; they represent colors of spectral lights. What about an arbitrary point in the RGB space? Do they mean anything? Let's say we have a point with the coordinates $[0.1, 0.2, 0.3]$; given how we define the RGB space, it should naturally follow that that point is a color that can be generated by mixing $0.1$ unit of R, $0.2$ unit of G, and $0.3$ unit of B. That's a real color that can be physically produced, and the RGB tristimulus values tell you how to produce the color.</p>
+          <p>Now consider a point $[-0.1, -0.2, -0.3]$. Does this point represent a real color? We know that if there existed a light $X$ that could generate this color, then mixing $X$ with $0.1$ unit of $R$, $0.2$ unit of $G$, and $0.3$ unit of $B$ would let the color disappear, i.e., zero color or the "color of nothing". Is that possible? How about another point $[0.1, 0.2, -0.4]$. If there exists a light $Y$ that does generate this color, then mixing $Y$ with $0.4$ unit of $B$ would match the color of mixing $0.1$ unit of $R$ and $0.2$ unit of $G$. Does light $Y$ exist in the physical world? How do we reason about this? What are real lights anyways?</p>
+          <p><b>Physically-Realizable Lights.</b> Lights whose SPDs are non-negative everywhere are physically-realizable. We can, in theory, generate such lights by collecting photons at different wavelengths as specified by the SPD. Photons always have positive energy, so a "light" would be physically unrealizable if its SPD is negative at certain wavelenghts. An RGB triplet generated by a physically-realizable light (using Equation $\ref{a}$) corresponds to a real color. Mathematically, however, nothing prevents us from applying Equation $\ref{a}$ to a physically-unrealizable light and convert it to a point in the RGB color space. An RGB point represents an imaginary color if the RGB triplet can not possibly be producible from <i>any</i> physically-realizable light.</p>
+          <p><b>Finding Imaginary Colors.</b> Given an RGB color space, can you find the imaginary colors, those that can never be generated from real lights? Mathematically stated, given an RGB point $[R_t, G_t, B_t]$ in a color space whose CMFs are $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$, does the following system of equations have a solutiom?<p>
+          <p>$
+          \begin{bmatrix}
+          \bar{r}_{380} & \cdots & \bar{r}_{780} \\
+          \bar{g}_{380} & \cdots & \bar{g}_{780} \\
+          \bar{b}_{380} & \cdots & \bar{b}_{780}
+          \end{bmatrix}
+          \times
+          \begin{bmatrix}
+          \Phi_{380} & \cdots & \Phi_{780} \\
+          \end{bmatrix}^T =
+          \begin{bmatrix}
+          R_t \\
+          G_t \\
+          B_t
+          \end{bmatrix}
+          $, $\Phi_{\lambda} \ge 0 ~~ \forall \lambda \in [380, 780] $, where $\Phi(\lambda)$ is the SPD to be solved for.
+          <p>
+          <p>If not, $[R_t, G_t, B_t]$ is an imaginary color. You can use your linear algebra knowledge to figure out whether the above system has a solution, which we won't get into here.</p>
+          <p>Here is an intuitive way to find imaginary colors. We are going to first find all the real colors, and the rest RGB points naturally are imaginary colors. How do we find all the real colors? We will do so by construction. If you connect two known real colors (e.g., colors of spectral lights) and form a line segment, any point on that line segment is another real color mixed from those two real colors <button type="button" class="btn btn-outline-dark btn-sm" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Assuming the RGB colors of the two real colors are A and B, whose SPDs are Sa and Sb. Any point between A and B has an RGB triplet of xA + (1-x)B, which can be generated by a light whose SPD is xSa + (1-x)Sb.">?</button>. If you connect three real colors and form a triangle, any point on that triangle is another real color mixed from those three real colors. If you connect four real colors, then everything inside the tetrahedron is a real color. You get the idea. So if you find a point that isn't inside any line/triangle/polyhedron formed by any real colors, then it's an imaginary color.</p>
+          <p>One last thing, it is possible that a real light and a unreal light are mapped to the same RGB point. This is because the system of equations above is under-determined. It could have two solutions, one meets the non-negative constraints and the other does not. That is, a real light can be a metamer of a unreal light, mathematically!</p>
+          <p><b>LMS is a Color Space with Imaginary Primaries.</b> Since a color can be represented as a point in the LMS space, we can think of the LMS as a color space, too. The CMFs of the LMS space are the cone sensitivity functions. The primaries in the LMS space, however, are physically-unrealizable lights. By definition, the primaries of a color space sit on the axes, and so each LMS primary would stimulate exclusively only one cone type. Note that the spectral locus does intersect the <b>origin</b> of the LMS space; invisible (but physically realizable) lights such as IR or UV lie there.</p>
         </div>
         <h4>Linear Transformation Between Color Spaces</h4>
         <div>
-          <p>Every light has a set of LMS tristimulus values and so is a point in the LMS space; it has another set of RGB tristimulus values and is a point in the RGB space just built. How do points in the LMS space and points in the RGB space relate? The math we have done so far dictates that the relationship must be a linear transformation. In particular, the LMS value of a light and the RGB value of the light <i>in your color space</i> are related by:</p>
+          <p>Every light has a set of LMS tristimulus values and so is a point in the LMS space; it has another set of RGB tristimulus values and is a point in the RGB space (that you just built). How do points in the LMS space and points in the RGB space relate? The math we have done so far dictates that the relationship must be a linear transformation. In particular, the LMS value of a light and the RGB value of the light (in your RGB space) are related by:</p>
           <p id="text5">
           $\begin{bmatrix}
            L \\
@@ -253,9 +277,8 @@
           $T = $ $\boxed{??}$
           </p>
           <p>The linear transformation is formed by a combination of two intermediate transformations, one in Step 1 and the other (scaling) in Step 4.</p>
-          <p>The exact linear transformation from LMS to RGB depends on the specific RGB space. But regardless of what RGB space you build, the transformation from/to LMS is linear. What this further means is that any two RGB color spaces are also related by just one single linear transformation. If a color space $RGB_1$ is transformed from the LMS space by $T_1$ and another color space $RGB_2$ is transformed from the LMS space by $T_2$, then $RGB_1$ can be transformed from $RGB_2$ by $T_1^{-1}T_2$.</p>
-          <p>In this sense, LMS is a color space, too. The primaries in the LMS space, however, are imaginary, physically unrealizable lights, each of which stimulates exclusively only one cone type. The fact that the LMS primaries are not physically realizable is evident when looking at the 3D LMS space. Spin around the second plot in Step 0; you will see that the spectral locus does not intersect any of the axes, which are where the LMS primaries would lie. Note that the spectral locus does intersect the <b>origin</b> of the LMS space; invisible (but physically realizable) lights such as IR or UV lie there.</p>
-          <p>If you use the original cone fundamentals (i.e., did not drive this experiment using your own exotic cone fundamentals) and the primaries are nicely spread across the spectrum, you will likely see that the chromaticity gamut of your color space (the triangle formed by the primaries) does <i>not</i> include any other spectral light except the primaries. This shows that no other spectral light can be produced from your RGB color space, which is generally true for any RGB color space.</p>
+          <p>We keep emphasizing "your RGB space", because there is no one single RGB space. By picking different primaries you will get different CMFs and thus different RGB spaces. The exact linear transformation from LMS to RGB depends on the specific RGB space. But regardless of what RGB space you build, the transformation from/to LMS is necessarily linear. How are different RGB color spaces related? They must also be related by just one single linear transformation. If a color space $RGB_1$ is transformed from the LMS space by $T_1$ and another color space $RGB_2$ is transformed from the LMS space by $T_2$, then $RGB_1$ can be transformed from $RGB_2$ by $T_1^{-1}T_2$.</p>
+          <p><b>Metamers Are Always Metamers!</b> Since different color spaces are related by a linear transformation, metamers in one color space are metamers in another color space. If two colors have the same LMS responses, after a linear transformation their RGB values are the same too. Similarly, if two colors have different LMS responses, they won't have the same RGB values after a linear transformation.</p>
         </div>
       </div>
 

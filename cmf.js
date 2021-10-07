@@ -760,7 +760,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        constrain: 'domain',
+        //constrain: 'domain',
         showspikes: false,
         title: {
           text: 'L'
@@ -990,8 +990,8 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        constrain: 'domain',
-        dtick: 0.2, // TODO: automatically calculate this; change when switch to rgb
+        //constrain: 'domain',
+        //dtick: 0.2, // TODO: automatically calculate this; change when switch to rgb
         showspikes: false,
         title: {
           text: 'R'
@@ -1004,7 +1004,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zerolinecolor: '#000000',
         zerolinewidth: 5,
         scaleanchor: 'x',
-        dtick: 0.2,
+        //dtick: 0.2,
         showspikes: false,
         title: {
           text: 'G'
@@ -1017,7 +1017,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zerolinecolor: '#000000',
         zerolinewidth: 5,
         scaleanchor: 'y',
-        dtick: 0.2,
+        //dtick: 0.2,
         showspikes: false,
         title: {
           text: 'B'
