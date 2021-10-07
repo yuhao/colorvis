@@ -89,13 +89,13 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 0: Understanding the LMS Cone Fundamentals</h3>
-        <p>The chart above shows the spectral sensitivities of the three cone types (L, M, and S), which are also called the cone fundamentals. The plot on the right is just the 3D version of it, and is also called the <i>spectral locus</i>, because it plots each spectral light in the 3D LMS space. The sensitivity chart tells us the amount of cone responses (y-axis) stimulated from different spectral lights (x-axis) of equal energy/power/radiance. The absolute values of the responses don't matter, and they are customarily normalized to peak at unity.</p>
-        <p>The specific cone fundamentals we use are the <a href="http://cvrl.ioo.ucl.ac.uk/cones.htm">2-deg fundamentals by Stockman and Sharpe (2000)</a>, which is originally given between $390~nm$ and $830~nm$ at a $5~nm$ inverval. We clip anything beyond $780~nm$ and replicate the data at $390~nm$ for $380~nm$ and $385~nm$. You might sometimes see <a href="http://cvrl.ioo.ucl.ac.uk/conerequest_ss2.php">a different version</a> of the cone sensitivities, where the y-axis is in log-scale and the x-axis is equal-quantal rather than equal-energy. "Equal quantal" means the cone responses are shown for spectral lights of the same amount of photons.</p>
+        <p>The chart above shows the spectral sensitivities of the three cone types (L, M, and S), which are also called the cone fundamentals. The sensitivity chart tells us the amount of cone responses (y-axis) stimulated from different spectral lights (x-axis) that have the same energy/power/radiance. The absolute values of the responses don't matter, and they are customarily normalized to peak at unity. By treating the LMS responses of a spectral light as its 3D coordinates and then plot the spectral light in the 3D space, we get what's call the <i>spectral locus</i>, which is shown in the plot on the right.</p>
+        <p>The specific cone fundamentals we use are the <a href="http://cvrl.ioo.ucl.ac.uk/cones.htm">2-deg fundamentals by Stockman and Sharpe (2000)</a>, which is originally given between $390~nm$ and $830~nm$ at a $5~nm$ inverval. We clip anything beyond $780~nm$ and replicate the data at $390~nm$ for $380~nm$ and $385~nm$. You might sometimes see <a href="http://cvrl.ioo.ucl.ac.uk/conerequest_ss2.php">a different version</a> of the cone sensitivities, where the y-axis is in log-scale and the x-axis is equal-quantal rather than equal-energy. "Equal quantal" means the cone responses are given assuming the spectral lights have the same amount of photons rather than the same energy.</p>
       </div>
       <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-7">
           <canvas id="canvasLMS"></canvas>
-          <div class="my-2">
+          <div class="mb-4">
             <button id="resetChartLMS" class="btn btn-primary btn-sm">Reset</button>
             <button type="button" class="btn btn-primary btn-sm" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Move your mouse to hover the charts to see the LMS sensitivities at each wavelength in the tooltip. Notice that the corresponding point on the spectral locus on the right will be highlighted as you hover over the 2D chart. You can zoom, pan, and spin the 3D plot. If you hover your mouse over to the top-right corner of the 3D plot, a control panel will show up with more options.">Help</button>
             <div class="form-check form-switch mt-2">
@@ -104,7 +104,7 @@
             </div>
           </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-5">
           <div id="lmsDiv"></div>
         </div>
       </div>
@@ -140,7 +140,7 @@
       <div class="bg-light border rounded-3 pt-3 mb-4 px-4">
         <div class="row">
           <h2>Step 2: Solve the Linear System</h2>
-          <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" class="btn btn-primary btn-sm" disabled>Solve and Plot</button> to solve the linear system and plot the resulting matrix $M$. If you change your primary selection or the LMS cone fundamentals, simply click the button again; the results will be updated.</p>
+          <p>Once the three primaries are selected, matrix $A$ will be populated. Click <button id="solLinSys" class="btn btn-primary btn-sm" disabled>Solve and Plot</button> to solve the linear system and plot the resulting matrix $M$.</p>
           <canvas id="canvasUnscaledCMF"></canvas>
         </div>
         <div class="row pt-4">
@@ -203,20 +203,26 @@
         </div>
         <div class="col-sm-5">
           <div id="rgbDiv"></div>
+          <div class="d-flex justify-content-center">
+            <button id="RGB2rgb" class="btn btn-primary btn-sm" disabled>Locus in Chromaticity</button>
+            <button id="rgb2RGB" class="btn btn-success btn-sm" disabled>Locus in RGB</button>
+            <button id="showPrim" class="btn btn-info btn-sm" disabled>Show Primaries</button>
+          </div>
         </div>
       </div>
 
       <div class="row">
-        <h4>How to Interact With the Charts:</h4>
-        <p>The chart on the left plots the color matching functions of the RGB color space that you just built. The chart on the right plots the spectral locus in that color space. By default the locus is shown in the RGB space, but you can also <button id="RGB2rgb" class="btn btn-primary btn-sm" disabled>Plot Locus in Chromaticity</button>. Naturally, all the points on the locus in the chromaticity plot are on the same $r+b+g=1$ plane. You can of course go back and <button id="rgb2RGB" class="btn btn-primary btn-sm" disabled>Plot Locus in RGB</button>. Finally, you can <button id="showPrim" class="btn btn-primary btn-sm" disabled>Highlight Primaries</button> that you chose for this color space.</p>
-      </div>
-
-      <div class="row">
-        <h4>How to Interpret the Charts:</h4>
+        <h4>The Locus in the RGB Space</h4>
         <div id="cmftext">
-          <p>The triplets at each wavelength tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in your color space.</p>
-          <p>Naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; hover you mouse to that wavelength you will see that the tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ &#8212; the first two values being 0 (If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around). Note that the value for the blue primary isn't 0. Nothing wrong with that; it just means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$. You should confirm this for the other two primaries. Accordingly, if you highlight the primaries in the 3D chart on the right (whether in the RGB space or in the chromaticity space), you will see that the primaries all sit on the axes, each on one axis.</p>
-          <p>Every (spectral) light has a set of tristimulus values in the LMS chart (the cone responses) and another set of tristimulus values in your RGB color space. The math we have done so far dictates that these two sets of values are related by one linear transformation, which is actually formed by a combination of two intermediate linear transformations, one in Step 1 and the other (scaling) in Step 4. You can think of this linear transformation as transforming a color from one color space to another. In this sense, LMS is a color space, too. The primaries in the LMS space, however, are imaginary, physically unrealizable lights, each of which stimulates exclusively only one cone type. The fact that the LMS primaries are not physically realizable is evident when looking at the 3D LMS space. Spin around the second plot in Step 0; you will see that the spectral locus does not intersect any of the axes, which are where the LMS primaries would lie. Note that the spectral locus does intersect the <b>origin</b> of the LMS space; invisible (but physically realizable) lights such as IR or UV lie there.</p>
+          <p>The triplets at each wavelength tells us how many <b>units</b> of the primary lights are needed in order to match the color of <b>one unit radiance</b> ($1 \frac{W}{m^{2} \cdot sr}$) of that spectral light. We call them the <i>tristimulus values</i> of that spectral light in your RGB color space. Using the tristimulus values as the 3D coordinates we can plot all the spectral lights, which is shown in the plot on the right.</p>
+          <p>You can click the "Show Primaries" button and check that the three primary lights sit on the axes, each on one axis. What this means is that, naturally, to match the color of a primary light you would not need any amount of the other two primaries. For instance, the "blue" primary you choose is ${\boxed{??}}$; the RGB tristimulus values of that light are ${\boxed{??}}$, ${\boxed{??}}$, and ${\boxed{??}}$ &#8212; the first two values being 0 (If you see something like $-0.000$, that's just a very small negative number that get's rounded to 0, but the negative sign still sticks around). Note that the value for the blue primary isn't 1. Nothing wrong with that; it means you need ${\boxed{??}}$ units of ${\boxed{??}}$ to match $1 \frac{W}{m^{2} \cdot sr}$ of ${\boxed{??}}$.</p>
+        </div>
+        <h4>What Does an Arbitrary Point in the RGB Space Mean?</h4>
+        <div>
+        </div>
+        <h4>Linear Transformation Between Color Spaces</h4>
+        <div>
+          <p>Every light has a set of tristimulus values in the LMS chart (the cone responses) and another set of tristimulus values in your RGB color space. The math we have done so far dictates that these two sets of values are related by one linear transformation, which is actually formed by a combination of two intermediate linear transformations, one in Step 1 and the other (scaling) in Step 4. You can think of this linear transformation as transforming a color from one color space to another. In this sense, LMS is a color space, too. The primaries in the LMS space, however, are imaginary, physically unrealizable lights, each of which stimulates exclusively only one cone type. The fact that the LMS primaries are not physically realizable is evident when looking at the 3D LMS space. Spin around the second plot in Step 0; you will see that the spectral locus does not intersect any of the axes, which are where the LMS primaries would lie. Note that the spectral locus does intersect the <b>origin</b> of the LMS space; invisible (but physically realizable) lights such as IR or UV lie there.</p>
           <p>If you use the original cone fundamentals (i.e., did not drive this experiment using your own exotic cone fundamentals) and the primaries are nicely spread across the spectrum, you will likely see that the chromaticity gamut of your color space (the triangle formed by the primaries) does <i>not</i> include any other spectral light except the primaries. This shows that no other spectral light can be produced from your RGB color space, which is generally true for any RGB color space.</p>
         </div>
       </div>

@@ -201,9 +201,9 @@ function registerCalcCMFScale(buttonId, wlen) {
     QUEUE.Push(["Text", text4Jax[27], gRad]);
     QUEUE.Push(["Text", text4Jax[28], bRad]);
 
-    QUEUE.Push(["Text", text4Jax[30], rRad]);
-    QUEUE.Push(["Text", text4Jax[33], gRad]);
-    QUEUE.Push(["Text", text4Jax[36], bRad]);
+    QUEUE.Push(["Text", text4Jax[33], rRad]);
+    QUEUE.Push(["Text", text4Jax[36], gRad]);
+    QUEUE.Push(["Text", text4Jax[39], bRad]);
 
     QUEUE.Push(function () {
       $('#plotScaleCMF').prop('disabled', false);
@@ -631,7 +631,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
       ]
     },
     options: {
-      aspectRatio: 1.5,
+      //aspectRatio: 1.5,
       animation: {
         duration: 10
       },
@@ -752,6 +752,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        constrain: 'domain',
         showspikes: false,
         title: {
           text: 'L'
@@ -763,6 +764,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        scaleanchor: 'x',
         showspikes: false,
         title: {
           text: 'M'
@@ -860,6 +862,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
       animation: {
         duration: 10
       },
+      aspectRatio: 1.5,
       responsive: true,
       interaction: {
         mode: 'index',
@@ -896,7 +899,10 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         title: {
           display: true,
           text: 'RGB Color Matching Functions',
-          fontSize: 24,
+          font: {
+            size: 20,
+            family: 'Helvetica Neue',
+          },
         },
         tooltip: {
           callbacks: {
@@ -969,13 +975,14 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         }
       },
       // https://plotly.com/javascript/3d-axes/
-      aspectmode: 'cube',
+      //aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        constrain: 'domain',
         showspikes: false,
         title: {
           text: 'R'
@@ -987,6 +994,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        scaleanchor: 'x',
         showspikes: false,
         title: {
           text: 'G'
@@ -1088,13 +1096,13 @@ function showPrim(plot, hide) {
 
 function registerShowPrim(id, plot) {
   $(id).on('click', function(evt) {
-    if ($(id).text() == 'Highlight Primaries') {
+    if ($(id).text() == 'Show Primaries') {
       //if (plot.data.length > 1) return; // prim trace has been added
       showPrim(plot, false);
       $(id).text('Hide Primaries');
     } else {
       showPrim(plot, true);
-      $(id).text('Highlight Primaries');
+      $(id).text('Show Primaries');
     }
   });
 }
