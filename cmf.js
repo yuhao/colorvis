@@ -211,7 +211,7 @@ function registerCalcCMFScale(buttonId, wlen) {
     var lmat1 = allJax[0];
     var lmat2 = allJax[1];
     var lmat3 = allJax[2];
-    QUEUE.Push(["Text", text5Jax[2], lmat1.originalText+lmat2.originalText+lmat3.originalText+"\\times"+text]);
+    QUEUE.Push(["Text", text5Jax[2], text+"\\times"+lmat1.originalText+lmat2.originalText+lmat3.originalText]);
 
     QUEUE.Push(function () {
       $('#plotScaleCMF').prop('disabled', false);
@@ -432,9 +432,9 @@ function setupLinSys(chart, wlen) {
   QUEUE.Push(["Text", lmat3, col3]);
 
   var m1, m2, m3;
-  m1 = "B_{380} & \\cdots & B_{500} & \\cdots & B_{780} \\\\";
+  m1 = "R_{380} & \\cdots & R_{500} & \\cdots & R_{780} \\\\";
   m2 = "G_{380} & \\cdots & G_{500} & \\cdots & G_{780} \\\\";
-  m3 = "R_{380} & \\cdots & R_{500} & \\cdots & R_{780} \\\\";
+  m3 = "B_{380} & \\cdots & B_{500} & \\cdots & B_{780} \\\\";
   QUEUE.Push(["Text", mmat, "\\times"+pre+m1+m2+m3+post+"="]);
 
   var r1, r2, r3; // show first two and last two
@@ -508,7 +508,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
       chart.data.datasets[2].pointRadius[index] = 10;
       chart.update();
 
-      if (numPoints == 0) {
+      if (numPoints == 2) {
         var col = "\\Bigg[ \\begin{matrix}" +
                   chart.data.datasets[0].data[index].toExponential(3) +
                   "\\\\" +
@@ -517,9 +517,8 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
                   chart.data.datasets[2].data[index].toExponential(3) +
                   "\\end{matrix}";
         QUEUE.Push(["Text", lmat1, col]);
-        QUEUE.Push(["Text", text1Jax[15], chart.data.labels[index]+"~nm"]);
-        QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[index].toExponential(3)+","+chart.data.datasets[1].data[index].toExponential(3)+","+chart.data.datasets[2].data[index].toExponential(3)+"\\end{bmatrix}^T"]);
-        QUEUE.Push(["Text", text1Jax[18], chart.data.labels[index]+"~nm"]);
+
+        $('#solLinSys').prop('disabled', false);
       } else if (numPoints == 1) {
         var col = "\\begin{matrix}" +
                   chart.data.datasets[0].data[index].toExponential(3) +
@@ -529,7 +528,7 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
                   chart.data.datasets[2].data[index].toExponential(3) +
                   "\\end{matrix}";
         QUEUE.Push(["Text", lmat2, col]);
-      } else if (numPoints == 2) {
+      } else if (numPoints == 0) {
         var col = "\\begin{matrix}" +
                   chart.data.datasets[0].data[index].toExponential(3) +
                   "\\\\" +
@@ -538,7 +537,10 @@ function registerSelPrim(buttonId, canvas, chart, wlen, plotId) {
                   chart.data.datasets[2].data[index].toExponential(3) +
                   "\\end{matrix} \\Bigg]";
         QUEUE.Push(["Text", lmat3, col]);
-        $('#solLinSys').prop('disabled', false);
+
+        //QUEUE.Push(["Text", text1Jax[15], chart.data.labels[index]+"~nm"]);
+        //QUEUE.Push(["Text", text1Jax[17], "\\begin{bmatrix}"+chart.data.datasets[0].data[index].toExponential(3)+","+chart.data.datasets[1].data[index].toExponential(3)+","+chart.data.datasets[2].data[index].toExponential(3)+"\\end{bmatrix}^T"]);
+        //QUEUE.Push(["Text", text1Jax[18], chart.data.labels[index]+"~nm"]);
       } 
       lMat[0][numPoints] = chart.data.datasets[0].data[index];
       lMat[1][numPoints] = chart.data.datasets[1].data[index];
@@ -989,6 +991,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zerolinecolor: '#000000',
         zerolinewidth: 5,
         constrain: 'domain',
+        dtick: 0.2, // TODO: automatically calculate this; change when switch to rgb
         showspikes: false,
         title: {
           text: 'R'
@@ -1001,6 +1004,7 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zerolinecolor: '#000000',
         zerolinewidth: 5,
         scaleanchor: 'x',
+        dtick: 0.2,
         showspikes: false,
         title: {
           text: 'G'
@@ -1012,6 +1016,8 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        scaleanchor: 'y',
+        dtick: 0.2,
         showspikes: false,
         title: {
           text: 'B'
