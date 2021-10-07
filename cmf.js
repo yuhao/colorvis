@@ -13,7 +13,7 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-var text1Jax, text2Jax, text4Jax;
+var text1Jax, text2Jax, text4Jax, text5Jax;
 var allJax, cmfJax;
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
@@ -202,8 +202,16 @@ function registerCalcCMFScale(buttonId, wlen) {
     QUEUE.Push(["Text", text4Jax[28], bRad]);
 
     QUEUE.Push(["Text", text4Jax[33], rRad]);
-    QUEUE.Push(["Text", text4Jax[36], gRad]);
-    QUEUE.Push(["Text", text4Jax[39], bRad]);
+    QUEUE.Push(["Text", text4Jax[35], gRad]);
+    QUEUE.Push(["Text", text4Jax[37], bRad]);
+
+    var text = "\\begin{bmatrix} \\frac{1}{" + rRad + "} & 0 & 0 \\\\ 0 & \\frac{1}{" + gRad + "} & 0 \\\\ 0 & 0 & \\frac{1}{" + bRad + "} \\end{bmatrix}";
+    QUEUE.Push(["Text", text4Jax[40], text]);
+
+    var lmat1 = allJax[0];
+    var lmat2 = allJax[1];
+    var lmat3 = allJax[2];
+    QUEUE.Push(["Text", text5Jax[2], lmat1.originalText+lmat2.originalText+lmat3.originalText+"\\times"+text]);
 
     QUEUE.Push(function () {
       $('#plotScaleCMF').prop('disabled', false);
@@ -354,8 +362,6 @@ function plotUnscaledCMF(wlen) {
   QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
   QUEUE.Push(["Text", text2Jax[5], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
   QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
-
-  return window.cmfUnscaledChart;
 }
 
 function updateUnscaledCMF(chart) {
@@ -369,20 +375,19 @@ function updateUnscaledCMF(chart) {
   QUEUE.Push(["Text", text2Jax[7], chart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
 }
 
-function registerSolLinSysPlot(buttonId, canvas, chart, wlen, plotId) {
+function registerSolLinSysPlot(buttonId, canvas, wlen, plotId) {
   var plotted = false;
-  var chart;
 
   $(buttonId).on('click', function(evt) {
-    var rMat = [chart.data.datasets[0].data, chart.data.datasets[1].data, chart.data.datasets[2].data];
+    var rMat = [window.myChart.data.datasets[0].data, window.myChart.data.datasets[1].data, window.myChart.data.datasets[2].data];
     var lMatInv = math.inv(lMat);
     resMat = math.multiply(lMatInv, rMat);
 
     if (!plotted) {
-      chart = plotUnscaledCMF(wlen);
+      plotUnscaledCMF(wlen);
       plotted = true;
     } else {
-      updateUnscaledCMF(chart, wlen);
+      updateUnscaledCMF(window.cmfUnscaledChart);
     }
   });
 }
@@ -405,6 +410,7 @@ function setupLinSys(chart, wlen) {
   text1Jax = MathJax.Hub.getAllJax('text1');
   text2Jax = MathJax.Hub.getAllJax('text2');
   text4Jax = MathJax.Hub.getAllJax('text4');
+  text5Jax = MathJax.Hub.getAllJax('text5');
 
   cmfJax = MathJax.Hub.getAllJax('cmftext');
 
@@ -419,10 +425,10 @@ function setupLinSys(chart, wlen) {
 
   var col1, col2, col3;
   var col1 = "\\Bigg[ \\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
-  QUEUE.Push(["Text", lmat1, col1]);
   var col2 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix}"
-  QUEUE.Push(["Text", lmat2, col2]);
   var col3 = "\\begin{matrix}\\boxed{~??~} \\\\ \\boxed{~??~} \\\\ \\boxed{~??~} \\end{matrix} \\Bigg]"
+  QUEUE.Push(["Text", lmat1, col1]);
+  QUEUE.Push(["Text", lmat2, col2]);
   QUEUE.Push(["Text", lmat3, col3]);
 
   var m1, m2, m3;
@@ -792,7 +798,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   });
   registerSelPrim('#selPrim', canvas, window.myChart, wlen, 'lmsDiv');
   registerDrawPrim('#drawPrim', canvas, window.myChart);
-  registerSolLinSysPlot('#solLinSys', canvas, window.myChart, wlen, 'lmsDiv');
+  registerSolLinSysPlot('#solLinSys', canvas, wlen, 'lmsDiv');
   registerCalcCMFScale('#calcCMFScale', wlen);
   registerPlotScaleCMF('#plotScaleCMF', wlen);
 });
