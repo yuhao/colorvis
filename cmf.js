@@ -1048,6 +1048,7 @@ function registerToggleChrm(chart, rgbPlot, wlen, rgbLocusMarkerColors) {
   });
 }
 
+// TODO: draw three lines rather than a triangle
 function showPrim(plot, hide) {
   if (hide) {
     Plotly.deleteTraces(plot, [1]);
@@ -1109,16 +1110,24 @@ function showPrim(plot, hide) {
 }
 
 function registerShowPrim(id, plot) {
-  $(id).on('click', function(evt) {
-    if ($(id).text() == 'Show Primaries') {
-      //if (plot.data.length > 1) return; // prim trace has been added
+  $(id).on('change', function(evt) {
+    if($(id).is(":checked")) {
       showPrim(plot, false);
-      $(id).text('Hide Primaries');
     } else {
       showPrim(plot, true);
-      $(id).text('Show Primaries');
     }
   });
+
+  //$(id).on('click', function(evt) {
+  //  if ($(id).text() == 'Show Primaries') {
+  //    //if (plot.data.length > 1) return; // prim trace has been added
+  //    showPrim(plot, false);
+  //    $(id).text('Hide Primaries');
+  //  } else {
+  //    showPrim(plot, true);
+  //    $(id).text('Show Primaries');
+  //  }
+  //});
 }
 
 function showGamut(plot) {
