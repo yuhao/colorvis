@@ -171,8 +171,8 @@
             <p>$\sum_{380}^{780}W(\lambda)G(\lambda)$ = ${\boxed{??}}$,</p>
             <p>$\sum_{380}^{780}W(\lambda)B(\lambda)$ = ${\boxed{??}}$,</p>
           <p>for $\lambda\in[380~nm, 780~nm]$ at a $5~nm$ interval; $W(\lambda)$ is the SPD of the white you choose before; and $R(\lambda)$, $G(\lambda)$, and $B(\lambda)$ are the spectral power curves plotted above.</p>
-          <p>Under the white and the primaries that you selected, the calculation shows that we need to mix ${\boxed{??}}$$W$ of red primary, ${\boxed{??}}$$W$ of green primary, and ${\boxed{??}}$$W$ of blue primary, in order to match the color of $1 W$ of the chosen white.</p>
-          <p>As established earlier, the unit system is so defined that white color is produced by mixing <i>equal units of the primary lights</i>. Therefore, ${\boxed{??}}$$W$ of the red primary, ${\boxed{??}}$$W$ of the green primary, and ${\boxed{??}}$$W$ of the blue primary must correspond to the same unit of the three primaries. Do they correspond to 1 unit each, 10 units each, or 1 million units each? It's up to you. Choosing a different number will scale up and down the CMF curves, but the primary quantity ratio won't change. Often in colorimetry it is the ratio that we care about. The derivation so far has made a few normalizations such as the LMS cone sensitivities and the SPDs of the white.</p>
+          <p>Under the white and the primaries that you selected, the calculation shows that we need to mix ${\boxed{??}}$ $W$ of red primary, ${\boxed{??}}$ $W$ of green primary, and ${\boxed{??}}$ $W$ of blue primary, in order to match the color of $1 W$ of the chosen white.</p>
+          <p>As established earlier, the unit system is so defined that white color is produced by mixing <i>equal units of the primary lights</i>. Therefore, ${\boxed{??}}$ $W$ of the red primary, ${\boxed{??}}$ $W$ of the green primary, and ${\boxed{??}}$ $W$ of the blue primary must correspond to the same unit of the three primaries. Do they correspond to 1 unit each, 10 units each, or 1 million units each? It's up to you. Choosing a different number will scale up and down the CMF curves, but the primary quantity ratio won't change. Often in colorimetry it is the ratio that we care about. The derivation so far has made a few normalizations such as the LMS cone sensitivities and the SPDs of the white.</p>
           <!--The way the CIE 1931 RGB CMFs worked out, they essentially assumed that 1 unit of primaries match the color of $3.782 \frac{W}{m^{2} \cdot sr}$ reference white.-->
           <p>For simplicity here we will just assume that $1 W$ reference white is matched with exactly 1 unit of the three primaries. Therefore, to convert from power to units, we would simply divide each red power value in the chart above by ${\boxed{??}}$, each green power value by ${\boxed{??}}$, and each blue power value by ${\boxed{??}}$. The results are the CMFs, which are usually denoted as $\bar{r}$, $\bar{g}$, and $\bar{b}$.</p>
           <p>$\bar{r}(\lambda) = R(\lambda)/$
@@ -211,11 +211,19 @@
         </div>
         <div class="col-sm-5">
           <div id="rgbDiv"></div>
-          <div class="d-flex justify-content-center">
-            <button id="RGB2rgb" class="btn btn-primary btn-sm" disabled>Locus in Chromaticity</button>
-            <button id="rgb2RGB" class="btn btn-success btn-sm" disabled>Locus in RGB</button>
-            <button id="showPrim" class="btn btn-info btn-sm" disabled>Show Primaries</button>
-          </div>
+            <div class="btn-toolbar d-flex justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
+              <div class="btn-group me-2" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="chrm" id="showCMF" autocomplete="off" checked disabled>
+                <label class="btn btn-outline-secondary btn-sm" for="showCMF">Locus in RGB</label>
+
+                <input type="radio" class="btn-check" name="chrm" id="showChrm" autocomplete="off" disabled>
+                <label class="btn btn-outline-secondary btn-sm" for="showChrm">Locus in Chromaticity</label>
+              </div>
+
+              <div class="btn-group" role="group" aria-label="Third group">
+                <button id="showPrim" class="btn btn-secondary btn-sm" disabled>Show Primaries</button>
+              </div>
+            </div>
         </div>
       </div>
 

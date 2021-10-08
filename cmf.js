@@ -228,9 +228,8 @@ function registerPlotScaleCMF(buttonId, wlen) {
   var chart, plot;
 
   $(buttonId).on('click', function(evt) {
-    $('#resetZoomRGB').prop('disabled', false);
-    $('#RGB2rgb').prop('disabled', false);
-    $('#rgb2RGB').prop('disabled', false);
+    $('#showCMF').prop('disabled', false);
+    $('#showChrm').prop('disabled', false);
     $('#showPrim').prop('disabled', false);
 
     var uCMFR = window.cmfUnscaledChart.data.datasets[0].data;
@@ -349,7 +348,7 @@ function plotUnscaledCMF(wlen) {
         },
         title: {
           display: true,
-          text: 'Unscaled RGB \"radiance functions\"; y-axis denotes radiance.',
+          text: 'Unscaled RGB \"power functions\"',
           font: {
             size: 20,
             family: 'Helvetica Neue',
@@ -359,9 +358,9 @@ function plotUnscaledCMF(wlen) {
     }
   });
 
-  QUEUE.Push(["Text", text2Jax[3], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
-  QUEUE.Push(["Text", text2Jax[5], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
-  QUEUE.Push(["Text", text2Jax[7], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[2], window.cmfUnscaledChart.data.datasets[0].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[4], window.cmfUnscaledChart.data.datasets[1].data[(500-380)/5].toFixed(3)]);
+  QUEUE.Push(["Text", text2Jax[6], window.cmfUnscaledChart.data.datasets[2].data[(500-380)/5].toFixed(3)]);
 }
 
 function updateUnscaledCMF(chart) {
@@ -924,15 +923,13 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
     }
   });
 
-  registerResetZoom('#resetZoomRGB', window.cmfChart);
-
-  QUEUE.Push(["Text", cmfJax[1], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
-  QUEUE.Push(["Text", cmfJax[2], window.cmfChart.data.datasets[0].data[primIdx[0]].toFixed(5)]);
-  QUEUE.Push(["Text", cmfJax[3], window.cmfChart.data.datasets[1].data[primIdx[0]].toFixed(5)]);
-  QUEUE.Push(["Text", cmfJax[4], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
-  QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
-  QUEUE.Push(["Text", cmfJax[7], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
-  QUEUE.Push(["Text", cmfJax[9], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[0], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[1], window.cmfChart.data.datasets[0].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[2], window.cmfChart.data.datasets[1].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[3], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[5], window.cmfChart.data.datasets[2].data[primIdx[0]].toFixed(5)]);
+  QUEUE.Push(["Text", cmfJax[6], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
+  QUEUE.Push(["Text", cmfJax[8], window.cmfChart.data.labels[primIdx[0]]+"~nm"]);
 
   // the RGB spectral locus
   var rgbLocusMarkerColors = Array(wlen.length).fill('#888888');
@@ -1029,21 +1026,26 @@ function plotScaledCMF(sCMFR, sCMFG, sCMFB, wlen) {
   var rgbPlot = document.getElementById('rgbDiv');
   Plotly.newPlot(rgbPlot, data, layout);
 
-  // RGB to rgb chromaticity plot
-  registerRGB2rgb('#RGB2rgb', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
+  rgbPlot.mode = 'cmf';
+  registerToggleChrm(window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
 
   // show lines from the original; all points on the same line have the same chromaticity
   //registerShowChrmLine('#showChrmLine', window.cmfChart, 'rgbDiv');
-
-  // rgb to RGB plot
-  registerrgb2RGB('#rgb2RGB', window.cmfChart, rgbPlot, wlen, rgbLocusMarkerColors);
-
-  rgbPlot.mode = 'cmf';
 
   // show the selected primaries
   registerShowPrim('#showPrim', rgbPlot);
 
   return [window.cmfChart, rgbPlot];
+}
+
+function registerToggleChrm(chart, rgbPlot, wlen, rgbLocusMarkerColors) {
+  $('input[type=radio][name=chrm]').change(function() {
+    if (this.id == 'showChrm') {
+      RGB2rgb(chart, rgbPlot, wlen, rgbLocusMarkerColors);
+    } else {
+      rgb2RGB(chart, rgbPlot, wlen, rgbLocusMarkerColors);
+    }
+  });
 }
 
 function showPrim(plot, hide) {
@@ -1178,57 +1180,54 @@ function showGamut(plot) {
   Plotly.addTraces('rgbDiv', traces);
 }
 
-function registerrgb2RGB(id, chart, plot, wlen, rgbLocusMarkerColors) {
-  $(id).on('click', function(evt) {
-    plot.mode = 'cmf';
+function rgb2RGB(chart, plot, wlen, rgbLocusMarkerColors) {
+  plot.mode = 'cmf';
 
-    var data_update = {'x': [chart.data.datasets[0].data],
-                       'y': [chart.data.datasets[1].data],
-                       'z': [chart.data.datasets[2].data]};
-    var layout_update = {
-                         //'title': 'Spectral locus in RGB color space',
-                         'scene.xaxis.title.text': 'R',
-                         'scene.yaxis.title.text': 'G',
-                         'scene.zaxis.title.text': 'B',
-                        };
-    Plotly.update(plot, data_update, layout_update, [0]);
+  var data_update = {'x': [chart.data.datasets[0].data],
+                     'y': [chart.data.datasets[1].data],
+                     'z': [chart.data.datasets[2].data]};
+  var layout_update = {
+                       //'title': 'Spectral locus in RGB color space',
+                       'scene.xaxis.title.text': 'R',
+                       'scene.yaxis.title.text': 'G',
+                       'scene.zaxis.title.text': 'B',
+                      };
+  Plotly.update(plot, data_update, layout_update, [0]);
 
-    if (plot.data.length == 2) {
-      showPrim(plot);
-    }
-  });
+  if (plot.data.length == 2) {
+    showPrim(plot);
+  }
 }
 
 // will be a nop when in the chromaticity mode, which is good.
 // take whatever CMFs are in |chart|, even if it's adjusted, which is good.
-function registerRGB2rgb(id, chart, plot, wlen, rgbLocusMarkerColors) {
-  $(id).on('click', function(evt) {
-    plot.mode = 'chrm';
+//function registerRGB2rgb(id, chart, plot, wlen, rgbLocusMarkerColors) {
+function RGB2rgb(chart, plot, wlen, rgbLocusMarkerColors) {
+  plot.mode = 'chrm';
 
-    var tCMFR = chart.data.datasets[0].data;
-    var tCMFG = chart.data.datasets[1].data;
-    var tCMFB = chart.data.datasets[2].data;
+  var tCMFR = chart.data.datasets[0].data;
+  var tCMFG = chart.data.datasets[1].data;
+  var tCMFB = chart.data.datasets[2].data;
 
-    var sumRGB = math.add(math.add(tCMFR, tCMFG), tCMFB);
-    var cR = math.dotDivide(tCMFR, sumRGB);
-    var cG = math.dotDivide(tCMFG, sumRGB);
-    var cB = math.dotDivide(tCMFB, sumRGB);
+  var sumRGB = math.add(math.add(tCMFR, tCMFG), tCMFB);
+  var cR = math.dotDivide(tCMFR, sumRGB);
+  var cG = math.dotDivide(tCMFG, sumRGB);
+  var cB = math.dotDivide(tCMFB, sumRGB);
 
-    var data_update = {'x': [cR],
-                       'y': [cG],
-                       'z': [cB]};
-    var layout_update = {
-                         //'title': 'Spectral locus in rgb chromaticity plot',
-                         'scene.xaxis.title.text': 'r',
-                         'scene.yaxis.title.text': 'g',
-                         'scene.zaxis.title.text': 'b',
-                        };
-    Plotly.update(plot, data_update, layout_update, [0]);
+  var data_update = {'x': [cR],
+                     'y': [cG],
+                     'z': [cB]};
+  var layout_update = {
+                       //'title': 'Spectral locus in rgb chromaticity plot',
+                       'scene.xaxis.title.text': 'r',
+                       'scene.yaxis.title.text': 'g',
+                       'scene.zaxis.title.text': 'b',
+                      };
+  Plotly.update(plot, data_update, layout_update, [0]);
 
-    if (plot.data.length == 2) {
-      showPrim(plot);
-    }
-  });
+  if (plot.data.length == 2) {
+    showPrim(plot);
+  }
 }
 
 function registerShowChrmLine(id, chart, plot) {
