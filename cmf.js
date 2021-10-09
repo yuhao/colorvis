@@ -1055,6 +1055,16 @@ function showPrim(plot, hide) {
     return;
   }
 
+  // calculate RGB for reference white (should be [1, 1, 1])
+  //var chart = window.cmfChart;
+  //var sCMFR = chart.data.datasets[0].data;
+  //var sCMFG = chart.data.datasets[1].data;
+  //var sCMFB = chart.data.datasets[2].data;
+  //var whiteSPD = window.whiteChart.data.datasets[0].data;
+  //wR = math.multiply(whiteSPD, sCMFR);
+  //wG = math.multiply(whiteSPD, sCMFG);
+  //wB = math.multiply(whiteSPD, sCMFB);
+
   var prims = []; // in the RGB order (different from primIdx!)
   if (plot.mode == 'cmf') {
     var bPrim = [+plot.data[0].x[primIdx[0]].toFixed(6),
