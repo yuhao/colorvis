@@ -169,6 +169,25 @@ function formatRGB(rgb) {
   return 'rgba('+ rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + '1)';
 }
 
+function showChrmLine(id) {
+  var plot = window.locusPlot;
+  var numWaves = plot.data[0].x.length;
+
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(2));
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(2));
+  }
+}
+
+function registerShowChrmLine(id) {
+  $(id).on('change', function(evt) {
+    showChrmLine(id);
+  });
+}
+
 function registerShowChrm(id) {
   $(id).on('change', function(evt) {
     var plot = window.locusPlot;
@@ -176,12 +195,22 @@ function registerShowChrm(id) {
 
     if($(id).is(":checked")) {
       var data_update = {'visible': true};
-      Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
+      //Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
+      Plotly.restyle(plot, data_update, [1]);
       Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+      $('#showChrmLine').prop('disabled', false);
     } else {
       var data_update = {'visible': 'legendonly'};
-      Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
+      //Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
+      Plotly.restyle(plot, data_update, [1]);
       Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+
+      // disable equi-rgb-ratio lines in RGB plot
+      $('#showChrmLine').prop('disabled', true);
+      if($('#showChrmLine').is(":checked")) {
+        $('#showChrmLine').prop('checked', false);
+        showChrmLine('#showChrmLine');
+      }
     }
   });
 }
@@ -689,7 +718,8 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
     } else if (this.value == 'usePreset') {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
-      selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 435), getWaveId(lmsChart, 545), getWaveId(lmsChart, 700)]);
+      //selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 435), getWaveId(lmsChart, 545), getWaveId(lmsChart, 700)]);
+      selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 445), getWaveId(lmsChart, 540), getWaveId(lmsChart, 590)]);
     } else if (this.value == 'drawPrim') {
       drawPrims(rgbChart, rgbCanvas);
     }
@@ -838,8 +868,12 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
        [Array(wlen.length).fill(0.9), greenColor],
        [Array(wlen.length).fill(0.8), redColor]]);
 
+  // will calculate everything but hide them except the RGB locus
+  // order: RGB locus, rgb locus, all chrm lines, RGB prims, rgb prims
   registerPlotLocus('#plotLocus', window.lmsChart, window.rgbPrimChart);
+
   registerShowChrm('#showChrm');
+  registerShowChrmLine('#showChrmLine');
   registerShowPlane('#showPlane');
   registerProjChrm('#projChrm');
 });

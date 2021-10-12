@@ -79,7 +79,7 @@
         <h3>Step 0: Picking a Color Space</h3>
         <p>While the notions of chromaticity and gamut are general, every color space has a different gamut and the same light has different chromaticities in different color spaces. To be concrete, we will use a specific color space for this tutorial. Any color space will do, so we invite you to build your own and use it to drive the rest of the tutorial. We know that a color space is uniquely defined by its primaries and the reference white. For simplicity, we will assume CIE Standard Illuminant E (Equal-Energy White) as the reference white, and provide you three ways to pick the primaries.</p>
         <ul style="list-style-type:none;">
-          <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;<b>Use Preset Primaries</b></label>. This is a short-cut that automatically selects spectral lights $435~nm$, $545~nm$, and $700~nm$ as the primaries.</li>
+          <li><input type="radio" value="usePreset" name="prim"><label for="usePreset">&nbsp;&nbsp;<b>Use Preset Primaries</b></label>. This is a short-cut that automatically selects spectral lights $445~nm$, $540~nm$, and $590~nm$ as the primaries.</li>
           <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;<b>Select Spectral Primaries</b></label>. This will allow you to select three spectral lights as the primaries, exactly like what you did in the previous tutorial.</li>
           <li><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;<b>Draw Primaries</b></label>. You can draw the spectral power distribution (SPD) of the primaries in the right chart below. You can <button id="resetPrim" class="btn btn-primary btn-sm" disabled>Reset Draw</button> to start over.</li>
         </ul>
@@ -108,7 +108,12 @@
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm" disabled>
               <label class="form-check-label" for="showChrm">&nbsp;&nbsp;<b>Show Chromaticities</b></label>
-              <p>Show the equi-rgb-ratio lines and the chromacitities of the spectral lights. Notice how the primaries always sit along the axes.</p>
+              <p>Show the chromacitities of the spectral lights.</p>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="showChrmLine" disabled>
+              <label class="form-check-label" for="showChrmLine">&nbsp;&nbsp;<b>Show Equi-rgb-Ratio Line</b></label>
+              <p>Show the equi-rgb-ratio lines. Notice how an RGB point and its corresponding chromaticity point are always on the same line.</p>
             </div>
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane" disabled>
