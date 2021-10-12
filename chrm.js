@@ -9,7 +9,7 @@ var orangeColor = '#DC7B2E';
 var blueGreenColor = '#63BFAB'; 
 var oRedColor = 'rgba(218, 37, 0, 0.3)';
 var oGreenColor = 'rgba(0, 143, 0, 0.3)';
-var oBlueColor = 'rgba(1, 25, 147, 0.3)';
+var oBlueColor = 'rgba(1, 25, 147, 0.5)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
@@ -173,17 +173,21 @@ function registerShowChrm(id) {
   $(id).on('change', function(evt) {
     var plot = window.locusPlot;
     var numWaves = plot.data[0].x.length;
+
     if($(id).is(":checked")) {
       var data_update = {'visible': true};
       Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
+      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
     } else {
       var data_update = {'visible': 'legendonly'};
       Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
+      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
     }
   });
 }
 
 var lMat = [[], [], []];
+var primIdx = [];
 var sCMFR = [], sCMFG = [], sCMFB = []; // these are precise values without rounding
 function registerPlotLocus(buttonId, lmsChart, primChart) {
   $(buttonId).on('click', function(evt) {
@@ -220,7 +224,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     gRad = math.dot(unscaledG, whiteSPD);
     bRad = math.dot(unscaledB, whiteSPD);
 
-    // *10 just so that the RGB andd rgb are comparable in magnitude and can shown in the same plot
+    // *10 just so that the RGB and rgb are comparable in magnitude and can shown in the same plot
     // TODO: automatically calculate this scaling factor
     sCMFR = math.dotDivide(unscaledR, rRad).map(element => element * 10);
     sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
@@ -229,10 +233,57 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotLocus(lmsChart.data.labels);
     plotChrm();
     plotPlane();
+    plotPrims();
 
     $('#showChrm').prop('disabled', false);
     $('#showPlane').prop('disabled', false);
+    $('#projChrm').prop('disabled', false);
   });
+}
+
+function plotPrims() {
+  var plot = window.locusPlot;
+  var RGBTrace = {
+    x: [sCMFR[primIdx[0]], sCMFR[primIdx[1]], sCMFR[primIdx[2]]],
+    y: [sCMFG[primIdx[0]], sCMFG[primIdx[1]], sCMFG[primIdx[2]]],
+    z: [sCMFB[primIdx[0]], sCMFB[primIdx[1]], sCMFB[primIdx[2]]],
+    text: [plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[2]]],
+    mode: 'markers',
+    type: 'scatter3d',
+    //visible: 'legendonly',
+    marker: {
+      color: '#000000',
+      size: 6,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    hovertemplate: 'r: %{x}' +
+      '<br>g: %{y}' +
+      '<br>b: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>',
+    //hoverinfo: 'skip',
+  };
+  var rgbTrace = {
+    x: [0, 0, 1],
+    y: [0, 1, 0],
+    z: [1, 0, 0],
+    text: [plot.data[0].text[primIdx[0]], plot.data[0].text[primIdx[1]], plot.data[0].text[primIdx[2]]],
+    mode: 'markers',
+    type: 'scatter3d',
+    visible: 'legendonly',
+    marker: {
+      color: blueColor,
+      size: 6,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    hovertemplate: 'r: %{x}' +
+      '<br>g: %{y}' +
+      '<br>b: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>',
+    //hoverinfo: 'skip',
+  };
+  Plotly.addTraces(plot, [RGBTrace, rgbTrace]);
 }
 
 function plotPlane() {
@@ -287,12 +338,13 @@ function plotChrm() {
     type: 'scatter3d',
     visible: 'legendonly',
     line: {
-      color: '#32a852',
+      //color: '#32a852',
+      color: oBlueColor,
       shape: 'spline',
     },
     marker: {
       size: 4,
-      opacity: 0.8,
+      //opacity: 0.8,
     },
     customdata: ratios,
     hovertemplate: 'r: %{x}' +
@@ -300,7 +352,7 @@ function plotChrm() {
       '<br>b: %{z}' +
       '<br>wavelength: %{text}' +
       '<br>ratio: %{customdata}<extra></extra>',
-      //hoverinfo: 'skip',
+    //hoverinfo: 'skip',
   };
 
   var traces = [];
@@ -645,7 +697,6 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
 }
 
 function selectPrims(canvas, chart, presets) {
-    // dim the LMS curves
     // TODO: read the rgb value and change the opacity
     var len = chart.data.datasets[0].data.length;
     chart.data.datasets[0].borderColor = Array(len).fill(oRedColor);
@@ -673,6 +724,7 @@ function selectPrims(canvas, chart, presets) {
         lMat[1][i] = chart.data.datasets[1].data[index];
         lMat[2][i] = chart.data.datasets[2].data[index];
 
+        primIdx[i] = index;
       }
       chart.update();
       return;
@@ -702,9 +754,34 @@ function selectPrims(canvas, chart, presets) {
         lMat[1][numPoints] = chart.data.datasets[1].data[point.index];
         lMat[2][numPoints] = chart.data.datasets[2].data[point.index];
 
+        primIdx[numPoints] = point.index;
+
         numPoints++;
       }
     }
+}
+
+function registerProjChrm(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.locusPlot;
+    if($(id).is(":checked")) {
+      var layout_update = {
+        'scene.camera.center': {x: 0, y: 0, z: 0},
+        'scene.camera.eye': {x:1.250652682833936e-19, y:-1.5308079880497813e-16, z:0.5},
+        'scene.camera.up': {x: 0, y: 0, z: 1},
+      };
+
+      Plotly.relayout(plot, layout_update);
+    } else {
+      var layout_update = {
+        'scene.camera.center': {x: 0, y: 0, z: 0},
+        'scene.camera.eye': {x:1.25, y:1.25, z:1.25},
+        'scene.camera.up': {x: 0, y: 0, z: 1},
+      };
+
+      Plotly.relayout(plot, layout_update);
+    }
+  });
 }
 
 function registerShowPlane(id) {
@@ -712,10 +789,10 @@ function registerShowPlane(id) {
     var plot = window.locusPlot;
     if($(id).is(":checked")) {
       var data_update = {'visible': true};
-      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+      Plotly.restyle(plot, data_update, [plot.data.length - 3]);
     } else {
       var data_update = {'visible': 'legendonly'};
-      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+      Plotly.restyle(plot, data_update, [plot.data.length - 3]);
     }
   });
 }
@@ -723,7 +800,19 @@ function registerShowPlane(id) {
 function registerShowPrims(id) {
   $(id).on('change', function(evt) {
     var plot = window.locusPlot;
+    var traceId;
+    if($('#showChrm').is(":checked")) {
+      traceId = plot.data.length - 1;
+    } else {
+      traceId = plot.data.length - 2;
+    }
+
     if($(id).is(":checked")) {
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, [traceId]);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+      Plotly.restyle(plot, data_update, [traceId]);
     }
   });
 }
@@ -745,13 +834,13 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   registerSelPrim('#selPrimForm', window.lmsChart, window.lmsCanvas, window.rgbPrimChart, window.rgbPrimCanvas);
   registerChartReset('#resetPrim', undefined, window.rgbPrimChart, window.rgbPrimCanvas, [0, 1, 2],
-      [[Array(wlen.length).fill(0.8), redColor],
+      [[Array(wlen.length).fill(0.6), blueColor],
        [Array(wlen.length).fill(0.9), greenColor],
-       [Array(wlen.length).fill(0.6), blueColor]]);
+       [Array(wlen.length).fill(0.8), redColor]]);
 
   registerPlotLocus('#plotLocus', window.lmsChart, window.rgbPrimChart);
   registerShowChrm('#showChrm');
   registerShowPlane('#showPlane');
-  registerShowPrims('#showPrims');
+  registerProjChrm('#projChrm');
 });
 
