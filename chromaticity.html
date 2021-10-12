@@ -98,7 +98,7 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Step 1: Decoupling Quality and Quantity from a Color</h3>
+        <h3>Step 1: Decoupling Quality (Chromaticities) and Quantity (Brightness)</h3>
         <p>The plot below is the spectral locus in your RGB space. Hover over any point on the locus to reveal the coordinates of the corresponding spectral light. Recall what the coordinates mean: they represent the amount of primaries needed to match the color of that spectral light. In fact, any point in this space corresponds to a color, and the coordinates of the point represent the amount of primaries needed to match that color.</p>
       </div>
 
@@ -107,22 +107,22 @@
           <div>
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm" disabled>
-              <label class="form-check-label" for="showChrm">&nbsp;&nbsp;<b>Show Chromaticities</b></label>
+              <label class="form-check-label" for="showChrm"><b>Show Chromaticities</b></label>
               <p>Show the chromacitities of the spectral lights.</p>
             </div>
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrmLine" disabled>
-              <label class="form-check-label" for="showChrmLine">&nbsp;&nbsp;<b>Show Equi-rgb-Ratio Line</b></label>
+              <label class="form-check-label" for="showChrmLine"><b>Show Equi-rgb-Ratio Line</b></label>
               <p>Show the equi-rgb-ratio lines. Notice how an RGB point and its corresponding chromaticity point are always on the same line.</p>
             </div>
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane" disabled>
-              <label class="form-check-label" for="showPlane">&nbsp;&nbsp;<b>Show r+g+b=1 Plane</b></label>
+              <label class="form-check-label" for="showPlane"><b>Show r+g+b=1 Plane</b></label>
               <p>The chromacities of all colors line on this plane. Enabled only after the chromaticities are shown.</p>
             </div>
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="projChrm" disabled>
-              <label class="form-check-label" for="projChrm">&nbsp;&nbsp;<b>Project</b></label>
+              <label class="form-check-label" for="projChrm"><b>Project</b></label>
               <p>Project the 3D plot to the r-g plane.</p>
             </div>
           </div>
@@ -135,14 +135,42 @@
       <div class="row">
         <p>Now toggle the "Show Chromaticities " switch. You will see a set of lines, each of which starts from the origin and goes through a spectral light. By simple geometry, we know that points on a line, while requiring different absolute amounts of RGB primaries (different coordinates in the RGB space), all have the same R:G:B ratio. This conclusion generalizes too any line, not just the lines that go through the locus.</p>
         <p>How do a color that's mixed from 1:2:4 units of RGB primaries and a color that's mixed from a 2:4:8 units of the primaries relate? Well, recall from the <a href="cone2cmf.html">previous tutorial</a> that the amount of a primary is directly proportional to the power of that primary. So the second color can be obtained by doubling the power of each primary in the first color; similarly, halving the power of each primary in the second color gets us the first color. Intuitively, lights that have the same primary quantity ratio are said to have the same "objective color quality" while differing in the intensity.</p>
-        <h4>Chromaticities</h4>
         <p>More formally, we can calculate the primary ratio $r:g:b$ of a color and then normalize the ratio such that $r+g+b = 1$ (100%). The so-calculated $r, g, b$ values of a color are called the <b>chromaticities</b> of that color. Mathematically, the chromaticities of a color are calculated from its absolute quantity by:</p>
         <p>$r = \frac{R}{R+G+B},~~~g = \frac{G}{R+G+B},~~~b = \frac{B}{R+G+B}$.</p>
         <p>Each color now has an rgb triplet, representing the color's chromaticities. Similar to how we represent colors in the RGB space, we can also plot the colors using their chromaticities. The green curve in the chart above shows the chromaticities of the spectral lights. Hover over a chromaticity point and the corresponding RGB point on the same line; check the primary ratio in the tooltips and you can see that the primary ratio doesn't change when you plot a color using their chromacitities. Obviously, the exact chromaticity values of a color depend on the particular color space used to represent that color.</p>
         <p>Knowing the chromaticities of a color tells us the <b>inherent attribute</b> of the color, and we can make that color brighter or darker by increasing or decreasing the amount of the primaries <i>while keeping the chromaticities constant</i>. In many practical color applications such as color photography and digital displays, chromaticities of a color is what we strive to capture (in the case of photography) or reproduce (in the case of display), and we are almost never be able to capture/reproduce the exact intensity of light in the scene (think about the power of the sun!).</p>
         <p>Spin around the plot. Notice how all the spectral lights are now on the same plane. That's the natural implication of how chromaticities are defined: since we enforce $r+g+b=1$, all the colors in the chromaticity plot naturally lie on the $r+g+b=1$ plane. Toggle the "Show r+g+b=1 Plane" switch to convince yourself of that. If we were to define chromaticities such that $r+g+b=1.5$, all the colors will then lie on that plane. One way to think of the chromaticity plot is that we shoot rays from the origin to go through all the spectral lights, and then take a cut of all those lines with the $r+g+b=1$ plane. Mathematically, it is performing a perspective projection of the RGB colors onto the plane where the point of projection is the origin.</p>
-        <h4>Understanding Chromaticity Plot</h4>
         <p>Chromaticity is inherently a 3D concept, but since the chromaticities of all colors lie on one plane, we can represent them in a 2D plot. The convention is to project the $r+g+b=1$ plane onto the r-g plane, and the resulting plot is called the <i>rg-chromaciticy plot</i>. You should try to spin the 3D plot around to project yourself, and you can also toggle the "Project" switch, which does the project for you.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 2: Gamut</h3>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-4 d-flex align-self-center">
+          <div>
+            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+              <input type="radio" class="btn-check" name="btnradio" id="pick2" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="pick2">Pick 2 Colors</label>
+            
+              <input type="radio" class="btn-check" name="btnradio" id="pick3" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="pick3">Pick 3 Colors</label>
+            </div>
+            <div class="form-check form-switch align-self-center">
+              <input class="form-check-input" type="checkbox" role="switch" id="showhvs">
+              <label class="form-check-label" for="showhvs"><b>Show Human Visible Gamut</b></label>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-8">
+          <div id="chrmLocusDiv" class="mb-4"></div>
+        </div>
+      </div>
+
+      <div class="row">
       </div>
     </div>
 

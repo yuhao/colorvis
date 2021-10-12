@@ -197,13 +197,13 @@ function registerShowChrm(id) {
       var data_update = {'visible': true};
       //Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
       Plotly.restyle(plot, data_update, [1]);
-      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+      //Plotly.restyle(plot, data_update, [plot.data.length - 1]);
       $('#showChrmLine').prop('disabled', false);
     } else {
       var data_update = {'visible': 'legendonly'};
       //Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
       Plotly.restyle(plot, data_update, [1]);
-      Plotly.restyle(plot, data_update, [plot.data.length - 1]);
+      //Plotly.restyle(plot, data_update, [plot.data.length - 1]);
 
       // disable equi-rgb-ratio lines in RGB plot
       $('#showChrmLine').prop('disabled', true);
@@ -262,7 +262,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotLocus(lmsChart.data.labels);
     plotChrm();
     plotPlane();
-    plotPrims();
+    //plotPrims();
 
     $('#showChrm').prop('disabled', false);
     $('#showPlane').prop('disabled', false);
@@ -368,7 +368,7 @@ function plotChrm() {
     visible: 'legendonly',
     line: {
       //color: '#32a852',
-      color: oBlueColor,
+      color: greenColor,
       shape: 'spline',
     },
     marker: {
@@ -477,8 +477,8 @@ function plotLocus(wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        constrain: 'domain',
-        dtick: 0.2,
+        //constrain: 'domain',
+        //dtick: 0.2,
         showspikes: false,
         title: {
           text: 'R'
@@ -490,8 +490,8 @@ function plotLocus(wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        scaleanchor: 'x',
-        dtick: 0.2,
+        //scaleanchor: 'x',
+        //dtick: 0.2,
         showspikes: false,
         title: {
           text: 'G'
@@ -817,12 +817,13 @@ function registerProjChrm(id) {
 function registerShowPlane(id) {
   $(id).on('change', function(evt) {
     var plot = window.locusPlot;
+    var numWaves = plot.data[0].x.length;
     if($(id).is(":checked")) {
       var data_update = {'visible': true};
-      Plotly.restyle(plot, data_update, [plot.data.length - 3]);
+      Plotly.restyle(plot, data_update, [numWaves+2]);
     } else {
       var data_update = {'visible': 'legendonly'};
-      Plotly.restyle(plot, data_update, [plot.data.length - 3]);
+      Plotly.restyle(plot, data_update, [numWaves+2]);
     }
   });
 }
@@ -843,6 +844,163 @@ function registerShowPrims(id) {
     } else {
       var data_update = {'visible': 'legendonly'};
       Plotly.restyle(plot, data_update, [traceId]);
+    }
+  });
+}
+
+function plotGamut(plot, data, count) {
+  var pn = data.points[0].pointNumber;
+  selectX[count] = data.points[0].data.x[pn];
+  selectY[count] = data.points[0].data.y[pn];
+  selectZ[count] = data.points[0].data.z[pn];
+  count++;
+  if (count == 3) {
+    //var otherPointsX = [selectX[0] + selectX[1], // r+g
+    //                    selectX[0] + selectX[2], // r+b
+    //                    selectX[1] + selectX[2], // g+b
+    //                    selectX[0] + selectX[1] + selectX[2]]; // r+g+b
+    //var otherPointsY = [selectY[0] + selectY[1],
+    //                    selectY[0] + selectY[2],
+    //                    selectY[1] + selectY[2],
+    //                    selectY[0] + selectY[1] + selectY[2]];
+    //var otherPointsZ = [selectZ[0] + selectZ[1],
+    //                    selectZ[0] + selectZ[2],
+    //                    selectZ[1] + selectZ[2],
+    //                    selectZ[0] + selectZ[1] + selectZ[2]];
+    //var allPointsX = [0].concat(selectX.concat(otherPointsX));
+    //var allPointsY = [0].concat(selectY.concat(otherPointsY));
+    //var allPointsZ = [0].concat(selectZ.concat(otherPointsZ));
+
+    var trace = {
+      x: [selectX[0], selectX[1], selectX[2], selectX[0]],
+      y: [selectY[0], selectY[1], selectY[2], selectY[0]],
+      z: [selectZ[0], selectZ[1], selectZ[2], selectZ[0]],
+
+      //text: plot.data[0].text,
+      mode: 'lines+markers',
+      type: 'scatter3d',
+      visible: 'legendonly',
+      line: {
+        color: '#32a852',
+        //color: oBlueColor,
+        //shape: 'spline',
+      },
+      marker: {
+        size: 4,
+        //opacity: 0.8,
+      },
+      //customdata: ratios,
+      //hovertemplate: 'r: %{x}' +
+      //  '<br>g: %{y}' +
+      //  '<br>b: %{z}' +
+      //  '<br>wavelength: %{text}' +
+      //  '<br>ratio: %{customdata}<extra></extra>',
+      //hoverinfo: 'skip',
+    };
+
+    // https://github.com/plotly/plotly.js/issues/1467
+    // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
+    Plotly.addTraces(plot, [trace]);
+  }
+}
+
+function registerPickColors(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.locusPlot;
+    var traces;
+
+    if($(id).is(":checked")) {
+      var count = 0;
+      var selectX = [];
+      var selectY = [];
+      var selectZ = [];
+      var chrmSelectX = [];
+      var chrmSelectY = [];
+      var chrmSelectZ = [];
+
+      plot.on('plotly_click', function(data){
+        if (data.points[0].curveNumber != 0) return;
+
+        // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
+        var pn = data.points[0].pointNumber;
+        selectX[count] = data.points[0].data.x[pn];
+        selectY[count] = data.points[0].data.y[pn];
+        selectZ[count] = data.points[0].data.z[pn];
+        chrmSelectX[count] = plot.data[1].x[pn];
+        chrmSelectY[count] = plot.data[1].y[pn];
+        chrmSelectZ[count] = plot.data[1].z[pn];
+
+        //plotGamut(plot, data, count);
+        count++;
+        if (count == 3) {
+          var trace = {
+            x: [selectX[0], selectX[1], selectX[2]],
+            y: [selectY[0], selectY[1], selectY[2]],
+            z: [selectZ[0], selectZ[1], selectZ[2]],
+            i: [0],
+            j: [1],
+            k: [2],
+            //text: [],
+            //mode: 'lines',
+            type: 'mesh3d',
+            opacity:0.8,
+            color: '#000000',
+            //name: 'Primaries',
+            hoverinfo: 'skip',
+            //hovertemplate: 'R: %{x}' +
+            //  '<br>G: %{y}' +
+            //  '<br>B: %{z}' +
+            //  '<br>wavelength: %{text}<extra></extra>' ,
+          };
+          traces = [];
+          traces.push(trace);
+
+          var chrmTrace = {
+            x: [chrmSelectX[0], chrmSelectX[1], chrmSelectX[2]],
+            y: [chrmSelectY[0], chrmSelectY[1], chrmSelectY[2]],
+            z: [chrmSelectZ[0], chrmSelectZ[1], chrmSelectZ[2]],
+            i: [0],
+            j: [1],
+            k: [2],
+            //text: [],
+            //mode: 'lines',
+            type: 'mesh3d',
+            //visible: 'legendonly',
+            opacity:0.8,
+            color: greenColor,
+            //name: 'Primaries',
+            hoverinfo: 'skip',
+            //hovertemplate: 'R: %{x}' +
+            //  '<br>G: %{y}' +
+            //  '<br>B: %{z}' +
+            //  '<br>wavelength: %{text}<extra></extra>' ,
+          };
+          traces.push(chrmTrace);
+
+          for (var i = 0; i < 3; i++) {
+            var trace = {
+              x: [0, chrmSelectX[i]],
+              y: [0, chrmSelectY[i]],
+              z: [0, chrmSelectZ[i]],
+              mode: 'lines',
+              type: 'scatter3d',
+              //visible: 'legendonly',
+              line: {
+                color: redColor,
+                width: 2,
+              },
+              hoverinfo: 'skip',
+            };
+            traces.push(trace);
+          }
+
+          // https://github.com/plotly/plotly.js/issues/1467
+          // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
+          Plotly.addTraces(plot, traces);
+        }
+      });
+    } else {
+      Plotly.deleteTraces(plot, traces);
     }
   });
 }
@@ -869,12 +1027,14 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
        [Array(wlen.length).fill(0.8), redColor]]);
 
   // will calculate everything but hide them except the RGB locus
-  // order: RGB locus, rgb locus, all chrm lines, RGB prims, rgb prims
+  // order: RGB locus, rgb locus, all chrm lines, r+g+b=1 plane(, RGB prims, rgb prims)
   registerPlotLocus('#plotLocus', window.lmsChart, window.rgbPrimChart);
 
   registerShowChrm('#showChrm');
   registerShowChrmLine('#showChrmLine');
   registerShowPlane('#showPlane');
   registerProjChrm('#projChrm');
+
+  registerPickColors('#pick3');
 });
 
