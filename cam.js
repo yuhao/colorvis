@@ -100,7 +100,7 @@ function registerChartReset(buttonId, plotId, chart, canvas, num, resetData1, re
       chart.data.datasets[2].pointRadius = Array(length).fill(3);
     }
 
-    registerDrag(canvas, chart, plotId, false, []);
+    registerDrag(canvas, chart, plotId, true, []);
     chart.update();
 
     // reset plotly.js (3d)
@@ -338,16 +338,24 @@ function genSelectBox(values, id, preset) {
 
   for (const val of values)
   {
+    if (val == 'DSLR Average' || val == 'Point and Shoot Average' || val == 'Mobile Average' || val == 'Industrial Average') {
+      var id = val.indexOf("Average");
+      var name = val.substring(0, id-1);
+      var optgrp = document.createElement("optgroup");
+      optgrp.label = name;
+      select.appendChild(optgrp);
+    }
     var option = document.createElement("option");
     option.value = val;
     option.text = val;
     select.appendChild(option);
+    if (val == 'Average') {
+      var option = document.createElement("option");
+      option.value = 'Custom';
+      option.text = 'Custom';
+      select.appendChild(option);
+    }
   }
-
-  var option = document.createElement("option");
-  option.value = 'Custom';
-  option.text = 'Custom';
-  select.appendChild(option);
 
   if (preset) select.value = preset;
 }
@@ -952,12 +960,12 @@ d3.csv('ciesi.csv', function(err, rows){
   var chrmPlot = document.getElementById('chrmDiv');
   registerCalcMat('#calcMatrix', patchPlot, colorDiffPlot, chrmPlot);
 
-  registerChooseCase('#chooseD80', '#genLinSys', '#calcMatrix', '#camSel');
+  registerChooseCase('#chooseCam', '#genLinSys', '#calcMatrix', '#camSel');
 });
 
 function registerChooseCase(id, genLinSys, calcMat, camSel) {
   $(id).on('click', function(evt) {
-    $(camSel).val('Nikon D80').trigger('change');
+    $(camSel).val('iPhone 12 Pro Max').trigger('change');
     $(genLinSys).trigger('click');
     $(calcMat).trigger('click');
   });
