@@ -38,7 +38,7 @@ function range(start, end, stride) {
 
 function registerResetZoom(id, chart) {
   $(id).on('click', function(evt) {
-      chart.resetZoom();
+    chart.resetZoom();
   });
 }
 
@@ -215,6 +215,21 @@ function registerShowChrm(id) {
   });
 }
 
+function registerShowChrm2(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.chrmPlot;
+    var numWaves = plot.data[0].x.length;
+
+    if($(id).is(":checked")) {
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, [1]);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+      Plotly.restyle(plot, data_update, [1]);
+    }
+  });
+}
+
 var lMat = [[], [], []];
 var primIdx = [];
 var sCMFR = [], sCMFG = [], sCMFB = []; // these are precise values without rounding
@@ -259,14 +274,19 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
     sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * 10);
 
-    plotLocus(lmsChart.data.labels);
-    plotChrm();
+    window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv');
+    plotChrm(window.locusPlot, true);
     plotPlane();
     //plotPrims();
+
+    window.chrmPlot = plotLocus(lmsChart.data.labels, 'chrmLocusDiv');
+    plotChrm(window.chrmPlot, false);
 
     $('#showChrm').prop('disabled', false);
     $('#showPlane').prop('disabled', false);
     $('#projChrm').prop('disabled', false);
+
+    $('#showChrm2').prop('disabled', false);
   });
 }
 
@@ -340,8 +360,7 @@ function plotPlane() {
   Plotly.addTraces(plot, [trace]);
 }
 
-function plotChrm() {
-  var plot = window.locusPlot;
+function plotChrm(plot, lines) {
   var numWaves = plot.data[0].x.length;
 
   var sumRGB = math.add(math.add(sCMFR, sCMFG), sCMFB);
@@ -387,27 +406,29 @@ function plotChrm() {
   var traces = [];
   traces.push(trace);
 
-  for (i = 0; i < numWaves; i++) {
-    var trace = {
-      x: [0, cR[i]],
-      y: [0, cG[i]],
-      z: [0, cB[i]],
-      mode: 'lines',
-      type: 'scatter3d',
-      visible: 'legendonly',
-      line: {
-        color: greyColor,
-        width: 1,
-      },
-      hoverinfo: 'skip',
-    };
-    traces.push(trace);
+  if (lines) {
+    for (i = 0; i < numWaves; i++) {
+      var trace = {
+        x: [0, cR[i]],
+        y: [0, cG[i]],
+        z: [0, cB[i]],
+        mode: 'lines',
+        type: 'scatter3d',
+        visible: 'legendonly',
+        line: {
+          color: greyColor,
+          width: 1,
+        },
+        hoverinfo: 'skip',
+      };
+      traces.push(trace);
+    }
   }
 
   Plotly.addTraces(plot, traces);
 }
 
-function plotLocus(wlen) {
+function plotLocus(wlen, plotId) {
   var ratios = [];
   for (var i = 0; i < sCMFR.length; i++) {
     var ratio;
@@ -511,9 +532,10 @@ function plotLocus(wlen) {
     }
   };
  
-  window.locusPlot = document.getElementById('rgbLocusDiv');
-  var plot = window.locusPlot;
+  var plot = document.getElementById(plotId);
   Plotly.newPlot(plot, data, layout);
+
+  return plot
 }
 
 function plotCones(rows, x_data) {
@@ -904,103 +926,239 @@ function plotGamut(plot, data, count) {
   }
 }
 
-function registerPickColors(id) {
-  $(id).on('change', function(evt) {
-    var plot = window.locusPlot;
-    var traces;
+function registerPickColors() {
+  var traceIdx;
 
-    if($(id).is(":checked")) {
-      var count = 0;
-      var selectX = [];
-      var selectY = [];
-      var selectZ = [];
-      var chrmSelectX = [];
-      var chrmSelectY = [];
-      var chrmSelectZ = [];
+  $('input[type=radio][name=pick]').change(function() {
+    var plot = window.chrmPlot;
 
-      plot.on('plotly_click', function(data){
-        if (data.points[0].curveNumber != 0) return;
+    if (traceIdx != undefined && traceIdx.length != 0) Plotly.deleteTraces(plot, traceIdx);
+    traceIdx = [];
 
-        // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
-        var pn = data.points[0].pointNumber;
-        selectX[count] = data.points[0].data.x[pn];
-        selectY[count] = data.points[0].data.y[pn];
-        selectZ[count] = data.points[0].data.z[pn];
-        chrmSelectX[count] = plot.data[1].x[pn];
-        chrmSelectY[count] = plot.data[1].y[pn];
-        chrmSelectZ[count] = plot.data[1].z[pn];
+    var count = 0;
+    var traces = [];
+    var selectX = [];
+    var selectY = [];
+    var selectZ = [];
+    var chrmSelectX = [];
+    var chrmSelectY = [];
+    var chrmSelectZ = [];
 
-        //plotGamut(plot, data, count);
-        count++;
-        if (count == 3) {
+    function add3(data) {
+      if (data.points[0].curveNumber != 0) return;
+      //if (count == 3) return;
+
+      // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
+      var pn = data.points[0].pointNumber;
+      selectX[count] = data.points[0].data.x[pn];
+      selectY[count] = data.points[0].data.y[pn];
+      selectZ[count] = data.points[0].data.z[pn];
+      chrmSelectX[count] = plot.data[1].x[pn];
+      chrmSelectY[count] = plot.data[1].y[pn];
+      chrmSelectZ[count] = plot.data[1].z[pn];
+
+      count++;
+      if (count == 3) {
+        plot.removeListener('plotly_click', add3);
+
+        var trace = {
+          x: [selectX[0], selectX[1], selectX[2]],
+          y: [selectY[0], selectY[1], selectY[2]],
+          z: [selectZ[0], selectZ[1], selectZ[2]],
+          i: [0],
+          j: [1],
+          k: [2],
+          type: 'mesh3d',
+          opacity:0.8,
+          color: '#000000',
+          hoverinfo: 'skip',
+        };
+        traces.push(trace);
+
+        var chrmTrace = {
+          x: [chrmSelectX[0], chrmSelectX[1], chrmSelectX[2]],
+          y: [chrmSelectY[0], chrmSelectY[1], chrmSelectY[2]],
+          z: [chrmSelectZ[0], chrmSelectZ[1], chrmSelectZ[2]],
+          i: [0],
+          j: [1],
+          k: [2],
+          type: 'mesh3d',
+          opacity:0.8,
+          color: greenColor,
+          hoverinfo: 'skip',
+        };
+        traces.push(chrmTrace);
+
+        for (var i = 0; i < 3; i++) {
           var trace = {
-            x: [selectX[0], selectX[1], selectX[2]],
-            y: [selectY[0], selectY[1], selectY[2]],
-            z: [selectZ[0], selectZ[1], selectZ[2]],
-            i: [0],
-            j: [1],
-            k: [2],
-            //text: [],
-            //mode: 'lines',
-            type: 'mesh3d',
-            opacity:0.8,
-            color: '#000000',
-            //name: 'Primaries',
+            x: [0, chrmSelectX[i]],
+            y: [0, chrmSelectY[i]],
+            z: [0, chrmSelectZ[i]],
+            mode: 'lines',
+            type: 'scatter3d',
+            line: {
+              color: redColor,
+              width: 2,
+            },
             hoverinfo: 'skip',
-            //hovertemplate: 'R: %{x}' +
-            //  '<br>G: %{y}' +
-            //  '<br>B: %{z}' +
-            //  '<br>wavelength: %{text}<extra></extra>' ,
           };
-          traces = [];
           traces.push(trace);
-
-          var chrmTrace = {
-            x: [chrmSelectX[0], chrmSelectX[1], chrmSelectX[2]],
-            y: [chrmSelectY[0], chrmSelectY[1], chrmSelectY[2]],
-            z: [chrmSelectZ[0], chrmSelectZ[1], chrmSelectZ[2]],
-            i: [0],
-            j: [1],
-            k: [2],
-            //text: [],
-            //mode: 'lines',
-            type: 'mesh3d',
-            //visible: 'legendonly',
-            opacity:0.8,
-            color: greenColor,
-            //name: 'Primaries',
-            hoverinfo: 'skip',
-            //hovertemplate: 'R: %{x}' +
-            //  '<br>G: %{y}' +
-            //  '<br>B: %{z}' +
-            //  '<br>wavelength: %{text}<extra></extra>' ,
-          };
-          traces.push(chrmTrace);
-
-          for (var i = 0; i < 3; i++) {
-            var trace = {
-              x: [0, chrmSelectX[i]],
-              y: [0, chrmSelectY[i]],
-              z: [0, chrmSelectZ[i]],
-              mode: 'lines',
-              type: 'scatter3d',
-              //visible: 'legendonly',
-              line: {
-                color: redColor,
-                width: 2,
-              },
-              hoverinfo: 'skip',
-            };
-            traces.push(trace);
-          }
-
-          // https://github.com/plotly/plotly.js/issues/1467
-          // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
-          Plotly.addTraces(plot, traces);
         }
-      });
-    } else {
-      Plotly.deleteTraces(plot, traces);
+
+        // https://github.com/plotly/plotly.js/issues/1467
+        // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
+        Plotly.addTraces(plot, traces);
+        traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+      }
+    }
+
+    function add2(data) {
+      if (data.points[0].curveNumber != 0) return;
+      //if (count == 2) return;
+
+      // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
+      var pn = data.points[0].pointNumber;
+      selectX[count] = data.points[0].data.x[pn];
+      selectY[count] = data.points[0].data.y[pn];
+      selectZ[count] = data.points[0].data.z[pn];
+      chrmSelectX[count] = plot.data[1].x[pn];
+      chrmSelectY[count] = plot.data[1].y[pn];
+      chrmSelectZ[count] = plot.data[1].z[pn];
+
+      count++;
+      if (count == 2) {
+        plot.removeListener('plotly_click', add2);
+
+        var trace = {
+          x: [selectX[0], selectX[1]],
+          y: [selectY[0], selectY[1]],
+          z: [selectZ[0], selectZ[1]],
+          mode: 'lines',
+          type: 'scatter3d',
+          line: {
+            color: '#000000',
+            width: 2,
+          },
+          hoverinfo: 'skip',
+        };
+        traces.push(trace);
+
+        var chrmTrace = {
+          x: [chrmSelectX[0], chrmSelectX[1]],
+          y: [chrmSelectY[0], chrmSelectY[1]],
+          z: [chrmSelectZ[0], chrmSelectZ[1]],
+          mode: 'lines',
+          type: 'scatter3d',
+          line: {
+            color: greenColor,
+            width: 2,
+          },
+          hoverinfo: 'skip',
+        };
+        traces.push(chrmTrace);
+
+        for (var i = 0; i < 2; i++) {
+          var trace = {
+            x: [0, chrmSelectX[i]],
+            y: [0, chrmSelectY[i]],
+            z: [0, chrmSelectZ[i]],
+            mode: 'lines',
+            type: 'scatter3d',
+            line: {
+              color: redColor,
+              width: 2,
+            },
+            hoverinfo: 'skip',
+          };
+          traces.push(trace);
+        }
+
+        Plotly.addTraces(plot, traces);
+        traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+      }
+    }
+
+    function add4(data) {
+      if (data.points[0].curveNumber != 0) return;
+      //if (count == 4) return;
+
+      // prevent the additional click firing from addTraces and also effectively disable click after the gamut is drawn.
+      var pn = data.points[0].pointNumber;
+      selectX[count] = data.points[0].data.x[pn];
+      selectY[count] = data.points[0].data.y[pn];
+      selectZ[count] = data.points[0].data.z[pn];
+      chrmSelectX[count] = plot.data[1].x[pn];
+      chrmSelectY[count] = plot.data[1].y[pn];
+      chrmSelectZ[count] = plot.data[1].z[pn];
+      colors.push({id: count, value: pn});
+
+      count++;
+      if (count == 4) {
+        // to avoid the weird bug in plotly where addtraces trigger click
+        plot.removeListener('plotly_click', add4);
+
+        var trace = {
+          x: [selectX[0], selectX[1], selectX[2], selectX[3]],
+          y: [selectY[0], selectY[1], selectY[2], selectY[3]],
+          z: [selectZ[0], selectZ[1], selectZ[2], selectZ[3]],
+          i: [0, 0, 1, 0],
+          j: [1, 1, 2, 2],
+          k: [2, 3, 3, 3],
+          type: 'mesh3d',
+          opacity:0.8,
+          color: '#000000',
+          hoverinfo: 'skip',
+        };
+        traces.push(trace);
+
+        colors.sort(function (a, b) {
+          return a.value - b.value;
+        });
+        var chrmTrace = {
+          x: [chrmSelectX[colors[0].id], chrmSelectX[colors[1].id], chrmSelectX[colors[2].id], chrmSelectX[colors[3].id]],
+          y: [chrmSelectY[colors[0].id], chrmSelectY[colors[1].id], chrmSelectY[colors[2].id], chrmSelectY[colors[3].id]],
+          z: [chrmSelectZ[colors[0].id], chrmSelectZ[colors[1].id], chrmSelectZ[colors[2].id], chrmSelectZ[colors[3].id]],
+          i: [0, 0],
+          j: [1, 2],
+          k: [2, 3],
+          type: 'mesh3d',
+          opacity:0.8,
+          color: greenColor,
+          hoverinfo: 'skip',
+        };
+        traces.push(chrmTrace);
+
+        for (var i = 0; i < 4; i++) {
+          var trace = {
+            x: [0, chrmSelectX[i]],
+            y: [0, chrmSelectY[i]],
+            z: [0, chrmSelectZ[i]],
+            mode: 'lines',
+            type: 'scatter3d',
+            line: {
+              color: redColor,
+              width: 2,
+            },
+            hoverinfo: 'skip',
+          };
+          traces.push(trace);
+        }
+
+        Plotly.addTraces(plot, traces);
+        traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+      }
+    }
+
+    // https://github.com/plotly/plotly.js/issues/107#issuecomment-279716312
+    // remove all event listerners so that no callbacks are accidently fired. must if we click a pick button without doing anything and then click another pick button.
+    plot.removeAllListeners("plotly_click");
+    if (this.id == 'pick3') {
+      plot.on('plotly_click', add3);
+    } else if (this.id == 'pick2') {
+      plot.on('plotly_click', add2);
+    } else if (this.id == 'pick4') {
+      var colors = [];
+      plot.on('plotly_click', add4);
     }
   });
 }
@@ -1026,6 +1184,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
        [Array(wlen.length).fill(0.9), greenColor],
        [Array(wlen.length).fill(0.8), redColor]]);
 
+  // Step 1
   // will calculate everything but hide them except the RGB locus
   // order: RGB locus, rgb locus, all chrm lines, r+g+b=1 plane(, RGB prims, rgb prims)
   registerPlotLocus('#plotLocus', window.lmsChart, window.rgbPrimChart);
@@ -1035,6 +1194,8 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerShowPlane('#showPlane');
   registerProjChrm('#projChrm');
 
-  registerPickColors('#pick3');
+  // Step 2 (the locus plot is plotted in |registerPlotLocus|)
+  registerShowChrm2('#showChrm2');
+  registerPickColors();
 });
 
