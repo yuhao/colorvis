@@ -281,6 +281,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
     window.chrmPlot = plotLocus(lmsChart.data.labels, 'chrmLocusDiv');
     plotChrm(window.chrmPlot, false);
+    plotHVSGamut(window.chrmPlot);
 
     $('#showChrm').prop('disabled', false);
     $('#showPlane').prop('disabled', false);
@@ -288,6 +289,29 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
     $('#showChrm2').prop('disabled', false);
   });
+}
+
+// TODO: should generate convex hull first
+function plotHVSGamut(plot) {
+  var len = plot.data[1].x.length; 
+  var midx = math.mean(plot.data[1].x);
+  var midy = math.mean(plot.data[1].y);
+  var midz = math.mean(plot.data[1].z);
+
+  var trace = {
+    x: [midx].concat(plot.data[1].x),
+    y: [midy].concat(plot.data[1].y),
+    z: [midz].concat(plot.data[1].z),
+    i: Array(len).fill(0),
+    j: [...Array(len+1).keys()].slice(1),
+    k: [...Array(len+1).keys()].slice(2).concat([1]),
+    type: 'mesh3d',
+    visible: 'legendonly',
+    opacity:0.8,
+    color: greenColor,
+    hoverinfo: 'skip',
+  };
+  Plotly.addTraces(plot, [trace]);
 }
 
 function plotPrims() {
@@ -1032,7 +1056,7 @@ function registerPickColors() {
           k: [2],
           type: 'mesh3d',
           //opacity:0.8,
-          color: '#222222',
+          color: redColor,
           hoverinfo: 'skip',
         };
         traces.push(trace);
@@ -1098,8 +1122,12 @@ function registerPickColors() {
           j: [1, 1, 2, 2],
           k: [2, 3, 3, 3],
           type: 'mesh3d',
-          opacity:0.8,
-          color: '#000000',
+          intensity: [0.2, 0.4, 0.6, 0.8],
+          intensitymode: 'cell',
+          showscale: false,
+          cmax: 1.0,
+          cmin: 0.0,
+          //color: purpleColor,
           hoverinfo: 'skip',
         };
         traces.push(trace);
@@ -1157,6 +1185,20 @@ function registerPickColors() {
   });
 }
 
+function registerShowHVS(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.chrmPlot;
+
+    if($(id).is(":checked")) {
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, [2]);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+      Plotly.restyle(plot, data_update, [2]);
+    }
+  });
+}
+
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   var stride = 5;
 
@@ -1189,7 +1231,9 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plot is plotted in |registerPlotLocus|)
+  // order: RGB locus, rgb locus, hvs gamut
   registerShowChrm2('#showChrm2');
   registerPickColors();
+  registerShowHVS('#showhvs');
 });
 
