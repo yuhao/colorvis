@@ -41,6 +41,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <script src='hull.js'></script>
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
@@ -140,7 +141,7 @@
         <p>Each color now has an rgb triplet, representing the color's chromaticities. Similar to how we represent colors in the RGB space, we can also plot the colors using their chromaticities. The green curve in the chart above shows the chromaticities of the spectral lights. Hover over a chromaticity point and the corresponding RGB point on the same line; check the primary ratio in the tooltips and you can see that the primary ratio doesn't change when you plot a color using their chromacitities. Obviously, the exact chromaticity values of a color depend on the particular color space used to represent that color.</p>
         <p>Knowing the chromaticities of a color tells us the <b>inherent attribute</b> of the color, and we can make that color brighter or darker by increasing or decreasing the amount of the primaries <i>while keeping the chromaticities constant</i>. In many practical color applications such as color photography and digital displays, chromaticities of a color is what we strive to capture (in the case of photography) or reproduce (in the case of display), and we are almost never be able to capture/reproduce the exact intensity of light in the scene (think about the power of the sun!).</p>
         <p>Spin around the plot. Notice how all the spectral lights are now on the same plane. That's the natural implication of how chromaticities are defined: since we enforce $r+g+b=1$, all the colors in the chromaticity plot naturally lie on the $r+g+b=1$ plane. Toggle the "Show r+g+b=1 Plane" switch to convince yourself of that. If we were to define chromaticities such that $r+g+b=1.5$, all the colors will then lie on that plane. One way to think of the chromaticity plot is that we shoot rays from the origin to go through all the spectral lights, and then take a cut of all those lines with the $r+g+b=1$ plane. Mathematically, it is performing a perspective projection of the RGB colors onto the plane where the point of projection is the origin.</p>
-        <p>Chromaticity is inherently a 3D concept, but since the chromaticities of all colors lie on one plane, we can represent them in a 2D plot. The convention is to project the $r+g+b=1$ plane onto the r-g plane, and the resulting plot is called the <i>rg-chromaciticy plot</i>. You should try to spin the 3D plot around to project yourself, and you can also toggle the "Project" switch, which does the project for you.</p>
+        <p>Chromaticity is inherently a 3D concept, but since the chromaticities of all colors lie on one plane, we can represent them in a 2D plot. The convention is to project the $r+g+b=1$ plane onto the r-g plane, and the resulting plot is called the <i>rg-chromaciticy plot</i>. You should try to spin the 3D plot around to project yourself, and you can also toggle the "Project" switch, which does the projection for you.</p>
       </div>
     </div>
 
@@ -172,7 +173,7 @@
             </div>
             <div class="form-check form-switch align-self-center mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvs">
-              <label class="form-check-label" for="showhvs"><b>Show Human Visible Gamut</b></label>
+              <label class="form-check-label" for="showhvs"><b>Show Human Visible Gamut in Chromaticity</b></label>
             </div>
           </div>
         </div>
@@ -182,6 +183,27 @@
       </div>
 
       <div class="row">
+        <p>The chromaticity plot is very useful in helping us understand the limit of human color perception: what are all the colors that human can see? We could find every single real light one by one and construct its color. While we can't really do that in practice, constructing a few lights that way  will help gain the intuition.</p>
+        <p>We could think of the SPD of a light as the "recipe" of making that light. Any light is mixed with different amount of spectral lights. Let's start by mixing two lights. If you toggle the "Pick 2 Colors" switch, you can click 2 arbitrary points $\mathbf{A}$ and $\mathbf{B}$ along the RGB locus. What you will get is a line segmentation $\overline{\mathbf{AB}}$. Any point on $\overline{\mathbf{AB}}$ represents a color producible by mixing some portion of $\mathbf{A}$ and $\mathbf{B}$. While this might be intuitive, let's prove it rigorously; later we will rely more on intuition to generalize.</p>
+        <p>Assuming that the two (spectral) lights you picked have a spectrum of $\Phi_1$ and $\Phi_2$, respectively, and their RGB triplets are $[R_1, G_1, B_1]$ and $[R_2, G_2, B_2]$, respectively. Any point on the line segment between the two points can be expressed as $[R_t, G_t, B_t] = \alpha[R_1, G_1, B_1] + (1-\alpha)[R_2, G_2, B_2], \alpha \in [0, 1]$. We will show the color $[R_t, G_t, B_t]$ can be produced by mixing $\alpha\Phi_1$ and $(1-\alpha)\Phi_1$. Nothing in the proof below relies on $\Phi_1$ and $\Phi_2$ being spectral, and so the conclusion applies to any lights. </p>
+<p>Based on how RGB triplets are calculated from the CMFs ($\bar{r(\lambda)}, \bar{g(\lambda)}, \bar{b(\lambda)}$), we have:</p>
+        <p>
+        $R_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda), G_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda), B_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda)\\$
+        $R_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda), G_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda), B_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda)$
+        </p>
+        <p>The RGB triplet of the new light mixed from $\alpha\Phi_1$ and $(1-\alpha)\Phi_1$ is:</p>
+        <p>
+        $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{r}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{r}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{r}(\lambda) = \alpha R_1 + (1-\alpha) R_2 = R_t\\$
+        $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{g}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{g}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{g}(\lambda) = \alpha G_1 + (1-\alpha) G_2 = G_t\\$
+        $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{b}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{b}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{b}(\lambda) = \alpha B_1 + (1-\alpha) B_2 = B_t$
+        </p>
+        <p>Q.E.D.</p>
+        <p>The line segment $\overline{\mathbf{AB}}$ in the RGB space is mapped to a line segment $\overline{\mathbf{ab}}$ in the chromaticity diagram. $\overline{\mathbf{ab}}$ connects two points $\mathbf{a}$ and $\mathbf{b}$, each representing  the chromaticities of two spectral lights. In general, if we connect any two points $\mathbf{a}$ and $\mathbf{b}$ in the chromaticity diagram and form a line segment $\overline{\mathbf{ab}}$, points on $\overline{\mathbf{ab}}$ represent the <i>chromaticities</i> of all the colors that can be produced from two lights whose chromaticities are $a$ and $b$, respectively.</p>
+        <p>The same intuition applies to three colors. Toggle the "Pick 3 Colors" switch, and pick three colors on the RGB spectral locus, which will form a triangle. Any point on that triangle represents a color that is produced from mixing the three chosen spectral lights. That triangle is mapped to another triangle in the chromaticity diagram. In general, if you pick three colors $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ in the chromaticity diagram, the triangle $\triangle \mathbf{abc}$ contains the chromaticities of all the colors that can be produced from three lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$, respectively.</p>
+        <p>Let's try one more. Toggle the "Pick 4 Colors" switch and pick four colors on the RGB spectral locus. What you get is a tetrahedron. Any point within that tetrahedron represents a color that is produced from mixing the four chosen spectral lights. That tetrahedron is mapped to a polygon quadrilateral in the chromaticity diagram. In general, if you pick four colors $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ in the chromaticity diagram, the quadrilateral $\square \mathbf{abcd}$ contains the chromaticities of all the colors that can be produced from four lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$, respectively.</p>
+        <p>We can keep playing this game. If a light is made of five spectral lights, its color chromaticities will fall in the pentagon formed by the five lights; if a light is made of six spectral lights, its color chromaticities will fall in the hexagon formed by the six spectral lights. Essentially, given a light's SPD $\Phi$, we can find its constituting spectral lights, and then form a polygon whose vertices are the chromaticities of those spectral colors. $\Phi$'s chromaticities are guaranteed to be within that polygon.</p>
+        
+        <p>If we exhaust all potential wavelengths in the visible spectrum, we will have found all the colors (that humans can see). What's the geometric structure that contains all the visible colors? If you think about it, it's not difficult to see that the chromaticities of all colors, which we call the <b>gamut</b> of human color vision, must reside in the <a href="https://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the spectral locus in the chromaticity diagram. Click the button "Show Human Visible Gamut in Chromaticity Diagram" to reveal it.<p>
       </div>
     </div>
 

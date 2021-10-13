@@ -293,15 +293,18 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
 // TODO: should generate convex hull first
 function plotHVSGamut(plot) {
-  var len = plot.data[1].x.length; 
-  var midx = math.mean(plot.data[1].x);
-  var midy = math.mean(plot.data[1].y);
-  var midz = math.mean(plot.data[1].z);
+  var points = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
+  var hullPoints = math.transpose(hull(points, Infinity));
+
+  var len = hullPoints[0].length; 
+  var midx = math.mean(hullPoints[0]);
+  var midy = math.mean(hullPoints[1]);
+  var midz = math.mean(hullPoints[2]);
 
   var trace = {
-    x: [midx].concat(plot.data[1].x),
-    y: [midy].concat(plot.data[1].y),
-    z: [midz].concat(plot.data[1].z),
+    x: [midx].concat(hullPoints[0]),
+    y: [midy].concat(hullPoints[1]),
+    z: [midz].concat(hullPoints[2]),
     i: Array(len).fill(0),
     j: [...Array(len+1).keys()].slice(1),
     k: [...Array(len+1).keys()].slice(2).concat([1]),
@@ -1056,7 +1059,7 @@ function registerPickColors() {
           k: [2],
           type: 'mesh3d',
           //opacity:0.8,
-          color: redColor,
+          color: orangeColor,
           hoverinfo: 'skip',
         };
         traces.push(trace);
