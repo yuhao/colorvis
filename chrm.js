@@ -195,15 +195,12 @@ function registerShowChrm(id) {
 
     if($(id).is(":checked")) {
       var data_update = {'visible': true};
-      //Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
       Plotly.restyle(plot, data_update, [1]);
-      //Plotly.restyle(plot, data_update, [plot.data.length - 1]);
       $('#showChrmLine').prop('disabled', false);
+      $('#showPlane').prop('disabled', false);
     } else {
       var data_update = {'visible': 'legendonly'};
-      //Plotly.restyle(plot, data_update, [...Array(numWaves+2).keys()].slice(1));
       Plotly.restyle(plot, data_update, [1]);
-      //Plotly.restyle(plot, data_update, [plot.data.length - 1]);
 
       // disable equi-rgb-ratio lines in RGB plot
       $('#showChrmLine').prop('disabled', true);
@@ -211,22 +208,33 @@ function registerShowChrm(id) {
         $('#showChrmLine').prop('checked', false);
         showChrmLine('#showChrmLine');
       }
+
+      // disable r+g+b=1 plane in RGB plot
+      $('#showPlane').prop('disabled', true);
+      if($('#showPlane').is(":checked")) {
+        $('#showPlane').prop('checked', false);
+        showPlane('#showPlane');
+      }
     }
   });
 }
 
+function showChrm2(id) {
+  var plot = window.chrmPlot;
+  var numWaves = plot.data[0].x.length;
+
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [1]);
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [1]);
+  }
+}
+
 function registerShowChrm2(id) {
   $(id).on('change', function(evt) {
-    var plot = window.chrmPlot;
-    var numWaves = plot.data[0].x.length;
-
-    if($(id).is(":checked")) {
-      var data_update = {'visible': true};
-      Plotly.restyle(plot, data_update, [1]);
-    } else {
-      var data_update = {'visible': 'legendonly'};
-      Plotly.restyle(plot, data_update, [1]);
-    }
+    showChrm2(id);
   });
 }
 
@@ -284,10 +292,15 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotHVSGamut(window.chrmPlot);
 
     $('#showChrm').prop('disabled', false);
-    $('#showPlane').prop('disabled', false);
     $('#projChrm').prop('disabled', false);
 
     $('#showChrm2').prop('disabled', false);
+    $('#pick0').prop('disabled', false);
+    $('#pick2').prop('disabled', false);
+    $('#pick3').prop('disabled', false);
+    $('#pick4').prop('disabled', false);
+    $('#showhvs').prop('disabled', false);
+    $('#showhvsRGB').prop('disabled', false);
   });
 }
 
@@ -878,17 +891,21 @@ function registerProjChrm(id) {
   });
 }
 
+function showPlane(id) {
+  var plot = window.locusPlot;
+  var numWaves = plot.data[0].x.length;
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [numWaves+2]);
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [numWaves+2]);
+  }
+}
+
 function registerShowPlane(id) {
   $(id).on('change', function(evt) {
-    var plot = window.locusPlot;
-    var numWaves = plot.data[0].x.length;
-    if($(id).is(":checked")) {
-      var data_update = {'visible': true};
-      Plotly.restyle(plot, data_update, [numWaves+2]);
-    } else {
-      var data_update = {'visible': 'legendonly'};
-      Plotly.restyle(plot, data_update, [numWaves+2]);
-    }
+    showPlane(id);
   });
 }
 
@@ -910,62 +927,6 @@ function registerShowPrims(id) {
       Plotly.restyle(plot, data_update, [traceId]);
     }
   });
-}
-
-function plotGamut(plot, data, count) {
-  var pn = data.points[0].pointNumber;
-  selectX[count] = data.points[0].data.x[pn];
-  selectY[count] = data.points[0].data.y[pn];
-  selectZ[count] = data.points[0].data.z[pn];
-  count++;
-  if (count == 3) {
-    //var otherPointsX = [selectX[0] + selectX[1], // r+g
-    //                    selectX[0] + selectX[2], // r+b
-    //                    selectX[1] + selectX[2], // g+b
-    //                    selectX[0] + selectX[1] + selectX[2]]; // r+g+b
-    //var otherPointsY = [selectY[0] + selectY[1],
-    //                    selectY[0] + selectY[2],
-    //                    selectY[1] + selectY[2],
-    //                    selectY[0] + selectY[1] + selectY[2]];
-    //var otherPointsZ = [selectZ[0] + selectZ[1],
-    //                    selectZ[0] + selectZ[2],
-    //                    selectZ[1] + selectZ[2],
-    //                    selectZ[0] + selectZ[1] + selectZ[2]];
-    //var allPointsX = [0].concat(selectX.concat(otherPointsX));
-    //var allPointsY = [0].concat(selectY.concat(otherPointsY));
-    //var allPointsZ = [0].concat(selectZ.concat(otherPointsZ));
-
-    var trace = {
-      x: [selectX[0], selectX[1], selectX[2], selectX[0]],
-      y: [selectY[0], selectY[1], selectY[2], selectY[0]],
-      z: [selectZ[0], selectZ[1], selectZ[2], selectZ[0]],
-
-      //text: plot.data[0].text,
-      mode: 'lines+markers',
-      type: 'scatter3d',
-      visible: 'legendonly',
-      line: {
-        color: '#32a852',
-        //color: oBlueColor,
-        //shape: 'spline',
-      },
-      marker: {
-        size: 4,
-        //opacity: 0.8,
-      },
-      //customdata: ratios,
-      //hovertemplate: 'r: %{x}' +
-      //  '<br>g: %{y}' +
-      //  '<br>b: %{z}' +
-      //  '<br>wavelength: %{text}' +
-      //  '<br>ratio: %{customdata}<extra></extra>',
-      //hoverinfo: 'skip',
-    };
-
-    // https://github.com/plotly/plotly.js/issues/1467
-    // addTraces would trigger click infinitely so add it only once in the end instead of incrementally
-    Plotly.addTraces(plot, [trace]);
-  }
 }
 
 function registerPickColors() {
@@ -1005,7 +966,12 @@ function registerPickColors() {
           x: [selectX[0], selectX[1]],
           y: [selectY[0], selectY[1]],
           z: [selectZ[0], selectZ[1]],
-          mode: 'lines',
+          text: ['<b>A</b>', '<b>B</b>'],
+          textfont: {
+            family: 'Helvetica Neue',
+            size: 24,
+          },
+          mode: 'lines+text',
           type: 'scatter3d',
           line: {
             color: '#000000',
@@ -1019,7 +985,12 @@ function registerPickColors() {
           x: [chrmSelectX[0], chrmSelectX[1]],
           y: [chrmSelectY[0], chrmSelectY[1]],
           z: [chrmSelectZ[0], chrmSelectZ[1]],
-          mode: 'lines',
+          text: ['<b>a</b>', '<b>b</b>'],
+          textfont: {
+            family: 'Helvetica Neue',
+            size: 24,
+          },
+          mode: 'lines+text',
           type: 'scatter3d',
           line: {
             color: greenColor,
@@ -1047,6 +1018,12 @@ function registerPickColors() {
 
         Plotly.addTraces(plot, traces);
         traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+
+        // show chrm if not already shown 
+        if(!($('#showChrm2').is(":checked"))) {
+          $('#showChrm2').prop('checked', true);
+          showChrm2('#showChrm2');
+        }
       }
     }
 
@@ -1065,6 +1042,7 @@ function registerPickColors() {
       if (count == 3) {
         plot.removeListener('plotly_click', add3);
 
+        // TODO: add texts/annotations for mesh3d. maybe create another set of traces
         var trace = {
           x: [selectX[0], selectX[1], selectX[2]],
           y: [selectY[0], selectY[1], selectY[2]],
@@ -1112,6 +1090,12 @@ function registerPickColors() {
         // https://github.com/plotly/plotly.js/issues/1467
         Plotly.addTraces(plot, traces);
         traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+
+        // show chrm if not already shown 
+        if(!($('#showChrm2').is(":checked"))) {
+          $('#showChrm2').prop('checked', true);
+          showChrm2('#showChrm2');
+        }
       }
     }
 
@@ -1185,12 +1169,25 @@ function registerPickColors() {
 
         Plotly.addTraces(plot, traces);
         traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+
+        // show chrm if not already shown 
+        if(!($('#showChrm2').is(":checked"))) {
+          $('#showChrm2').prop('checked', true);
+          showChrm2('#showChrm2');
+        }
       }
     }
 
     // https://github.com/plotly/plotly.js/issues/107#issuecomment-279716312
     // remove all event listerners so that no callbacks are accidently fired. must if we click a pick button without doing anything and then click another pick button.
     plot.removeAllListeners("plotly_click");
+
+    // hide chrm if already shown
+    if($('#showChrm2').is(":checked")) {
+      $('#showChrm2').prop('checked', false);
+      showChrm2('#showChrm2');
+    }
+
     if (this.id == 'pick3') {
       plot.on('plotly_click', add3);
     } else if (this.id == 'pick2') {
@@ -1208,6 +1205,12 @@ function registerShowHVSRGB(id) {
     var plot = window.chrmPlot;
 
     if($(id).is(":checked")) {
+      // hide chrm if already shown 
+      if($('#showChrm2').is(":checked")) {
+        $('#showChrm2').prop('checked', false);
+        showChrm2('#showChrm2');
+      }
+
       var data_update = {'visible': true};
       Plotly.restyle(plot, data_update, [2]);
     } else {
@@ -1222,6 +1225,12 @@ function registerShowHVS(id) {
     var plot = window.chrmPlot;
 
     if($(id).is(":checked")) {
+      // show chrm if not already shown 
+      if(!($('#showChrm2').is(":checked"))) {
+        $('#showChrm2').prop('checked', true);
+        showChrm2('#showChrm2');
+      }
+
       var data_update = {'visible': true};
       Plotly.restyle(plot, data_update, [3]);
     } else {
