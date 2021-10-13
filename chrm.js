@@ -579,7 +579,6 @@ function plotLocus(wlen, plotId) {
           text: 'B'
         }
       },
-      //annotations: [{}, {}, {}, {}],
     }
   };
  
@@ -931,7 +930,7 @@ function registerPickColors() {
   $('input[type=radio][name=pick]').change(function() {
     var plot = window.chrmPlot;
 
-    cleanupPlot(greyColor);
+    cleanupPlot(greyColor, greenColor);
 
     var count = 0;
     var traces = [];
@@ -941,8 +940,12 @@ function registerPickColors() {
     var chrmSelectX = [];
     var chrmSelectY = [];
     var chrmSelectZ = [];
+    var selectId = [];
 
     function highlightPoint(plot, cn, pn, an, cb) {
+      //cb();
+      //return;
+
       var colors = Array.from(plot.data[cn].marker.color);
       colors[pn] = brightYellowColor;
 
@@ -958,23 +961,29 @@ function registerPickColors() {
           size: 20
         },
         xanchor: "left",
-        xshift: 10,
+        xshift: 0,
         opacity: 0.7
       };
 
+      var prevAnn = plot.layout.scene.annotations;
       var layout_update = {
-        'scene.annotations[0]': annotation,
+        //'scene.annotations': [annotation],
+        //'scene.annotations': prevAnn.concat([annotation]),
       };
 
       var data_update = {'marker.color': [colors]};
+      //var data_update = {};
 
-      Plotly.update(plot, data_update, layout_update, [cn]).then(cb);
-      //Plotly.update(plot, data_update, layout_update, [cn]).then(() => {
-      //  plot.once('plotly_click', cb)
-      //});
+      plot.removeAllListeners("plotly_click");
+      //if (cb == undefined) Plotly.update(plot, data_update, layout_update, [cn]);
+      //else Plotly.update(plot, data_update, layout_update, [cn]).then(cb);
+      //if (cb == undefined) Plotly.relayout(plot, layout_update);
+      //else Plotly.relayout(plot, layout_update).then(cb);
+      if (cb == undefined) Plotly.restyle(plot, data_update, [cn]);
+      else Plotly.restyle(plot, data_update, [cn]).then(cb);
     }
 
-    function cleanupPlot(color) {
+    function cleanupPlot(color1, color2) {
       // delete all traces
       if (traceIdx != undefined && traceIdx.length != 0) Plotly.deleteTraces(plot, traceIdx);
       traceIdx = [];
@@ -984,17 +993,18 @@ function registerPickColors() {
         'scene.annotations': [],
       };
       // reset color
-      var colors = Array(plot.data[0].length).fill(color)
-      var data_update = {'marker.color': [colors]};
+      var RGBColors = Array(plot.data[0].x.length).fill(color1);
+      var chrmColors = Array(plot.data[0].x.length).fill(color2);
+      var data_update = {'marker.color': [RGBColors, chrmColors]};
 
-      Plotly.update(plot, data_update, layout_update, [0]);
+      Plotly.update(plot, data_update, layout_update, [0, 1]);
     }
 
-    function num2Letter(num) {
-      if (num == 0) return 'A';
-      else if (num == 1) return 'B';
-      else if (num == 2) return 'C';
-      else if (num == 3) return 'D';
+    function num2Letter(num, cap) {
+      if (num == 0) return (cap ? 'A' : 'a');
+      else if (num == 1) return (cap ? 'B' : 'b');
+      else if (num == 2) return (cap ? 'C' : 'c');
+      else if (num == 3) return (cap ? 'D' : 'd');
     }
 
     function add2(data) {
@@ -1009,23 +1019,18 @@ function registerPickColors() {
       chrmSelectY[count] = plot.data[1].y[pn];
       chrmSelectZ[count] = plot.data[1].z[pn];
 
-      highlightPoint(plot, cn, pn, num2Letter(count), function() {
+      highlightPoint(plot, cn, pn, num2Letter(count, true), function() {
         count++;
         if (count < 2)
-          plot.once('plotly_click', add2)
+          plot.once('plotly_click', add2);
         else if (count == 2) {
-          plot.removeListener('plotly_click', add2);
+          //plot.removeListener('plotly_click', add2);
+          plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1]],
             y: [selectY[0], selectY[1]],
             z: [selectZ[0], selectZ[1]],
-            //text: ['<b>A</b>', '<b>B</b>'],
-            //textfont: {
-            //  family: 'Helvetica Neue',
-            //  size: 24,
-            //},
-            //mode: 'lines+text',
             mode: 'lines',
             type: 'scatter3d',
             line: {
@@ -1040,13 +1045,13 @@ function registerPickColors() {
             x: [chrmSelectX[0], chrmSelectX[1]],
             y: [chrmSelectY[0], chrmSelectY[1]],
             z: [chrmSelectZ[0], chrmSelectZ[1]],
-            //text: ['<b>a</b>', '<b>b</b>'],
-            //textfont: {
-            //  family: 'Helvetica Neue',
-            //  size: 24,
-            //},
-            //mode: 'lines+text',
-            mode: 'lines',
+            text: ['<b>a</b>', '<b>b</b>'],
+            textfont: {
+              family: 'Helvetica Neue',
+              size: 20,
+            },
+            mode: 'lines+text',
+            //mode: 'lines',
             type: 'scatter3d',
             line: {
               color: greenColor,
@@ -1082,7 +1087,6 @@ function registerPickColors() {
           }
         }
       });
-
     }
 
     function add3(data) {
@@ -1096,13 +1100,15 @@ function registerPickColors() {
       chrmSelectX[count] = plot.data[1].x[pn];
       chrmSelectY[count] = plot.data[1].y[pn];
       chrmSelectZ[count] = plot.data[1].z[pn];
+      selectId[count] = pn;
 
-      highlightPoint(plot, cn, pn, num2Letter(count), function() {
+      highlightPoint(plot, cn, pn, num2Letter(count, true), function() {
         count++;
         if (count < 3)
-          plot.once('plotly_click', add3)
+          plot.once('plotly_click', add3);
         else if (count == 3) {
-          plot.removeListener('plotly_click', add3);
+          //plot.removeListener('plotly_click', add3);
+          plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1], selectX[2]],
@@ -1152,6 +1158,11 @@ function registerPickColors() {
           Plotly.addTraces(plot, traces);
           traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
+          // add annotation to chrm curve
+          //highlightPoint(plot, 1, selectId[0], num2Letter(0, false));
+          //highlightPoint(plot, 1, selectId[1], num2Letter(1, false));
+          //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
+
           // show chrm if not already shown 
           if(!($('#showChrm2').is(":checked"))) {
             $('#showChrm2').prop('checked', true);
@@ -1172,15 +1183,17 @@ function registerPickColors() {
       chrmSelectX[count] = plot.data[1].x[pn];
       chrmSelectY[count] = plot.data[1].y[pn];
       chrmSelectZ[count] = plot.data[1].z[pn];
+      selectId[count] = pn;
       colors.push({id: count, value: pn});
 
-      highlightPoint(plot, cn, pn, num2Letter(count), function() {
+      highlightPoint(plot, cn, pn, num2Letter(count, true), function() {
         count++;
         if (count < 4)
-          plot.once('plotly_click', add4)
+          plot.once('plotly_click', add4);
         else if (count == 4) {
           // to avoid the weird bug in plotly where addtraces trigger click
-          plot.removeListener('plotly_click', add4);
+          //plot.removeListener('plotly_click', add4);
+          plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1], selectX[2], selectX[3]],
@@ -1236,6 +1249,12 @@ function registerPickColors() {
           Plotly.addTraces(plot, traces);
           traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
+          // add annotation to chrm curve
+          //highlightPoint(plot, 1, selectId[0], num2Letter(0, false));
+          //highlightPoint(plot, 1, selectId[1], num2Letter(1, false));
+          //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
+          //highlightPoint(plot, 1, selectId[3], num2Letter(3, false));
+
           // show chrm if not already shown 
           if(!($('#showChrm2').is(":checked"))) {
             $('#showChrm2').prop('checked', true);
@@ -1259,6 +1278,7 @@ function registerPickColors() {
     // see: https://community.plotly.com/t/adding-3d-plot-annotation-upon-click/26306
     if (this.id == 'pick3') {
       plot.once('plotly_click', add3);
+      //plot.on('plotly_click', add3);
     } else if (this.id == 'pick2') {
       plot.once('plotly_click', add2);
     } else if (this.id == 'pick4') {
