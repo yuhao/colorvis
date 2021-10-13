@@ -301,7 +301,21 @@ function plotHVSGamut(plot) {
   var midy = math.mean(hullPoints[1]);
   var midz = math.mean(hullPoints[2]);
 
-  var trace = {
+  var RGBTrace = {
+    x: [0].concat(hullPoints[0]),
+    y: [0].concat(hullPoints[1]),
+    z: [0].concat(hullPoints[2]),
+    i: Array(len).fill(0),
+    j: [...Array(len+1).keys()].slice(1),
+    k: [...Array(len+1).keys()].slice(2).concat([1]),
+    type: 'mesh3d',
+    visible: 'legendonly',
+    opacity:0.8,
+    color: redColor,
+    hoverinfo: 'skip',
+  };
+
+  var chrmTrace = {
     x: [midx].concat(hullPoints[0]),
     y: [midy].concat(hullPoints[1]),
     z: [midz].concat(hullPoints[2]),
@@ -314,7 +328,8 @@ function plotHVSGamut(plot) {
     color: greenColor,
     hoverinfo: 'skip',
   };
-  Plotly.addTraces(plot, [trace]);
+
+  Plotly.addTraces(plot, [RGBTrace, chrmTrace]);
 }
 
 function plotPrims() {
@@ -1188,7 +1203,7 @@ function registerPickColors() {
   });
 }
 
-function registerShowHVS(id) {
+function registerShowHVSRGB(id) {
   $(id).on('change', function(evt) {
     var plot = window.chrmPlot;
 
@@ -1198,6 +1213,20 @@ function registerShowHVS(id) {
     } else {
       var data_update = {'visible': 'legendonly'};
       Plotly.restyle(plot, data_update, [2]);
+    }
+  });
+}
+
+function registerShowHVS(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.chrmPlot;
+
+    if($(id).is(":checked")) {
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, [3]);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+      Plotly.restyle(plot, data_update, [3]);
     }
   });
 }
@@ -1234,9 +1263,10 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plot is plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
   registerShowChrm2('#showChrm2');
   registerPickColors();
   registerShowHVS('#showhvs');
+  registerShowHVSRGB('#showhvsRGB');
 });
 
