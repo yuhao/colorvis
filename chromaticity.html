@@ -210,9 +210,20 @@
         <p>We can keep playing this game. If a light is made of five spectral lights, its color chromaticities will fall in the pentagon formed by the five lights; if a light is made of six spectral lights, its color chromaticities will fall in the hexagon formed by the six spectral lights. Essentially, given a light's SPD $\Phi$, we can find its constituting spectral lights, and then form a polygon whose vertices are the chromaticities of those spectral colors. $\Phi$'s chromaticities are guaranteed to be within that polygon.</p>
         <p>If we exhaust all potential wavelengths in the visible spectrum, we will have found all the colors (that humans can see). What's the geometric structure that contains all the visible colors? If you think about it, it's not difficult to see that the chromaticities of all colors, which we call the <b>gamut</b> of human color vision, must reside in the <a href="https://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the spectral locus in the chromaticity diagram. Click the button "Show Human Visible Gamut in Chromaticity Diagram" to reveal it.</p>
         <p>Visualizing the gamut of human color vision in chromaticity is nice because we can constrain the gamut to a small area. Needless to say, however, the actual gamut of human color vision is 3D. How does it look like? We can't possible visualize it, because you can just keep increasing the power of the light and you will get infinite amount of colors &#8212; ignore the fact that high-intensity lights destroy retinas for a moment. But we can get a sneak peak of its bounds in the RGB space. Toggle the "Show Human Visible Gamut Boundary in RGB" switch. It will show the boundary of the gamut in the RGB space. The boundary grows forever, but we stop at the chromaticity locus. Any point within the boundary is a real color, i.e., a part of the human visual gamut.</p>
-        <p>One final note, the shape of gamut in both RGB and the chromaticity plot varies with the particular RGB color space you built. Try changing the primaries in Step 0 and visualize the gamut (the reference white in this tutorial is fixed).</p>
+        <p>One final note, if you use the preset spectral lights as the primaries, the locus itself is convex. Therefore, the gamut is the area enclosed by the locus. However, it's possible to use primaries such that the spectral locus isn't convex, in which case we can't say that the human gamut is the area under the locus. The exact shape of gamut in both RGB and the chromaticity plot varies with the particular RGB color space you built. Try changing the primaries in Step 0 and visualize the gamut (the reference white in this tutorial is fixed).</p>
       </div>
     </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Step 3: Physically-Unrealizable Lights and Imaginary Colors</h3>
+        <p>Look at the rg-chromaricity diagram. We know that points on the locus are colors of spectral lights, and points inside the locus are real colors that can be produced by mixing different spectral lights. What about points outside the locus? Intuitively, they are not colors that are visible to humans since they can't be produced by mixing spectral lights, but exactly what are they?</p>
+      </div>
+
+      <div class="row">
+      </div>
+    </div>
+
 
     <div class="b-example-divider"></div>
   </div>

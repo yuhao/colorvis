@@ -980,10 +980,17 @@ function registerPickColors() {
       //if (cb == undefined) Plotly.relayout(plot, layout_update);
       //else Plotly.relayout(plot, layout_update).then(cb);
       if (cb == undefined) Plotly.restyle(plot, data_update, [cn]);
-      else Plotly.restyle(plot, data_update, [cn]).then(cb);
+      else Plotly.restyle(plot, data_update, [cn]).then(() => {
+        cb();
+      });
     }
 
     function cleanupPlot(color1, color2) {
+      // https://github.com/plotly/plotly.js/issues/107#issuecomment-279716312
+      // remove all event listerners so that no callbacks are accidently fired.
+      // must if we click a pick button without doing anything and then click another pick button.
+      plot.removeAllListeners("plotly_click");
+
       // delete all traces
       if (traceIdx != undefined && traceIdx.length != 0) Plotly.deleteTraces(plot, traceIdx);
       traceIdx = [];
@@ -998,6 +1005,12 @@ function registerPickColors() {
       var data_update = {'marker.color': [RGBColors, chrmColors]};
 
       Plotly.update(plot, data_update, layout_update, [0, 1]);
+
+      // hide chrm if already shown
+      if($('#showChrm2').is(":checked")) {
+        $('#showChrm2').prop('checked', false);
+        showChrm2('#showChrm2');
+      }
     }
 
     function num2Letter(num, cap) {
@@ -1024,8 +1037,8 @@ function registerPickColors() {
         if (count < 2)
           plot.once('plotly_click', add2);
         else if (count == 2) {
-          //plot.removeListener('plotly_click', add2);
-          plot.removeAllListeners("plotly_click");
+          plot.removeListener('plotly_click', add2);
+          //plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1]],
@@ -1081,10 +1094,10 @@ function registerPickColors() {
           traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
           // show chrm if not already shown 
-          if(!($('#showChrm2').is(":checked"))) {
-            $('#showChrm2').prop('checked', true);
-            showChrm2('#showChrm2');
-          }
+          //if(!($('#showChrm2').is(":checked"))) {
+          //  $('#showChrm2').prop('checked', true);
+          //  showChrm2('#showChrm2');
+          //}
         }
       });
     }
@@ -1164,10 +1177,10 @@ function registerPickColors() {
           //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
 
           // show chrm if not already shown 
-          if(!($('#showChrm2').is(":checked"))) {
-            $('#showChrm2').prop('checked', true);
-            showChrm2('#showChrm2');
-          }
+          //if(!($('#showChrm2').is(":checked"))) {
+          //  $('#showChrm2').prop('checked', true);
+          //  showChrm2('#showChrm2');
+          //}
         }
       });
     }
@@ -1256,29 +1269,18 @@ function registerPickColors() {
           //highlightPoint(plot, 1, selectId[3], num2Letter(3, false));
 
           // show chrm if not already shown 
-          if(!($('#showChrm2').is(":checked"))) {
-            $('#showChrm2').prop('checked', true);
-            showChrm2('#showChrm2');
-          }
+          //if(!($('#showChrm2').is(":checked"))) {
+          //  $('#showChrm2').prop('checked', true);
+          //  showChrm2('#showChrm2');
+          //}
         }
       });
     }
-
-    // hide chrm if already shown
-    if($('#showChrm2').is(":checked")) {
-      $('#showChrm2').prop('checked', false);
-      showChrm2('#showChrm2');
-    }
-
-    // https://github.com/plotly/plotly.js/issues/107#issuecomment-279716312
-    // remove all event listerners so that no callbacks are accidently fired. must if we click a pick button without doing anything and then click another pick button.
-    plot.removeAllListeners("plotly_click");
 
     // use once rather than on to avoid infinite firing of click events.
     // see: https://community.plotly.com/t/adding-3d-plot-annotation-upon-click/26306
     if (this.id == 'pick3') {
       plot.once('plotly_click', add3);
-      //plot.on('plotly_click', add3);
     } else if (this.id == 'pick2') {
       plot.once('plotly_click', add2);
     } else if (this.id == 'pick4') {
