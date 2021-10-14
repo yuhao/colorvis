@@ -42,6 +42,7 @@
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script src='hull.js'></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.js"></script>
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
@@ -208,7 +209,7 @@
         <p>The same intuition applies to three colors. Toggle the "Pick 3 Colors" switch, and pick three colors on the RGB spectral locus, which will form a triangle. Any point on that triangle represents a color that is produced from mixing the three chosen spectral lights. That triangle is mapped to another triangle in the chromaticity diagram. In general, if you pick three colors $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ in the chromaticity diagram, the triangle $\triangle \mathbf{abc}$ contains the chromaticities of all the colors that can be produced from three lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$, respectively.</p>
         <p>Let's try one more. Toggle the "Pick 4 Colors" switch and pick four colors on the RGB spectral locus. What you get is a tetrahedron. Any point within that tetrahedron represents a color that is produced from mixing the four chosen spectral lights. That tetrahedron is mapped to a polygon quadrilateral in the chromaticity diagram. In general, if you pick four colors $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ in the chromaticity diagram, the quadrilateral $\square \mathbf{abcd}$ contains the chromaticities of all the colors that can be produced from four lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$, respectively.</p>
         <p>We can keep playing this game. If a light is made of five spectral lights, its color chromaticities will fall in the pentagon formed by the five lights; if a light is made of six spectral lights, its color chromaticities will fall in the hexagon formed by the six spectral lights. Essentially, given a light's SPD $\Phi$, we can find its constituting spectral lights, and then form a polygon whose vertices are the chromaticities of those spectral colors. $\Phi$'s chromaticities are guaranteed to be within that polygon.</p>
-        <p>If we exhaust all potential wavelengths in the visible spectrum, we will have found all the colors (that humans can see). What's the geometric structure that contains all the visible colors? If you think about it, it's not difficult to see that the chromaticities of all colors, which we call the <b>gamut</b> of human color vision, must reside in the <a href="https://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the spectral locus in the chromaticity diagram. Click the button "Show Human Visible Gamut in Chromaticity Diagram" to reveal it.</p>
+        <p>If we exhaust all combinations of all wavelengths in the visible spectrum, we will have found all the colors. What's the geometric structure that contains all the visible colors? If you think about it, it's not difficult to see that the chromaticities of all colors must reside in the <a href="https://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the spectral locus in the chromaticity diagram. Click the button "Show Human Visible Gamut in Chromaticity Diagram" to reveal it. We call all the colors that we can see the <b>gamut</b> of human color vision.</p>
         <p>Visualizing the gamut of human color vision in chromaticity is nice because we can constrain the gamut to a small area. Needless to say, however, the actual gamut of human color vision is 3D. How does it look like? We can't possible visualize it, because you can just keep increasing the power of the light and you will get infinite amount of colors &#8212; ignore the fact that high-intensity lights destroy retinas for a moment. But we can get a sneak peak of its bounds in the RGB space. Toggle the "Show Human Visible Gamut Boundary in RGB" switch. It will show the boundary of the gamut in the RGB space. The boundary grows forever, but we stop at the chromaticity locus. Any point within the boundary is a real color, i.e., a part of the human visual gamut.</p>
         <p>One final note, if you use the preset spectral lights as the primaries, the locus itself is convex. Therefore, the gamut is the area enclosed by the locus. However, it's possible to use primaries such that the spectral locus isn't convex, in which case we can't say that the human gamut is the area under the locus. The exact shape of gamut in both RGB and the chromaticity plot varies with the particular RGB color space you built. Try changing the primaries in Step 0 and visualize the gamut (the reference white in this tutorial is fixed).</p>
       </div>
@@ -217,11 +218,57 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 3: Physically-Unrealizable Lights and Imaginary Colors</h3>
-        <p>Look at the rg-chromaricity diagram. We know that points on the locus are colors of spectral lights, and points inside the locus are real colors that can be produced by mixing different spectral lights. What about points outside the locus? Intuitively, they are not colors that are visible to humans since they can't be produced by mixing spectral lights, but exactly what are they?</p>
+        <p>We know that points on the locus are colors of spectral lights, and points inside the locus are colors that can be produced by mixing different spectral lights. What about points outside the locus? Intuitively, they do not represent any real color since they can't be produced by mixing spectral lights, but exactly what are they? For simplicity, we will use the color space built from the preset primaries (and EEW as reference white) for this part.</p>
+        <p><b>Physically-Realizable Lights.</b> Lights whose SPDs are non-negative everywhere are physically-realizable. We can, in theory, generate such lights by collecting photons at different wavelengths as specified by the SPD. The RGB triplet of a physically-realizable light corresponds to a real color. As discussed above, a real color is a part of the gamut of human color perception; in the chromaticity diagram, a real color falls within the area under the locus if the locus is convex, which is the case here.</p>
+        <p>Since photons always have positive energy, a "light" would be physically unrealizable if its SPD is negative at certain wavelengths. Mathematically, however, nothing prevents us from calculating the RGB triplet of a physically-unrealizable light using the CMFs of a color space. An RGB point would not represent a real color if the RGB triplet can not be producible from <i>any</i> physically-realizable light. We call such a color an <i>imaginary color</i>.</p>
+        <p><b>Finding Imaginary Colors.</b> Given an RGB color space, can you find all the imaginary colors, those that can never be generated from real lights? Intuitively, any point outside the gamut is an imaginary color. Mathematically stated, given an RGB point $[R_t, G_t, B_t]$ in a color space whose CMFs are $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$, we want to know whether the following <i>constrained</i> system of equations have a solution:<p>
+        <p>$
+          \begin{bmatrix}
+          R_t \\
+          G_t \\
+          B_t
+          \end{bmatrix} =
+          \begin{bmatrix}
+          \bar{r}(380) & \cdots \bar{r}(500) & \cdots & \bar{r}(780) \\
+          \bar{g}(380) & \cdots \bar{g}(500) & \cdots & \bar{g}(780) \\
+          \bar{b}(380) & \cdots \bar{b}(500) & \cdots & \bar{b}(780)
+          \end{bmatrix}
+          \times
+          \begin{bmatrix}
+          \Phi(380) \\
+          \cdots \\
+          \Phi(500) \\
+          \cdots \\
+          \Phi(780)
+          \end{bmatrix}
+          $, $\Phi(\lambda) \ge 0 ~~ \forall \lambda \in [380, 780] $, where $\Phi(\lambda)$ is the SPD to be solved for.
+        </p>
+        <p>If not, $[R_t, G_t, B_t]$ is an imaginary color.</p>
       </div>
 
       <div class="row">
+        <div class="col-sm-7">
+          <canvas id="canvasCamSpace" class="mt-2"></canvas>
+          <div class="input-group mb-3">
+            <span class="input-group-text">$R_t$</span>
+            <input type="text" id="rt" class="form-control" placeholder="" aria-label="R">
+            <span class="input-group-text">$G_t$</span>
+            <input type="text" id="gt" class="form-control" placeholder="" aria-label="G">
+            <span class="input-group-text">$B_t$</span>
+            <input type="text" id="bt" class="form-control" placeholder="" aria-label="B">
+            <button class="btn btn-primary" type="button" id="findspd">Find SPD</button>
+            <span class="input-group-text mx-4" id="colortype"><b>Color Type</b></span>
+          </div>
+        </div>
+        <div class="col-sm-5">
+          <div id="locusDiv"></div>
+        </div>
       </div>
+
+      <div class="row">
+        <p>Interestingly but perhaps unsurprisingly, it is possible that a real light and a unreal light are mapped to the same RGB point. This is because the system of equations above is under-determined. It could have two solutions, one meets the non-negative constraints and the other does not. That is, a real light can be a metamer of a unreal light, mathematically!</p>
+      </div>
+
     </div>
 
 

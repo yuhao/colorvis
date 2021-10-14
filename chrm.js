@@ -1090,14 +1090,15 @@ function registerPickColors() {
             traces.push(trace);
           }
 
-          Plotly.addTraces(plot, traces);
-          traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+          Plotly.addTraces(plot, traces).then(()=>{
+            traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
-          // show chrm if not already shown 
-          //if(!($('#showChrm2').is(":checked"))) {
-          //  $('#showChrm2').prop('checked', true);
-          //  showChrm2('#showChrm2');
-          //}
+            // show chrm if not already shown 
+            if(!($('#showChrm2').is(":checked"))) {
+              $('#showChrm2').prop('checked', true);
+              showChrm2('#showChrm2');
+            }
+          });
         }
       });
     }
@@ -1331,6 +1332,12 @@ function registerShowHVS(id) {
   });
 }
 
+function registerFindSPD(id) {
+  $(id).on('click', function(evt) {
+    findSPD();
+  });
+}
+
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   var stride = 5;
 
@@ -1368,5 +1375,38 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerPickColors();
   registerShowHVS('#showhvs');
   registerShowHVSRGB('#showhvsRGB');
+
+  // Step 3
+  registerFindSPD('#findspd');
 });
+
+function findSPD() {
+  var rVal = $('#rt').val();
+  var gVal = $('#gt').val();
+  var bVal = $('#bt').val();
+
+  // https://ccc-js.github.io/numeric2/documentation.html
+  var num = sCMFR.length;
+  var coeff = Array(num).fill(1);
+  var left = math.diag(Array(num).fill(-1));
+  var right = Array(num).fill(0);
+  var leftEq = [sCMFR, sCMFG, sCMFB];
+  var rightEq = [rVal, gVal, bVal];
+
+  var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+  
+  var solution=numeric.trunc(lp.solution, 1e-12);
+
+  // then find the maximum negative SPD
+  if(Number.isNaN(solution)) {
+    var coeff = Array(num).fill(-1);
+    var left = math.diag(Array(num).fill(0));
+    var lp=numeric.solveLP(coeff, left,  right, leftEq, rightEq);
+    solution=numeric.trunc(lp.solution, 1e-12);
+    $('#colortype').text("Imaginary Color!");
+  } else {
+    $('#colortype').text("Real Color!");
+  }
+  $('#colortype').wrapInner("<strong />");;
+}
 
