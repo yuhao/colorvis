@@ -267,20 +267,38 @@
               <button class="btn btn-primary btn-sm" type="button" id="findspd" disabled>Find SPD</button>
             </div>
             <div class="input-group input-group-sm mb-3 justify-content-between">
-              <span class="input-group-text" id="colTypeSpan"><b id="colortype">Color Type</b></span>
+              <span class="input-group-text" id="colTypeSpan" style="border: none"><b id="colortype">Color Type</b></span>
               <button class="btn btn-primary btn-sm ml-2" type="button" id="findImgSpd" disabled>Find an Unreal Light</button>
             </div>
           </div>
           <div class="row">
             <canvas id="canvasDrawSPD"></canvas>
             <div class="d-flex">
-              <button id="findColor" class="btn btn-primary btn-sm">Calculate Color</button>
-              <button id="resetSPD" class="ms-auto btn btn-primary btn-sm">Reset</button>
+              <div class="input-group input-group-sm">
+                <div class="form-check form-switch mt-1 mx-4">
+                  <input class="form-check-input" type="checkbox" role="switch" id="drawSPD" disabled>
+                  <label class="form-check-label" for="drawSPD"><b>Draw Light</b></label>
+                </div>
+                <button id="findColor" class="btn btn-primary btn-sm" disabled>Calculate Color</button>
+                <span class="input-group-text" id="colTypeSpan2" style="border: none"><b id="colortype">Color Type</b></span>
+              </div>
+              <button id="resetSPD" class="ms-auto btn btn-primary btn-sm" disabled>Reset</button>
             </div>
           </div>
         </div>
+
         <div class="col-sm-7">
           <div id="chrmLocus2Div"></div>
+          <div class="btn-toolbar d-flex justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" role="switch" id="showhvs2" disabled>
+              <label class="form-check-label" for="showhvs2"><b>Show Human Visible Gamut in Chromaticity</b></label>
+            </div>
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" role="switch" id="showhvsRGB2" disabled>
+              <label class="form-check-label" for="showhvsRGB2"><b>Show Human Visible Gamut Boundary in RGB</b></label>
+            </div>
+          </div>
         </div>
       </div>
 

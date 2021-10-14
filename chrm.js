@@ -299,9 +299,12 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
     window.chrm2Plot = plotLocus(lmsChart.data.labels, 'chrmLocus2Div', true);
     plotChrm(window.chrm2Plot, false);
-    plotHVSGamut(window.chrm2Plot, 'legendonly', true);
+    plotHVSGamut(window.chrm2Plot, 'legendonly', 'legendonly');
 
     $('#findspd').prop('disabled', false);
+    $('#showhvs2').prop('disabled', false);
+    $('#showhvsRGB2').prop('disabled', false);
+    $('#drawSPD').prop('disabled', false);
   });
 }
 
@@ -541,7 +544,7 @@ function plotLocus(wlen, plotId, showLgd) {
     legend: {
       x: 1,
       xanchor: 'right',
-      y: 0.5,
+      y: 0.9,
     },
     //title: 'Spectral locus in RGB color space',
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
@@ -599,21 +602,22 @@ function plotLocus(wlen, plotId, showLgd) {
   return plot;
 }
 
-function plotDrawSPDChart(id, x_data) {
+function setupDrawSPDChart(id, x_data) {
   // draw a line chart on the canvas context
   window.spdDrawCanvas = document.getElementById(id);
   var ctx = window.spdDrawCanvas.getContext("2d");
+
   window.spdDrawChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: x_data,
       datasets: [
         {
-          //data: y_data_1,
+          data: Array(x_data.length).fill(0),
           //label: "L Cone",
           borderColor: '#000000',
           pointHoverRadius: 10,
-          pointBackgroundColor: redColor,
+          pointBackgroundColor: '#000000',
           pointRadius: 3,
           borderWidth: 1,
         },
@@ -651,7 +655,7 @@ function plotDrawSPDChart(id, x_data) {
         },
         title: {
           display: false,
-          //text: 'Cone Fundamentals (Stockman & Sharpe, 2000)',
+          //text: 'SPD',
           font: {
             size: 18,
             family: 'Helvetica Neue',
@@ -662,7 +666,7 @@ function plotDrawSPDChart(id, x_data) {
   });
 }
 
-function plotSPDChart(id, x_data) {
+function setupSPDChart(id, x_data) {
   // draw a line chart on the canvas context
   window.spdCanvas = document.getElementById(id);
   var ctx = window.spdCanvas.getContext("2d");
@@ -1435,15 +1439,17 @@ function registerPickColors() {
   });
 }
 
-function registerShowHVSRGB(id) {
+function registerShowHVSRGB(pid, id, hide) {
   $(id).on('change', function(evt) {
-    var plot = window.chrmPlot;
+    var plot = ((pid == 1) ? window.chrmPlot : window.chrm2Plot);
 
     if($(id).is(":checked")) {
-      // hide chrm if already shown 
-      if($('#showChrm2').is(":checked")) {
-        $('#showChrm2').prop('checked', false);
-        showChrm2('#showChrm2');
+      if (hide) {
+        // hide chrm if already shown 
+        if($('#showChrm2').is(":checked")) {
+          $('#showChrm2').prop('checked', false);
+          showChrm2('#showChrm2');
+        }
       }
 
       var data_update = {'visible': true};
@@ -1455,15 +1461,17 @@ function registerShowHVSRGB(id) {
   });
 }
 
-function registerShowHVS(id) {
+function registerShowHVS(pid, id, hide) {
   $(id).on('change', function(evt) {
-    var plot = window.chrmPlot;
+    var plot = ((pid == 1) ? window.chrmPlot : window.chrm2Plot);
 
     if($(id).is(":checked")) {
-      // show chrm if not already shown 
-      if(!($('#showChrm2').is(":checked"))) {
-        $('#showChrm2').prop('checked', true);
-        showChrm2('#showChrm2');
+      if (hide) {
+        // show chrm if not already shown 
+        if(!($('#showChrm2').is(":checked"))) {
+          $('#showChrm2').prop('checked', true);
+          showChrm2('#showChrm2');
+        }
       }
 
       var data_update = {'visible': true};
@@ -1471,6 +1479,20 @@ function registerShowHVS(id) {
     } else {
       var data_update = {'visible': 'legendonly'};
       Plotly.restyle(plot, data_update, [3]);
+    }
+  });
+}
+
+function registerDrawSPD(id) {
+  $(id).on('change', function(evt) {
+    if($(id).is(":checked")) {
+      $('#findColor').prop('disabled', false);
+      $('#resetSPD').prop('disabled', false);
+      registerDrag(window.spdDrawCanvas, window.spdDrawChart, undefined, true, [0]);
+    } else {
+      toggleDrag(window.rgbPrimCanvas, false);
+      $('#findColor').prop('disabled', true);
+      $('#resetSPD').prop('disabled', true);
     }
   });
 }
@@ -1617,13 +1639,16 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
   registerShowChrm2('#showChrm2');
   registerPickColors();
-  registerShowHVS('#showhvs');
-  registerShowHVSRGB('#showhvsRGB');
+  registerShowHVS(1, '#showhvs', true);
+  registerShowHVSRGB(1, '#showhvsRGB', true);
 
   // Step 3 (the locus plots are plotted in |registerPlotLocus|)
   // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
-  plotSPDChart("canvasSPD", x_data);
-  plotDrawSPDChart("canvasDrawSPD", x_data);
+  setupSPDChart("canvasSPD", x_data);
+  setupDrawSPDChart("canvasDrawSPD", x_data);
   registerFindSPD('#findspd');
+  registerShowHVS(2, '#showhvs2', false);
+  registerShowHVSRGB(2, '#showhvsRGB2', false);
+  registerDrawSPD('#drawSPD');
 });
 
