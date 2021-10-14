@@ -191,7 +191,7 @@ function registerShowChrm(id) {
       var data_update = {'visible': true};
       Plotly.restyle(plot, data_update, [1]);
       $('#showChrmLine').prop('disabled', false);
-      $('#showPlane').prop('disabled', false);
+      //$('#showPlane').prop('disabled', false);
     } else {
       var data_update = {'visible': 'legendonly'};
       Plotly.restyle(plot, data_update, [1]);
@@ -204,11 +204,11 @@ function registerShowChrm(id) {
       }
 
       // disable r+g+b=1 plane in RGB plot
-      $('#showPlane').prop('disabled', true);
-      if($('#showPlane').is(":checked")) {
-        $('#showPlane').prop('checked', false);
-        showPlane('#showPlane');
-      }
+      //$('#showPlane').prop('disabled', true);
+      //if($('#showPlane').is(":checked")) {
+      //  $('#showPlane').prop('checked', false);
+      //  showPlane('#showPlane');
+      //}
     }
   });
 }
@@ -276,17 +276,18 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
     sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * 10);
 
-    window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv');
+    window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv', false);
     plotChrm(window.locusPlot, true);
     plotPlane();
     //plotPrims();
 
-    window.chrmPlot = plotLocus(lmsChart.data.labels, 'chrmLocusDiv');
-    plotChrm(window.chrmPlot, false);
-    plotHVSGamut(window.chrmPlot);
-
     $('#showChrm').prop('disabled', false);
     $('#projChrm').prop('disabled', false);
+    $('#showPlane').prop('disabled', false);
+
+    window.chrmPlot = plotLocus(lmsChart.data.labels, 'chrmLocusDiv', false);
+    plotChrm(window.chrmPlot, false);
+    plotHVSGamut(window.chrmPlot, 'legendonly', 'legendonly');
 
     $('#showChrm2').prop('disabled', false);
     $('#pick0').prop('disabled', false);
@@ -295,11 +296,18 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     $('#pick4').prop('disabled', false);
     $('#showhvs').prop('disabled', false);
     $('#showhvsRGB').prop('disabled', false);
+
+    window.chrm2Plot = plotLocus(lmsChart.data.labels, 'chrmLocus2Div', true);
+    plotChrm(window.chrm2Plot, false);
+    plotHVSGamut(window.chrm2Plot, 'legendonly', true);
+
+    $('#findspd').prop('disabled', false);
   });
 }
 
-// TODO: should generate convex hull first
-function plotHVSGamut(plot) {
+// TODO: the RGB gamut isn't correct.
+// mesh3d traces don't have legends. add a dummy trace?
+function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
   var points = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
   var hullPoints = math.transpose(hull(points, Infinity));
 
@@ -316,10 +324,11 @@ function plotHVSGamut(plot) {
     j: [...Array(len+1).keys()].slice(1),
     k: [...Array(len+1).keys()].slice(2).concat([1]),
     type: 'mesh3d',
-    visible: 'legendonly',
+    visible: visiblityRGB,
     opacity:0.8,
     color: redColor,
     hoverinfo: 'skip',
+    name: 'HVS gamut in RGB',
   };
 
   var chrmTrace = {
@@ -330,10 +339,11 @@ function plotHVSGamut(plot) {
     j: [...Array(len+1).keys()].slice(1),
     k: [...Array(len+1).keys()].slice(2).concat([1]),
     type: 'mesh3d',
-    visible: 'legendonly',
+    visible: visiblityrgb,
     opacity:0.8,
     color: greenColor,
     hoverinfo: 'skip',
+    name: 'HVS gamut in rgb',
   };
 
   Plotly.addTraces(plot, [RGBTrace, chrmTrace]);
@@ -451,11 +461,13 @@ function plotChrm(plot, lines) {
       '<br>wavelength: %{text}' +
       '<br>ratio: %{customdata}<extra></extra>',
     //hoverinfo: 'skip',
+    name: 'Spectral locus in rgb',
   };
 
   var traces = [];
   traces.push(trace);
 
+  // TODO: should connect the origin, the RGB point, and the rgb point together.
   if (lines) {
     for (i = 0; i < numWaves; i++) {
       var trace = {
@@ -478,7 +490,7 @@ function plotChrm(plot, lines) {
   Plotly.addTraces(plot, traces);
 }
 
-function plotLocus(wlen, plotId) {
+function plotLocus(wlen, plotId, showLgd) {
   var ratios = [];
   for (var i = 0; i < sCMFR.length; i++) {
     var ratio;
@@ -512,7 +524,7 @@ function plotLocus(wlen, plotId) {
       '<br>ratio: %{customdata}<extra></extra>',
       //hoverinfo: 'skip',
     type: 'scatter3d',
-    name: 'Spectral locus',
+    name: 'Spectral locus in RGB',
   };
 
   var data = [trace];
@@ -525,8 +537,7 @@ function plotLocus(wlen, plotId) {
       b: 0,
       t: 0
     },
-    name: 'Spectral locus',
-    showlegend: false,
+    showlegend: showLgd,
     legend: {
       x: 1,
       xanchor: 'right',
@@ -585,7 +596,135 @@ function plotLocus(wlen, plotId) {
   var plot = document.getElementById(plotId);
   Plotly.newPlot(plot, data, layout);
 
-  return plot
+  return plot;
+}
+
+function plotDrawSPDChart(id, x_data) {
+  // draw a line chart on the canvas context
+  window.spdDrawCanvas = document.getElementById(id);
+  var ctx = window.spdDrawCanvas.getContext("2d");
+  window.spdDrawChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          //data: y_data_1,
+          //label: "L Cone",
+          borderColor: '#000000',
+          pointHoverRadius: 10,
+          pointBackgroundColor: redColor,
+          pointRadius: 3,
+          borderWidth: 1,
+        },
+      ]
+    },
+    options: {
+      animation: {
+        duration: 10
+      },
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+        yAxes:{
+          min: -1,
+          max: 1,
+          position: 'left',
+        },
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1,
+            },
+            mode: 'x',
+          },
+        },
+        title: {
+          display: false,
+          //text: 'Cone Fundamentals (Stockman & Sharpe, 2000)',
+          font: {
+            size: 18,
+            family: 'Helvetica Neue',
+          },
+        },
+      }
+    }
+  });
+}
+
+function plotSPDChart(id, x_data) {
+  // draw a line chart on the canvas context
+  window.spdCanvas = document.getElementById(id);
+  var ctx = window.spdCanvas.getContext("2d");
+
+  window.spdChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: x_data,
+      datasets: [
+        {
+          //data: Array(x_data.length).fill(0),
+          //label: "SPD",
+          borderColor: '#000000',
+          //hidden: true,
+          pointHoverRadius: 10,
+          pointBackgroundColor: '#000000',
+          pointRadius: 3,
+          borderWidth: 1,
+        },
+      ]
+    },
+    options: {
+      animation: {
+        duration: 10
+      },
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+        yAxes:{
+          //min: 0,
+          //max: 1,
+          position: 'left',
+        },
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+        zoom: {
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1,
+            },
+            mode: 'x',
+          },
+        },
+        title: {
+          display: false,
+          text: 'SPD',
+          font: {
+            size: 18,
+            family: 'Helvetica Neue',
+          },
+        },
+      }
+    }
+  });
 }
 
 function plotCones(rows, x_data) {
@@ -1342,6 +1481,107 @@ function registerFindSPD(id) {
   });
 }
 
+function plotSPD(spd) {
+  var chart = window.spdChart;
+  chart.data.datasets[0].data = spd;
+  chart.data.datasets[0].hidden = false;
+  chart.update();
+}
+
+function showColor(R, G, B) {
+  var plot = window.chrm2Plot;
+
+  var r = R/(R+G+B);
+  var g = G/(R+G+B);
+  var b = B/(R+G+B);
+
+  if (plot.data.length == 4) {
+    var points = {
+      x: [R, r],
+      y: [G, g],
+      z: [B, b],
+      text: ['RGB: (' + R + ', ' + G + ', ' + B + ')',
+             'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')',],
+      textfont: {
+        family: 'Helvetica Neue',
+        size: 20,
+      },
+      mode: 'markers+text',
+      type: 'scatter3d',
+      marker: {
+        color: '#000000',
+        size: 6,
+        symbol: 'circle',
+        //opacity: 1,
+      },
+      hoverinfo: 'skip',
+      name: 'Target color',
+    };
+
+    Plotly.addTraces(plot, [points]);
+  } else {
+    var data_update = {'x': [[R, r]],
+                       'y': [[G, g]],
+                       'z': [[B, b]],
+                       'text': [['RGB: (' + R + ', ' + G + ', ' + B + ')',
+                                 'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')']],
+                       'textfont.size': [40], // TODO: not sure why but restyle needs bigger font sizes
+                      };
+    Plotly.restyle(plot, data_update, [4]);
+  }
+}
+
+function findSPD() {
+  var rVal = parseFloat($('#rt').val());
+  var gVal = parseFloat($('#gt').val());
+  var bVal = parseFloat($('#bt').val());
+
+  //if ((typeof rVal != 'number') || (typeof gVal != 'number') || (typeof bVal != 'number'))
+  //  return;
+
+  // https://ccc-js.github.io/numeric2/documentation.html
+  var num = sCMFR.length;
+  var coeff = Array(num).fill(1);
+  var left = math.diag(Array(num).fill(-1));
+  var right = Array(num).fill(0);
+  var leftEq = [sCMFR, sCMFG, sCMFB];
+  var rightEq = [rVal, gVal, bVal];
+
+  var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+  var solution=numeric.trunc(lp.solution, 1e-12);
+
+  showColor(rVal, gVal, bVal);
+
+  // then find the maximum negative SPD
+  if(Number.isNaN(solution)) {
+    $('#findImgSpd').prop('disabled', false);
+    $('#colortype').text("Imaginary Color!");
+    $('#colortype').css('color', '#FFFFFF');
+    $('#colTypeSpan').css('background-color', redColor);
+
+    var chart = window.spdChart;
+    chart.data.datasets[0].hidden = true;
+    chart.update();
+
+    var coeff = Array(num).fill(-1);
+    var left = math.diag(Array(num).fill(0));
+    var lp=numeric.solveLP(coeff, left,  right, leftEq, rightEq);
+    solution=numeric.trunc(lp.solution, 1e-12);
+
+    $('#findImgSpd').on('click', function(evt) {
+      plotSPD(solution);
+    });
+  } else {
+    $('#findImgSpd').prop('disabled', true);
+    $('#colortype').text("Real Color!");
+    $('#colortype').css('color', '#FFFFFF');
+    $('#colTypeSpan').css('background-color', greenColor);
+
+    plotSPD(solution);
+  }
+  //$('#colortype').wrapInner("<strong />");;
+}
+
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   var stride = 5;
 
@@ -1380,37 +1620,10 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerShowHVS('#showhvs');
   registerShowHVSRGB('#showhvsRGB');
 
-  // Step 3
+  // Step 3 (the locus plots are plotted in |registerPlotLocus|)
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
+  plotSPDChart("canvasSPD", x_data);
+  plotDrawSPDChart("canvasDrawSPD", x_data);
   registerFindSPD('#findspd');
 });
-
-function findSPD() {
-  var rVal = $('#rt').val();
-  var gVal = $('#gt').val();
-  var bVal = $('#bt').val();
-
-  // https://ccc-js.github.io/numeric2/documentation.html
-  var num = sCMFR.length;
-  var coeff = Array(num).fill(1);
-  var left = math.diag(Array(num).fill(-1));
-  var right = Array(num).fill(0);
-  var leftEq = [sCMFR, sCMFG, sCMFB];
-  var rightEq = [rVal, gVal, bVal];
-
-  var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
-  
-  var solution=numeric.trunc(lp.solution, 1e-12);
-
-  // then find the maximum negative SPD
-  if(Number.isNaN(solution)) {
-    var coeff = Array(num).fill(-1);
-    var left = math.diag(Array(num).fill(0));
-    var lp=numeric.solveLP(coeff, left,  right, leftEq, rightEq);
-    solution=numeric.trunc(lp.solution, 1e-12);
-    $('#colortype').text("Imaginary Color!");
-  } else {
-    $('#colortype').text("Real Color!");
-  }
-  $('#colortype').wrapInner("<strong />");;
-}
 
