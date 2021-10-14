@@ -1169,19 +1169,22 @@ function registerPickColors() {
           }
 
           // https://github.com/plotly/plotly.js/issues/1467
-          Plotly.addTraces(plot, traces);
-          traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+          Plotly.addTraces(plot, traces).then(()=>{
+            traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
+            // show chrm if not already shown 
+            if(!($('#showChrm2').is(":checked"))) {
+              $('#showChrm2').prop('checked', true);
+              showChrm2('#showChrm2');
+            }
+          });
+
+          // TODO: do these in one update
           // add annotation to chrm curve
           //highlightPoint(plot, 1, selectId[0], num2Letter(0, false));
           //highlightPoint(plot, 1, selectId[1], num2Letter(1, false));
           //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
 
-          // show chrm if not already shown 
-          //if(!($('#showChrm2').is(":checked"))) {
-          //  $('#showChrm2').prop('checked', true);
-          //  showChrm2('#showChrm2');
-          //}
         }
       });
     }
@@ -1260,20 +1263,21 @@ function registerPickColors() {
             traces.push(trace);
           }
 
-          Plotly.addTraces(plot, traces);
-          traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+          Plotly.addTraces(plot, traces).then(()=>{
+            traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+
+            // show chrm if not already shown 
+            if(!($('#showChrm2').is(":checked"))) {
+              $('#showChrm2').prop('checked', true);
+              showChrm2('#showChrm2');
+            }
+          });
 
           // add annotation to chrm curve
           //highlightPoint(plot, 1, selectId[0], num2Letter(0, false));
           //highlightPoint(plot, 1, selectId[1], num2Letter(1, false));
           //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
           //highlightPoint(plot, 1, selectId[3], num2Letter(3, false));
-
-          // show chrm if not already shown 
-          //if(!($('#showChrm2').is(":checked"))) {
-          //  $('#showChrm2').prop('checked', true);
-          //  showChrm2('#showChrm2');
-          //}
         }
       });
     }
