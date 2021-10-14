@@ -244,13 +244,18 @@
           $, $\Phi(\lambda) \ge 0 ~~ \forall \lambda \in [380, 780] $, where $\Phi(\lambda)$ is the SPD to be solved for.
         </p>
         <p>If not, $[R_t, G_t, B_t]$ is an imaginary color. Without the constraint that the SPD is non-negative at every wavelength, this system of equations is under-determined and so has infinitely many solutions. But with the constraint, it's possible that there's no solution.</p>
-        <p><b>Finding Imaginary Colors.</b> You can verify this for yourself. Look at the gamut on the right and use your intuition to identify a point that you believe should be an imaginary color. Then put the RGB coordinates of that point in the input boxes below, and hit the "Find SPD" button. The RGB point and the corresponding chromaticities of that color will be shown in the plot on the right.</p>
-        <p>One of two things will happen to the left chart. If the color is a real color (think harder!), there are many spectra that could have led to that particular RGB triplet; we plot the one that has the least total power in the left chart. If the color is indeed an imaginary color (great job!), there isn't a real light that could lead to that RGB point, but a physically-unrealizable light could. To convince yourself of this, click the "Show Unreal Light" button. A light that mathematically gives the given RGB triplet but with negative SPD values is plotted.</p>
+        <p><b>Finding Imaginary Colors.</b> You can verify this for yourself. Look at the gamut on the right and use your intuition to identify a point that you believe should be an imaginary color. Then put the RGB coordinates of that point in the input boxes below, and hit the "Find SPD" button. One of two things will happen.</p>
+        <div>
+          <ul>
+            <li>If the color is a real color (think harder!), there are many spectra that could have led to that particular RGB triplet; we plot the one that has the least total power in the left chart. You will see that the RGB point falls within the gamut and the chromaticity is within the convex hull of the spectral locus.</li>
+            <li>If the color is indeed an imaginary color (great job!), there isn't a real light that could lead to that RGB point, but a physically-unrealizable light could. To convince yourself of this, click the "Show Unreal Light" button. A light that mathematically gives the target RGB triplet but with negative SPD values is plotted. You will also see that the RGB triplet is outside the gamut and the chromaticity is outside the convex hull of the locus.</li>
+          </ul>
+        </div>
       </div>
 
       <div class="row">
         <div class="col-sm-7">
-          <canvas id="canvasCamSpace" class="mt-2"></canvas>
+          <canvas id="canvasSPD" class="mt-2"></canvas>
           <div class="input-group mb-3">
             <span class="input-group-text">$R_t$</span>
             <input type="text" id="rt" class="form-control" placeholder="" aria-label="R">
@@ -263,7 +268,7 @@
           </div>
         </div>
         <div class="col-sm-5">
-          <div id="locusDiv"></div>
+          <div id="chrmLocus2Div"></div>
         </div>
       </div>
 
