@@ -287,6 +287,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv', false);
     plotChrm(window.locusPlot, true);
     plotPlane(1);
+    plotOrigin(window.locusPlot);
     //plotPrims();
 
     $('#showChrm').prop('disabled', false);
@@ -297,6 +298,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotChrm(window.chrmPlot, false);
     plotHVSGamut(window.chrmPlot, 'legendonly', 'legendonly');
     plotPlane(0);
+    plotOrigin(window.chrmPlot);
 
     $('#showChrm2').prop('disabled', false);
     $('#pick0').prop('disabled', false);
@@ -310,6 +312,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     window.chrm2Plot = plotLocus(lmsChart.data.labels, 'chrmLocus2Div', true);
     plotChrm(window.chrm2Plot, false);
     plotHVSGamut(window.chrm2Plot, 'legendonly', 'legendonly');
+    plotOrigin(window.chrm2Plot);
 
     $('#findspd').prop('disabled', false);
     $('#showhvs2').prop('disabled', false);
@@ -360,6 +363,29 @@ function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
   };
 
   Plotly.addTraces(plot, [RGBTrace, chrmTrace]);
+}
+
+function plotOrigin(plot) {
+  var trace = {
+    x: [0],
+    y: [0],
+    z: [0],
+    text: ['Origin'],
+    mode: 'markers',
+    type: 'scatter3d',
+    //visible: 'legendonly',
+    marker: {
+      color: '#000000',
+      size: 6,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    hovertemplate: 'Origin<br>R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}<extra></extra>',
+    //hoverinfo: 'skip',
+  };
+  Plotly.addTraces(plot, [trace]);
 }
 
 function plotPrims() {
@@ -560,13 +586,13 @@ function plotLocus(wlen, plotId, showLgd) {
       width: 2,
       shape: 'spline',
     },
+    //hoverinfo: 'skip',
     customdata: ratios,
     hovertemplate: 'R: %{x}' +
       '<br>G: %{y}' +
       '<br>B: %{z}' +
       '<br>wavelength: %{text}' +
       '<br>ratio: %{customdata}<extra></extra>',
-      //hoverinfo: 'skip',
     type: 'scatter3d',
     name: 'Spectral locus in RGB',
   };
@@ -1161,12 +1187,14 @@ function registerPickColors() {
         opacity: 0.7
       };
 
-      var prevAnn = plot.layout.scene.annotations;
-      var layout_update = {
-        //'scene.annotations': [annotation],
-        'scene.annotations': prevAnn.concat([annotation]),
-      };
+      //var prevAnn = plot.layout.scene.annotations;
+      //var layout_update = {
+      //  //'scene.annotations': [annotation],
+      //  'scene.annotations': prevAnn.concat([annotation]),
+      //};
+      var layout_update = {};
 
+      //var data_update = {'marker.color': [colors]};
       var data_update = {'marker.color': [colors]};
       //var data_update = {};
 
@@ -1186,6 +1214,8 @@ function registerPickColors() {
       // remove all event listerners so that no callbacks are accidently fired.
       // must if we click a pick button without doing anything and then click another pick button.
       plot.removeAllListeners("plotly_click");
+      //var data_update = {'hoverinfo': 'skip'};
+      //Plotly.restyle(plot, data_update, [0]);
 
       // delete all traces
       if (traceIdx != undefined && traceIdx.length != 0) Plotly.deleteTraces(plot, traceIdx);
@@ -1233,14 +1263,20 @@ function registerPickColors() {
         if (count < 2)
           plot.once('plotly_click', add2);
         else if (count == 2) {
-          plot.removeListener('plotly_click', add2);
-          //plot.removeAllListeners("plotly_click");
+          //plot.removeListener('plotly_click', add2);
+          plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1]],
             y: [selectY[0], selectY[1]],
             z: [selectZ[0], selectZ[1]],
-            mode: 'lines',
+            text: ['<b>A</b>', '<b>B</b>'],
+            textfont: {
+              family: 'Helvetica Neue',
+              size: 20,
+            },
+            mode: 'lines+text',
+            //mode: 'lines',
             type: 'scatter3d',
             line: {
               color: '#000000',
@@ -1711,7 +1747,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   // Step 1
   // will calculate everything but hide them except the RGB locus
-  // order: RGB locus, rgb locus, all chrm lines, r+g+b=1 plane(, RGB prims, rgb prims)
+  // order: RGB locus, rgb locus, all chrm lines, r+g+b=1 plane, origin(, RGB prims, rgb prims)
   registerPlotLocus('#plotLocus', window.lmsChart, window.rgbPrimChart);
 
   registerShowChrm('#showChrm');
@@ -1720,7 +1756,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plots are plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin
   registerShowChrm2('#showChrm2');
   registerPickColors();
   registerShowHVS(1, '#showhvs', true);
@@ -1728,7 +1764,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerShowPlane('#showPlane0', 0);
 
   // Step 3 (the locus plots are plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, origin
   registerShowHVS(2, '#showhvs2', false);
   registerShowHVSRGB(2, '#showhvsRGB2', false);
   setupSPDChart("canvasSPD", x_data);
@@ -1738,4 +1774,3 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerFindColor('#findColor');
   registerResetSPD('#resetSPD');
 });
-
