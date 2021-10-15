@@ -1192,9 +1192,10 @@ function registerPickColors() {
       //  //'scene.annotations': [annotation],
       //  'scene.annotations': prevAnn.concat([annotation]),
       //};
-      var layout_update = {};
+      //var layout_update = {};
+      // TODO: temporarily disable hovermode during selection to avoid hang. needs to re-enable this.
+      var layout_update = {'hovermode': false};
 
-      //var data_update = {'marker.color': [colors]};
       var data_update = {'marker.color': [colors]};
       //var data_update = {};
 
