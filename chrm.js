@@ -971,11 +971,15 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
       selectPrims(lmsCanvas, lmsChart, []);
-    } else if (this.value == 'usePreset') {
+    } else if (this.value == 'usePreset1') {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
       //selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 435), getWaveId(lmsChart, 545), getWaveId(lmsChart, 700)]);
       selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 445), getWaveId(lmsChart, 540), getWaveId(lmsChart, 590)]);
+    } else if (this.value == 'usePreset2') {
+      toggleDrag(rgbCanvas, false);
+      $('#resetPrim').prop('disabled', true);
+      selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 415), getWaveId(lmsChart, 500), getWaveId(lmsChart, 540)]);
     } else if (this.value == 'drawPrim') {
       drawPrims(rgbChart, rgbCanvas);
     }
