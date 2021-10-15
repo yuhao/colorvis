@@ -1512,7 +1512,9 @@ function registerFindColor(id) {
     var G = math.dot(sCMFG, light);
     var B = math.dot(sCMFB, light);
 
+    showColor(R, G, B);
     var solution = solveLP(R, G, B);
+
     if(Number.isNaN(solution)) {
       $('#colortype2').text("Imaginary Color!");
       $('#colortype2').css('color', '#FFFFFF');
@@ -1597,7 +1599,7 @@ function showColor(R, G, B) {
       x: [R, r],
       y: [G, g],
       z: [B, b],
-      text: ['RGB: (' + R + ', ' + G + ', ' + B + ')',
+      text: ['RGB: (' + R.toFixed(2) + ', ' + G.toFixed(2) + ', ' + B.toFixed(2) + ')',
              'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')',],
       textfont: {
         family: 'Helvetica Neue',
@@ -1620,7 +1622,7 @@ function showColor(R, G, B) {
     var data_update = {'x': [[R, r]],
                        'y': [[G, g]],
                        'z': [[B, b]],
-                       'text': [['RGB: (' + R + ', ' + G + ', ' + B + ')',
+                       'text': [['RGB: (' + R.toFixed(2) + ', ' + G.toFixed(2) + ', ' + B.toFixed(2) + ')',
                                  'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')']],
                        'textfont.size': [40], // TODO: not sure why but restyle needs bigger font sizes
                       };
@@ -1681,11 +1683,11 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   // Step 3 (the locus plots are plotted in |registerPlotLocus|)
   // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
+  registerShowHVS(2, '#showhvs2', false);
+  registerShowHVSRGB(2, '#showhvsRGB2', false);
   setupSPDChart("canvasSPD", x_data);
   setupDrawSPDChart("canvasDrawSPD", x_data);
   registerFindSPD('#findspd');
-  registerShowHVS(2, '#showhvs2', false);
-  registerShowHVSRGB(2, '#showhvsRGB2', false);
   registerDrawSPD('#drawSPD');
   registerFindColor('#findColor');
   registerResetSPD('#resetSPD');
