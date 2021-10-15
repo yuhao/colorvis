@@ -48,7 +48,7 @@ function toggleDrag(canvas, enable) {
   }
 }
 
-function registerDrag(canvas, chart, plotId, disableTT, targetTraces) {
+function registerDrag(canvas, chart, plotId, disableTT, targetTraces, bounds) {
   function down_handler(event) {
     // get the intersecting data point
     const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
@@ -105,7 +105,13 @@ function registerDrag(canvas, chart, plotId, disableTT, targetTraces) {
           var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
           // update y value of active data point; do not go beyond [0, 1]
-          data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(0, yValue), 1);
+          var minVal = 0, maxVal = 1;
+          if (bounds != undefined) {
+            minVal = bounds[0];
+            maxVal = bounds[1];
+          }
+          //data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(0, yValue), 1);
+          data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(minVal, yValue), maxVal);
           chart.update();
         }
       }
@@ -137,7 +143,7 @@ function registerDrag(canvas, chart, plotId, disableTT, targetTraces) {
   canvas.onpointermove = null;
 }
 
-function registerChartReset(buttonId, plotId, chart, canvas, traces, resetData) {
+function registerChartReset(buttonId, plotId, chart, canvas, traces, resetData, fn) {
   $(buttonId).on('click', function(evt) {
     // reset chart.js (2d)
     // do a value copy here so that future updates to the chart won't affect the original data
@@ -155,6 +161,8 @@ function registerChartReset(buttonId, plotId, chart, canvas, traces, resetData) 
 
     //registerDrag(canvas, chart, plotId, false, []);
     chart.update();
+
+    if (fn != undefined) fn();
   });
 }
 
@@ -1488,19 +1496,86 @@ function registerDrawSPD(id) {
     if($(id).is(":checked")) {
       $('#findColor').prop('disabled', false);
       $('#resetSPD').prop('disabled', false);
-      registerDrag(window.spdDrawCanvas, window.spdDrawChart, undefined, true, [0]);
+      registerDrag(window.spdDrawCanvas, window.spdDrawChart, undefined, true, [0], [-1, 1]);
     } else {
-      toggleDrag(window.rgbPrimCanvas, false);
+      toggleDrag(window.spdDrawCanvas, false);
       $('#findColor').prop('disabled', true);
       $('#resetSPD').prop('disabled', true);
     }
   });
 }
 
+function registerFindColor(id) {
+  $(id).on('click', function(evt) {
+    var light = window.spdDrawChart.data.datasets[0].data;
+    var R = math.dot(sCMFR, light);
+    var G = math.dot(sCMFG, light);
+    var B = math.dot(sCMFB, light);
+
+    var solution = solveLP(R, G, B);
+    if(Number.isNaN(solution)) {
+      $('#colortype2').text("Imaginary Color!");
+      $('#colortype2').css('color', '#FFFFFF');
+      $('#colTypeSpan2').css('background-color', redColor);
+    } else {
+      $('#colortype2').text("Real Color!");
+      $('#colortype2').css('color', '#FFFFFF');
+      $('#colTypeSpan2').css('background-color', greenColor);
+    }
+  });
+}
+
 function registerFindSPD(id) {
   $(id).on('click', function(evt) {
-    findSPD();
+    var rVal = parseFloat($('#rt').val());
+    var gVal = parseFloat($('#gt').val());
+    var bVal = parseFloat($('#bt').val());
+
+    //if ((typeof rVal != 'number') || (typeof gVal != 'number') || (typeof bVal != 'number'))
+    //  return;
+
+    var solution = solveLP(rVal, gVal, bVal);
+    showColor(rVal, gVal, bVal);
+
+    // then find the maximum negative SPD
+    if(Number.isNaN(solution)) {
+      $('#findImgSpd').prop('disabled', false);
+      $('#colortype').text("Imaginary Color!");
+      $('#colortype').css('color', '#FFFFFF');
+      $('#colTypeSpan').css('background-color', redColor);
+
+      var chart = window.spdChart;
+      chart.data.datasets[0].hidden = true;
+      chart.update();
+
+      var coeff = Array(num).fill(-1);
+      var left = math.diag(Array(num).fill(0));
+      var lp=numeric.solveLP(coeff, left,  right, leftEq, rightEq);
+      solution=numeric.trunc(lp.solution, 1e-12);
+
+      $('#findImgSpd').on('click', function(evt) {
+        plotSPD(solution);
+      });
+    } else {
+      $('#findImgSpd').prop('disabled', true);
+      $('#colortype').text("Real Color!");
+      $('#colortype').css('color', '#FFFFFF');
+      $('#colTypeSpan').css('background-color', greenColor);
+
+      plotSPD(solution);
+    }
+    //$('#colortype').wrapInner("<strong />");;
   });
+}
+
+function registerResetSPD(id) {
+  registerChartReset(id, undefined, window.spdDrawChart, window.spdDrawCanvas, [0],
+      [[Array(window.spdDrawChart.data.datasets[0].data.length).fill(0), '#000000']],
+      function() {
+        $('#colortype2').text("");
+        //$('#colortype2').css('color', '#FFFFFF');
+        $('#colTypeSpan2').css('background-color', 'transparent');
+      });
 }
 
 function plotSPD(spd) {
@@ -1553,14 +1628,7 @@ function showColor(R, G, B) {
   }
 }
 
-function findSPD() {
-  var rVal = parseFloat($('#rt').val());
-  var gVal = parseFloat($('#gt').val());
-  var bVal = parseFloat($('#bt').val());
-
-  //if ((typeof rVal != 'number') || (typeof gVal != 'number') || (typeof bVal != 'number'))
-  //  return;
-
+function solveLP(rVal, gVal, bVal) {
   // https://ccc-js.github.io/numeric2/documentation.html
   var num = sCMFR.length;
   var coeff = Array(num).fill(1);
@@ -1570,38 +1638,7 @@ function findSPD() {
   var rightEq = [rVal, gVal, bVal];
 
   var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
-  var solution=numeric.trunc(lp.solution, 1e-12);
-
-  showColor(rVal, gVal, bVal);
-
-  // then find the maximum negative SPD
-  if(Number.isNaN(solution)) {
-    $('#findImgSpd').prop('disabled', false);
-    $('#colortype').text("Imaginary Color!");
-    $('#colortype').css('color', '#FFFFFF');
-    $('#colTypeSpan').css('background-color', redColor);
-
-    var chart = window.spdChart;
-    chart.data.datasets[0].hidden = true;
-    chart.update();
-
-    var coeff = Array(num).fill(-1);
-    var left = math.diag(Array(num).fill(0));
-    var lp=numeric.solveLP(coeff, left,  right, leftEq, rightEq);
-    solution=numeric.trunc(lp.solution, 1e-12);
-
-    $('#findImgSpd').on('click', function(evt) {
-      plotSPD(solution);
-    });
-  } else {
-    $('#findImgSpd').prop('disabled', true);
-    $('#colortype').text("Real Color!");
-    $('#colortype').css('color', '#FFFFFF');
-    $('#colTypeSpan').css('background-color', greenColor);
-
-    plotSPD(solution);
-  }
-  //$('#colortype').wrapInner("<strong />");;
+  return solution=numeric.trunc(lp.solution, 1e-12);
 }
 
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
@@ -1650,5 +1687,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerShowHVS(2, '#showhvs2', false);
   registerShowHVSRGB(2, '#showhvsRGB2', false);
   registerDrawSPD('#drawSPD');
+  registerFindColor('#findColor');
+  registerResetSPD('#resetSPD');
 });
 
