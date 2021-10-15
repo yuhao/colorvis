@@ -167,6 +167,11 @@
               <input type="radio" class="btn-check" name="pick" id="pick4" autocomplete="off" disabled>
               <label class="btn btn-outline-primary btn-sm" for="pick4">Pick 4 Colors</label>
             </div>
+            <div class="form-check form-switch align-self-center mt-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="showPlane0" disabled>
+              <label class="form-check-label" for="showPlane0"><b>Show r+g+b=0 Plane</b></label>
+              <p>The r+g+b=0 plane.</p>
+            </div>
             <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm2" disabled>
               <label class="form-check-label" for="showChrm2"><b>Show Chromaticities</b></label>
@@ -213,9 +218,9 @@
             <p>Q.E.D.</p>
           </div>
         </div>
-        <p>The discussion above operates in the RGB space. How does a color mixed from two lights look like on the chromaticity plane? The line segment $\overline{\mathbf{AB}}$ in the RGB space is mapped to a line segment $\overline{\mathbf{ab}}$ in the chromaticity plane. $\overline{\mathbf{ab}}$ connects two points $\mathbf{a}$ and $\mathbf{b}$, which represent the chromaticity of two spectral colors $\mathbf{A}$ and $\mathbf{B}$, respectively. Meanwhile, a point $\mathbf{T}$ on $\overline{\mathbf{AB}}$ gets mapped to a point $\mathbf{t}$ on the chromaticity plane. $\mathbf{t}$ represents the chromaticity of color $\mathbf{T}$. Where is $\mathbf{t}$? $\mathbf{t}$ will be within $\overline{\mathbf{ab}}$ if $\overrightarrow{\rm \mathbf{OA}}$ and $\overrightarrow{\rm \mathbf{OB}}$ <a href="https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection">intersect</a> the $r+g+b=1$ plane either both positively or both negatively ($\mathbf{O}$ is the origin). This is indeed the case if you use the preset primary lights in Step 0.</p>
-        <p>In general, if we generate vectors from the origin to all the spectral colors and these vectors intersect the chromaticity plane either all positively or all negatively, there is a very powerful use of the chromaticity diagram: connect any two points $\mathbf{a}$ and $\mathbf{b}$ in the chromaticity diagram and form a line segment $\overline{\mathbf{ab}}$, points on $\overline{\mathbf{ab}}$ represent the <i>chromaticities</i> of all the colors that can be produced by mixing two colors whose chromaticities are $\mathbf{a}$ and $\mathbf{b}$, respectively.</p>
-        <p>Usual visualization of color spaces is done such that that condition is met, but it doesn't have to be the case. If you choose spectral lights that are very close as primaries, it's not guaranteed that that condition is met.</p>
+        <p>The discussion above operates in the RGB space. How does a color mixed from two lights look like on the chromaticity plane? The line segment $\overline{\mathbf{AB}}$ in the RGB space is mapped to a line segment $\overline{\mathbf{ab}}$ in the chromaticity plane. $\overline{\mathbf{ab}}$ connects two points $\mathbf{a}$ and $\mathbf{b}$, which represent the chromaticity of two spectral colors $\mathbf{A}$ and $\mathbf{B}$, respectively. Meanwhile, a point $\mathbf{T}$ on $\overline{\mathbf{AB}}$ gets mapped to a point $\mathbf{t}$ on the chromaticity plane. $\mathbf{t}$ represents the chromaticity of color $\mathbf{T}$. Where is $\mathbf{t}$? $\mathbf{t}$ will be within $\overline{\mathbf{ab}}$ if $\overrightarrow{\rm \mathbf{OA}}$ and $\overrightarrow{\rm \mathbf{OB}}$ <a href="https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection">intersect</a> the $r+g+b=1$ plane either both positively or both negatively ($\mathbf{O}$ is the origin). Informally, that's when $\mathbf{A}$ and $\mathbf{B}$ are both below or both above the $r+g+b=0$ plane.</p>
+        <p>In general, if the condition that <i>all the spectral colors are all above or all below the $r+g+b=0$ plane</i> is met, there is a very powerful use of the chromaticity diagram: connect any two points $\mathbf{a}$ and $\mathbf{b}$ in the chromaticity diagram and form a line segment $\overline{\mathbf{ab}}$, points on $\overline{\mathbf{ab}}$ represent the <i>chromaticities</i> of all the colors that can be produced by mixing two colors whose chromaticities are $\mathbf{a}$ and $\mathbf{b}$, respectively.</p>
+        <p>Usual visualization of color spaces that you find on the Internet is done by carefully choosing the primaries such that that condition is met. The preset primaries in Step 0 is one such example. However, it doesn't have to be the case.</p>
         <p><b>Mixing Three Lights.</b> The same intuition applies to three colors. Toggle the "Pick 3 Colors" switch, and pick three colors on the RGB spectral locus, which will form a triangle. Any point on that triangle represents a color that is produced from mixing the three chosen spectral lights. That triangle is mapped to another triangle in the chromaticity diagram. In general, if you pick three colors $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ in the chromaticity diagram, the triangle $\triangle \mathbf{abc}$ contains the chromaticities of all the colors that can be produced from three lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$, respectively.</p>
         <p><b>Mixing Four Lights. </b>Let's try one more. Toggle the "Pick 4 Colors" switch and pick four colors on the RGB spectral locus. What you get is a tetrahedron. Any point within that tetrahedron represents a color that is produced from mixing the four chosen spectral lights. That tetrahedron is mapped to a quadrilateral in the chromaticity diagram. In general, if you pick four colors $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ in the chromaticity diagram, the quadrilateral $\square \mathbf{abcd}$ contains the chromaticities of all the colors that can be produced from four lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$, respectively.</p>
         <h4>Limit of Human Color Perception</h4>
@@ -278,7 +283,7 @@
               <button class="btn btn-primary btn-sm" type="button" id="findspd" disabled>Find SPD</button>
             </div>
             <div class="input-group input-group-sm mb-3 justify-content-between">
-              <span class="input-group-text" id="colTypeSpan" style="border: none"><b id="colortype">Color Type</b></span>
+              <span class="input-group-text" id="colTypeSpan" style="border: none; background-color:transparent;"><b id="colortype"></b></span>
               <button class="btn btn-primary btn-sm ml-2" type="button" id="findImgSpd" disabled>Find an Unreal Light</button>
             </div>
           </div>

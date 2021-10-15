@@ -286,7 +286,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
     window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv', false);
     plotChrm(window.locusPlot, true);
-    plotPlane();
+    plotPlane(1);
     //plotPrims();
 
     $('#showChrm').prop('disabled', false);
@@ -296,6 +296,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     window.chrmPlot = plotLocus(lmsChart.data.labels, 'chrmLocusDiv', false);
     plotChrm(window.chrmPlot, false);
     plotHVSGamut(window.chrmPlot, 'legendonly', 'legendonly');
+    plotPlane(0);
 
     $('#showChrm2').prop('disabled', false);
     $('#pick0').prop('disabled', false);
@@ -304,6 +305,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     $('#pick4').prop('disabled', false);
     $('#showhvs').prop('disabled', false);
     $('#showhvsRGB').prop('disabled', false);
+    $('#showPlane0').prop('disabled', false);
 
     window.chrm2Plot = plotLocus(lmsChart.data.labels, 'chrmLocus2Div', true);
     plotChrm(window.chrm2Plot, false);
@@ -405,28 +407,59 @@ function plotPrims() {
   Plotly.addTraces(plot, [RGBTrace, rgbTrace]);
 }
 
-function plotPlane() {
-  var plot = window.locusPlot;
-  var trace = {
-    x: [0, 0, 1],
-    y: [0, 1, 0],
-    z: [1, 0, 0],
-    i: [0],
-    j: [1],
-    k: [2],
-    //text: [],
-    //mode: 'lines',
-    type: 'mesh3d',
-    visible: 'legendonly',
-    opacity:0.8,
-    color: '#000000',
-    //name: 'Primaries',
-    hoverinfo: 'skip',
-    //hovertemplate: 'R: %{x}' +
-    //  '<br>G: %{y}' +
-    //  '<br>B: %{z}' +
-    //  '<br>wavelength: %{text}<extra></extra>' ,
-  };
+function plotPlane(planeId) {
+  var plot, trace;
+
+  if (planeId == 1) {
+    plot = window.locusPlot;
+    
+    // r+g+b=1 plane
+    trace = {
+      x: [0, 0, 1],
+      y: [0, 1, 0],
+      z: [1, 0, 0],
+      i: [0],
+      j: [1],
+      k: [2],
+      //text: [],
+      //mode: 'lines',
+      type: 'mesh3d',
+      visible: 'legendonly',
+      opacity:0.8,
+      color: '#000000',
+      //name: 'Primaries',
+      hoverinfo: 'skip',
+      //hovertemplate: 'R: %{x}' +
+      //  '<br>G: %{y}' +
+      //  '<br>B: %{z}' +
+      //  '<br>wavelength: %{text}<extra></extra>' ,
+    };
+  } else if (planeId == 0) {
+    plot = window.chrmPlot;
+
+    // r+g+b=0 plane
+    trace = {
+      x: [0.3, -0.3, 0.3, -0.3],
+      y: [0.3, -0.3, -0.6, 0.6],
+      z: [-0.6, 0.6, 0.3, -0.3],
+      i: [0, 0],
+      j: [1, 1],
+      k: [2, 3],
+      //text: [],
+      //mode: 'lines',
+      type: 'mesh3d',
+      visible: 'legendonly',
+      opacity:0.8,
+      color: '#000000',
+      //name: 'Primaries',
+      hoverinfo: 'skip',
+      //hovertemplate: 'R: %{x}' +
+      //  '<br>G: %{y}' +
+      //  '<br>B: %{z}' +
+      //  '<br>wavelength: %{text}<extra></extra>' ,
+    };
+  }
+
   Plotly.addTraces(plot, [trace]);
 }
 
@@ -1037,21 +1070,29 @@ function registerProjChrm(id) {
   });
 }
 
-function showPlane(id) {
-  var plot = window.locusPlot;
-  var numWaves = plot.data[0].x.length;
+function showPlane(id, plot, traceId) {
   if($(id).is(":checked")) {
     var data_update = {'visible': true};
-    Plotly.restyle(plot, data_update, [numWaves+2]);
+    Plotly.restyle(plot, data_update, [traceId]);
   } else {
     var data_update = {'visible': 'legendonly'};
-    Plotly.restyle(plot, data_update, [numWaves+2]);
+    Plotly.restyle(plot, data_update, [traceId]);
   }
 }
 
-function registerShowPlane(id) {
+function registerShowPlane(id, planeId) {
   $(id).on('change', function(evt) {
-    showPlane(id);
+    var plot, traceId;
+    if (planeId == 1) {
+      plot = window.locusPlot;
+      var numWaves = plot.data[0].x.length;
+      traceId = numWaves + 2;
+    }
+    else if (planeId == 0) {
+      plot = window.chrmPlot;
+      traceId = 4;
+    }
+    showPlane(id, plot, traceId);
   });
 }
 
@@ -1671,15 +1712,16 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   registerShowChrm('#showChrm');
   registerShowChrmLine('#showChrmLine');
-  registerShowPlane('#showPlane');
+  registerShowPlane('#showPlane', 1);
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plots are plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane
   registerShowChrm2('#showChrm2');
   registerPickColors();
   registerShowHVS(1, '#showhvs', true);
   registerShowHVSRGB(1, '#showhvsRGB', true);
+  registerShowPlane('#showPlane0', 0);
 
   // Step 3 (the locus plots are plotted in |registerPlotLocus|)
   // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm
