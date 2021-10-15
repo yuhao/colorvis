@@ -1153,6 +1153,8 @@ function registerPickColors() {
     var plot = window.chrmPlot;
 
     cleanupPlot(greyColor, greenColor);
+    //plot.removeAllListeners("plotly_hover");
+    //plot.removeAllListeners("plotly_unhover");
 
     var count = 0;
     var traces = [];
@@ -1192,12 +1194,10 @@ function registerPickColors() {
       //  //'scene.annotations': [annotation],
       //  'scene.annotations': prevAnn.concat([annotation]),
       //};
-      //var layout_update = {};
-      // TODO: temporarily disable hovermode during selection to avoid hang. needs to re-enable this.
-      var layout_update = {'hovermode': false};
+      var layout_update = {};
 
-      var data_update = {'marker.color': [colors]};
-      //var data_update = {};
+      //var data_update = {'marker.color': [colors]};
+      var data_update = {};
 
       plot.removeAllListeners("plotly_click");
       if (cb == undefined) Plotly.update(plot, data_update, layout_update, [cn]);
@@ -1215,10 +1215,9 @@ function registerPickColors() {
       // remove all event listerners so that no callbacks are accidently fired.
       // must if we click a pick button without doing anything and then click another pick button.
       plot.removeAllListeners("plotly_click");
-      //var data_update = {'hoverinfo': 'skip'};
-      //Plotly.restyle(plot, data_update, [0]);
 
       // delete all traces
+      // TODO: traceIdx might contain invalida traces if we change primaries and replot the locus
       if (traceIdx != undefined && traceIdx.length != 0) Plotly.deleteTraces(plot, traceIdx);
       traceIdx = [];
 
@@ -1264,8 +1263,8 @@ function registerPickColors() {
         if (count < 2)
           plot.once('plotly_click', add2);
         else if (count == 2) {
-          //plot.removeListener('plotly_click', add2);
-          plot.removeAllListeners("plotly_click");
+          plot.removeListener('plotly_click', add2);
+          //plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1]],
@@ -1327,10 +1326,10 @@ function registerPickColors() {
             traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
             // show chrm if not already shown 
-            if(!($('#showChrm2').is(":checked"))) {
-              $('#showChrm2').prop('checked', true);
-              showChrm2('#showChrm2');
-            }
+            //if(!($('#showChrm2').is(":checked"))) {
+            //  $('#showChrm2').prop('checked', true);
+            //  showChrm2('#showChrm2');
+            //}
           });
         }
       });
@@ -1354,8 +1353,8 @@ function registerPickColors() {
         if (count < 3)
           plot.once('plotly_click', add3);
         else if (count == 3) {
-          //plot.removeListener('plotly_click', add3);
-          plot.removeAllListeners("plotly_click");
+          plot.removeListener('plotly_click', add3);
+          //plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1], selectX[2]],
@@ -1406,10 +1405,10 @@ function registerPickColors() {
             traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
             // show chrm if not already shown 
-            if(!($('#showChrm2').is(":checked"))) {
-              $('#showChrm2').prop('checked', true);
-              showChrm2('#showChrm2');
-            }
+            //if(!($('#showChrm2').is(":checked"))) {
+            //  $('#showChrm2').prop('checked', true);
+            //  showChrm2('#showChrm2');
+            //}
           });
 
           // TODO: do these in one update
@@ -1442,8 +1441,8 @@ function registerPickColors() {
           plot.once('plotly_click', add4);
         else if (count == 4) {
           // to avoid the weird bug in plotly where addtraces trigger click
-          //plot.removeListener('plotly_click', add4);
-          plot.removeAllListeners("plotly_click");
+          plot.removeListener('plotly_click', add4);
+          //plot.removeAllListeners("plotly_click");
 
           var trace = {
             x: [selectX[0], selectX[1], selectX[2], selectX[3]],
@@ -1500,10 +1499,10 @@ function registerPickColors() {
             traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
 
             // show chrm if not already shown 
-            if(!($('#showChrm2').is(":checked"))) {
-              $('#showChrm2').prop('checked', true);
-              showChrm2('#showChrm2');
-            }
+            //if(!($('#showChrm2').is(":checked"))) {
+            //  $('#showChrm2').prop('checked', true);
+            //  showChrm2('#showChrm2');
+            //}
           });
 
           // add annotation to chrm curve
