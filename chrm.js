@@ -1119,21 +1119,21 @@ function registerPickColors() {
       var prevAnn = plot.layout.scene.annotations;
       var layout_update = {
         //'scene.annotations': [annotation],
-        //'scene.annotations': prevAnn.concat([annotation]),
+        'scene.annotations': prevAnn.concat([annotation]),
       };
 
       var data_update = {'marker.color': [colors]};
       //var data_update = {};
 
       plot.removeAllListeners("plotly_click");
-      //if (cb == undefined) Plotly.update(plot, data_update, layout_update, [cn]);
-      //else Plotly.update(plot, data_update, layout_update, [cn]).then(cb);
+      if (cb == undefined) Plotly.update(plot, data_update, layout_update, [cn]);
+      else Plotly.update(plot, data_update, layout_update, [cn]).then(cb);
       //if (cb == undefined) Plotly.relayout(plot, layout_update);
       //else Plotly.relayout(plot, layout_update).then(cb);
-      if (cb == undefined) Plotly.restyle(plot, data_update, [cn]);
-      else Plotly.restyle(plot, data_update, [cn]).then(() => {
-        cb();
-      });
+      //if (cb == undefined) Plotly.restyle(plot, data_update, [cn]);
+      //else Plotly.restyle(plot, data_update, [cn]).then(() => {
+      //  cb();
+      //});
     }
 
     function cleanupPlot(color1, color2) {

@@ -148,17 +148,12 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Step 2: Human Visible Color Gamut</h3>
+        <h3>Step 2: Color Gamut of Human Visual System (HVS)</h3>
       </div>
 
       <div class="row">
         <div class="col-sm-4 d-flex align-self-center">
           <div>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="showChrm2" disabled>
-              <label class="form-check-label" for="showChrm2"><b>Show Chromaticities</b></label>
-              <p>Show the chromacitities of the spectral lights.</p>
-            </div>
             <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
               <input type="radio" class="btn-check" name="pick" id="pick0" autocomplete="off" checked disabled>
               <label class="btn btn-outline-primary btn-sm" for="pick0">Clear Pick</label>
@@ -172,14 +167,19 @@
               <input type="radio" class="btn-check" name="pick" id="pick4" autocomplete="off" disabled>
               <label class="btn btn-outline-primary btn-sm" for="pick4">Pick 4 Colors</label>
             </div>
-            <div class="form-check form-switch align-self-center mt-3">
+            <div class="form-check form-switch mt-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="showChrm2" disabled>
+              <label class="form-check-label" for="showChrm2"><b>Show Chromaticities</b></label>
+              <p>Show the chromacitities of the spectral lights.</p>
+            </div>
+            <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvs" disabled>
-              <label class="form-check-label" for="showhvs"><b>Show Human Visible Gamut in Chromaticity</b></label>
+              <label class="form-check-label" for="showhvs"><b>Show Gamut of HVS in Chromaticity</b></label>
               <p>Show the human visible gamut as chromaticities. If the spectral locus in chromaticity is convex, the gamut is the area under the locus.</p>
             </div>
-            <div class="form-check form-switch align-self-center mt-3">
+            <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvsRGB" disabled>
-              <label class="form-check-label" for="showhvsRGB"><b>Show Human Visible Gamut Boundary in RGB</b></label>
+              <label class="form-check-label" for="showhvsRGB"><b>Show Gamut Boundary of HVS in RGB</b></label>
               <p>Show the boundary of human visible gamut in the RGB space. The gamut boundary is drawn to stop at the chromaticity locus, but in reality it grows to infinite. Think of the boundary as a wall; anything inside the wall is a real color.</p>
             </div>
           </div>
@@ -191,26 +191,37 @@
 
       <div class="row">
         <p>The chromaticity plot is very useful in helping us understand the limit of human color perception: what are all the colors that human can see? A straightforward idea is to construct every single real light one by one and find its color. While we can't really do that in practice, constructing a few lights that way helps us gain the intuition.</p>
-        <p>We could think of the SPD of a light as the "recipe" of making that light by mixing different amount of spectral lights specified in the SPD. Let's start by mixing two lights. If you toggle the "Pick 2 Colors" switch, you can click 2 arbitrary points $\mathbf{A}$ and $\mathbf{B}$ along the RGB locus. What you will get is a line segmentation $\overline{\mathbf{AB}}$. Any point on $\overline{\mathbf{AB}}$ represents a color producible by mixing some portion of colors $\mathbf{A}$ and $\mathbf{B}$. While this might be intuitive, let's prove it rigorously; later we will rely more on intuition for generalization.</p>
-        <p>Assuming that the two (spectral) lights you picked have a spectrum of $\Phi_1$ and $\Phi_2$, respectively, and their RGB triplets are $[R_1, G_1, B_1]$ and $[R_2, G_2, B_2]$, respectively. From simple <a href="https://en.wikipedia.org/wiki/Convex_combination">convex geometry</a>, we know that any point $\mathbf{T}$ on the line segment between the two points can be expressed as $[R_t, G_t, B_t] = \alpha[R_1, G_1, B_1] + (1-\alpha)[R_2, G_2, B_2], \alpha \in [0, 1]$. We will show that $[R_t, G_t, B_t]$ is a color that can be produced by mixing two lights: $\alpha\Phi_1$ and $(1-\alpha)\Phi_1$. Nothing in the proof below relies on $\Phi_1$ and $\Phi_2$ being spectral, and so the conclusion applies to any lights (and two points in the RGB space).</p>
-        <p>Based on how RGB triplets are calculated from the CMFs ($\bar{r(\lambda)}, \bar{g(\lambda)}, \bar{b(\lambda)}$), we have:</p>
-        <p>
-        $R_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda), G_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda), B_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda)\\$
-        $R_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda), G_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda), B_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda)$
+        <h4>Building the Intuition</h4>
+        <p><b>Mixing Two Lights.</b> 
+        We could think of the SPD of a light as the "recipe" of making that light by mixing different amount of spectral lights specified in the SPD. Let's start by mixing two lights. If you toggle the "Pick 2 Colors" switch, you can click 2 arbitrary points $\mathbf{A}$ and $\mathbf{B}$ along the RGB locus. What you will get is a line segmentation $\overline{\mathbf{AB}}$. Any point on $\overline{\mathbf{AB}}$ represents a color producible by mixing some portion of colors $\mathbf{A}$ and $\mathbf{B}$.
+        <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Show Proof</button>
         </p>
-        <p>The RGB triplet of the new light mixed from $\alpha\Phi_1$ and $(1-\alpha)\Phi_1$ is:</p>
-        <p>
-        $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{r}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{r}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{r}(\lambda) = \alpha R_1 + (1-\alpha) R_2 = R_t\\$
-        $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{g}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{g}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{g}(\lambda) = \alpha G_1 + (1-\alpha) G_2 = G_t\\$
-        $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{b}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{b}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{b}(\lambda) = \alpha B_1 + (1-\alpha) B_2 = B_t$
-        </p>
-        <p>Q.E.D.</p>
-        <p>The discussion above operates in the RGB space. How does the conclusion look like in the chromaticity plane? The line segment $\overline{\mathbf{AB}}$ in the RGB space is mapped to a line segment $\overline{\mathbf{ab}}$ in the chromaticity diagram. $\overline{\mathbf{ab}}$ connects two points $\mathbf{a}$ and $\mathbf{b}$, each representing the chromaticities of two spectral lights. Meanwhile, a point $\mathbf{T}$ on $\overline{\mathbf{AB}}$ gets mapped to a point $\mathbf{t}$ on $\overline{\mathbf{ab}}$. $\mathbf{t}$ represents the chromaticities of color $\mathbf{T}$. In general, if we connect any two points $\mathbf{a}$ and $\mathbf{b}$ in the chromaticity diagram and form a line segment $\overline{\mathbf{ab}}$, points on $\overline{\mathbf{ab}}$ represent the <i>chromaticities</i> of all the colors that can be produced from two lights whose chromaticities are $a$ and $b$, respectively.</p>
-        <p>The same intuition applies to three colors. Toggle the "Pick 3 Colors" switch, and pick three colors on the RGB spectral locus, which will form a triangle. Any point on that triangle represents a color that is produced from mixing the three chosen spectral lights. That triangle is mapped to another triangle in the chromaticity diagram. In general, if you pick three colors $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ in the chromaticity diagram, the triangle $\triangle \mathbf{abc}$ contains the chromaticities of all the colors that can be produced from three lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$, respectively.</p>
-        <p>Let's try one more. Toggle the "Pick 4 Colors" switch and pick four colors on the RGB spectral locus. What you get is a tetrahedron. Any point within that tetrahedron represents a color that is produced from mixing the four chosen spectral lights. That tetrahedron is mapped to a quadrilateral in the chromaticity diagram. In general, if you pick four colors $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ in the chromaticity diagram, the quadrilateral $\square \mathbf{abcd}$ contains the chromaticities of all the colors that can be produced from four lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$, respectively.</p>
-        <p>We can keep playing this game. If a light is made of five spectral lights, its color chromaticities will fall in the pentagon formed by the five lights; if a light is made of six spectral lights, its color chromaticities will fall in the hexagon formed by the six spectral lights. Essentially, given a light's SPD $\Phi$, we can find its constituting spectral lights, and then form a polygon whose vertices are the chromaticities of those spectral colors. $\Phi$'s chromaticities are guaranteed to be within that polygon.</p>
+        <div class="collapse" id="collapseExample">
+          <div class="card card-body">
+            <p>Assuming that the two (spectral) lights you picked have a spectrum of $\Phi_1$ and $\Phi_2$, respectively, and their RGB triplets are $[R_1, G_1, B_1]$ and $[R_2, G_2, B_2]$, respectively. From simple <a href="https://en.wikipedia.org/wiki/Convex_combination">convex geometry</a>, we know that any point $\mathbf{T}$ on the line segment between the two points can be expressed as $[R_t, G_t, B_t] = \alpha[R_1, G_1, B_1] + (1-\alpha)[R_2, G_2, B_2], \alpha \in [0, 1]$. We will show that $[R_t, G_t, B_t]$ is a color that can be produced by mixing two lights: $\alpha\Phi_1$ and $(1-\alpha)\Phi_1$. Note that nothing in the proof below relies on $\Phi_1$ and $\Phi_2$ being spectral, and so the conclusion applies to any lights (and two points in the RGB space).</p>
+            <p>Based on how RGB triplets are calculated from the CMFs ($\bar{r(\lambda)}, \bar{g(\lambda)}, \bar{b(\lambda)}$), we have:</p>
+            <p>
+            $R_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda), G_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda), B_1 = \sum_{\lambda} \Phi_1(\lambda) \bar{r}(\lambda)\\$
+            $R_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda), G_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda), B_2 = \sum_{\lambda} \Phi_2(\lambda) \bar{r}(\lambda)$
+            </p>
+            <p>The RGB triplet of the new light mixed from $\alpha\Phi_1$ and $(1-\alpha)\Phi_1$ is:</p>
+            <p>
+            $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{r}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{r}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{r}(\lambda) = \alpha R_1 + (1-\alpha) R_2 = R_t\\$
+            $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{g}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{g}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{g}(\lambda) = \alpha G_1 + (1-\alpha) G_2 = G_t\\$
+            $\sum_{\lambda} [\alpha\Phi_1(\lambda) + (1-\alpha)\Phi_2(\lambda)] \bar{b}(\lambda) = \alpha\sum_{\lambda} \Phi_1(\lambda)\bar{b}(\lambda) + (1-\alpha)\sum_{\lambda} \Phi_2(\lambda)\bar{b}(\lambda) = \alpha B_1 + (1-\alpha) B_2 = B_t$
+            </p>
+            <p>Q.E.D.</p>
+          </div>
+        </div>
+        <p>The discussion above operates in the RGB space. How does a color mixed from two lights look like on the chromaticity plane? The line segment $\overline{\mathbf{AB}}$ in the RGB space is mapped to a line segment $\overline{\mathbf{ab}}$ in the chromaticity plane. $\overline{\mathbf{ab}}$ connects two points $\mathbf{a}$ and $\mathbf{b}$, which represent the chromaticity of two spectral colors $\mathbf{A}$ and $\mathbf{B}$, respectively. Meanwhile, a point $\mathbf{T}$ on $\overline{\mathbf{AB}}$ gets mapped to a point $\mathbf{t}$ on the chromaticity plane. $\mathbf{t}$ represents the chromaticity of color $\mathbf{T}$. Where is $\mathbf{t}$? $\mathbf{t}$ will be within $\overline{\mathbf{ab}}$ if $\overrightarrow{\rm \mathbf{OA}}$ and $\overrightarrow{\rm \mathbf{OB}}$ <a href="https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection">intersect</a> the $r+g+b=1$ plane either both positively or both negatively ($\mathbf{O}$ is the origin). This is indeed the case if you use the preset primary lights in Step 0.</p>
+        <p>In general, if we generate vectors from the origin to all the spectral colors and these vectors intersect the chromaticity plane either all positively or all negatively, there is a very powerful use of the chromaticity diagram: connect any two points $\mathbf{a}$ and $\mathbf{b}$ in the chromaticity diagram and form a line segment $\overline{\mathbf{ab}}$, points on $\overline{\mathbf{ab}}$ represent the <i>chromaticities</i> of all the colors that can be produced by mixing two colors whose chromaticities are $\mathbf{a}$ and $\mathbf{b}$, respectively.</p>
+        <p>Usual visualization of color spaces is done such that that condition is met, but it doesn't have to be the case. If you choose spectral lights that are very close as primaries, it's not guaranteed that that condition is met.</p>
+        <p><b>Mixing Three Lights.</b> The same intuition applies to three colors. Toggle the "Pick 3 Colors" switch, and pick three colors on the RGB spectral locus, which will form a triangle. Any point on that triangle represents a color that is produced from mixing the three chosen spectral lights. That triangle is mapped to another triangle in the chromaticity diagram. In general, if you pick three colors $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ in the chromaticity diagram, the triangle $\triangle \mathbf{abc}$ contains the chromaticities of all the colors that can be produced from three lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$, respectively.</p>
+        <p><b>Mixing Four Lights. </b>Let's try one more. Toggle the "Pick 4 Colors" switch and pick four colors on the RGB spectral locus. What you get is a tetrahedron. Any point within that tetrahedron represents a color that is produced from mixing the four chosen spectral lights. That tetrahedron is mapped to a quadrilateral in the chromaticity diagram. In general, if you pick four colors $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ in the chromaticity diagram, the quadrilateral $\square \mathbf{abcd}$ contains the chromaticities of all the colors that can be produced from four lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$, respectively.</p>
+        <h4>Limit of Human Color Perception</h4>
+        <p><b>Generalization.</b> We can keep playing this game. If a light is made of five spectral lights, its chromaticity will fall in the pentagon formed by the five lights; if a light is made of six spectral lights, its chromaticity will fall in the hexagon formed by the six spectral lights. Essentially, given a light's SPD $\Phi$, we can find its constituting spectral lights, and then form a polygon whose vertices are the chromaticity of those spectral colors. $\Phi$'s chromaticity is guaranteed to be within that polygon.</p>
         <p>If we exhaust all combinations of all wavelengths in the visible spectrum, we will have found all the colors. What's the geometric structure that contains all the visible colors? If you think about it, it's not difficult to see that the chromaticities of all colors must reside in the <a href="https://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the spectral locus in the chromaticity diagram. Click the button "Show Human Visible Gamut in Chromaticity Diagram" to reveal it. We call all the colors that we can see the <b>gamut</b> of human color vision.</p>
-        <p>Visualizing the gamut of human color vision in chromaticity is nice because we can constrain the gamut to a small area. Needless to say, however, the actual gamut of human color vision is 3D. How does it look like? We can't possible visualize it, because you can just keep increasing the power of the light and you will get infinite amount of colors &#8212; ignore the fact that high-intensity lights destroy retinas for a moment. But we can get a sneak peak of its bounds in the RGB space. Toggle the "Show Human Visible Gamut Boundary in RGB" switch. It will show the boundary of the gamut in the RGB space. The boundary grows forever, but we stop at the chromaticity locus. Any point within the boundary is a real color, i.e., a part of the human visual gamut.</p>
+        <p><b>Gamut is a 3D Concept.</b> Visualizing the gamut of human color vision in chromaticity is nice because we can constrain the gamut to a small area. Needless to say, however, the actual gamut of human color vision is 3D. How does it look like? We can't possible visualize it, because you can just keep increasing the power of the light and you will get infinite amount of colors &#8212; ignore the fact that high-intensity lights destroy retinas for a moment. But we can get a sneak peak of its bounds in the RGB space. Toggle the "Show Human Visible Gamut Boundary in RGB" switch. It will show the boundary of the gamut in the RGB space. The boundary grows forever, but we stop at the chromaticity locus. Any point within the boundary is a real color, i.e., a part of the human visual gamut.</p>
         <p>One final note, if you use the preset spectral lights as the primaries, the locus itself is convex. Therefore, the gamut is the area enclosed by the locus. However, it's possible to use primaries such that the spectral locus isn't convex, in which case we can't say that the human gamut is the area under the locus. The exact shape of gamut in both RGB and the chromaticity plot varies with the particular RGB color space you built. Try changing the primaries in Step 0 and visualize the gamut (the reference white in this tutorial is fixed).</p>
       </div>
     </div>
@@ -304,7 +315,7 @@
       </div>
 
       <div class="row">
-        <p>Interestingly but perhaps unsurprisingly, it is possible that a real light and a unreal light are mapped to the same RGB point. This is because the system of equations above is under-determined. It could have two solutions, one meets the non-negative constraints and the other does not. That is, a real light can be a metamer of a unreal light, mathematically!</p>
+        <p><b>Real and Unreal Lights Could Generate the "Same Color".</b> Interestingly but perhaps unsurprisingly, it is possible that a real light and a unreal light are mapped to the same RGB point. This is because the system of equations above is under-determined. It could have two solutions, one meets the non-negative constraints and the other does not. That is, a real light can be a metamer of a unreal light, mathematically!</p>
       </div>
 
     </div>
