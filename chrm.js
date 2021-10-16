@@ -198,18 +198,18 @@ function registerShowChrm(id) {
     if($(id).is(":checked")) {
       var data_update = {'visible': true};
       Plotly.restyle(plot, data_update, [1]);
-      $('#showChrmLine').prop('disabled', false);
+      //$('#showChrmLine').prop('disabled', false);
       //$('#showPlane').prop('disabled', false);
     } else {
       var data_update = {'visible': 'legendonly'};
       Plotly.restyle(plot, data_update, [1]);
 
       // disable equi-rgb-ratio lines in RGB plot
-      $('#showChrmLine').prop('disabled', true);
-      if($('#showChrmLine').is(":checked")) {
-        $('#showChrmLine').prop('checked', false);
-        showChrmLine('#showChrmLine');
-      }
+      //$('#showChrmLine').prop('disabled', true);
+      //if($('#showChrmLine').is(":checked")) {
+      //  $('#showChrmLine').prop('checked', false);
+      //  showChrmLine('#showChrmLine');
+      //}
 
       // disable r+g+b=1 plane in RGB plot
       //$('#showPlane').prop('disabled', true);
@@ -291,6 +291,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     //plotPrims();
 
     $('#showChrm').prop('disabled', false);
+    $('#showChrmLine').prop('disabled', false);
     $('#projChrm').prop('disabled', false);
     $('#showPlane').prop('disabled', false);
 
@@ -582,13 +583,21 @@ function plotChrm(plot, lines) {
   var traces = [];
   traces.push(trace);
 
-  // TODO: should connect the origin, the RGB point, and the rgb point together.
   if (lines) {
     for (i = 0; i < numWaves; i++) {
+      // connect the origin, the RGB point, and the rgb point together.
+      var points = [];
+      points.push({r: 0, point: [0, 0, 0]});
+      points.push({r: cR[i], point: [cR[i], cG[i], cB[i]]});
+      points.push({r: sCMFR[i], point: [sCMFR[i], sCMFG[i], sCMFB[i]]});
+      points.sort(function (a, b) {
+        return a.r - b.r;
+      });
+
       var trace = {
-        x: [0, cR[i]],
-        y: [0, cG[i]],
-        z: [0, cB[i]],
+        x: [points[0].point[0], points[2].point[0]],
+        y: [points[0].point[1], points[2].point[1]],
+        z: [points[0].point[2], points[2].point[2]],
         mode: 'lines',
         type: 'scatter3d',
         visible: 'legendonly',
