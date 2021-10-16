@@ -1437,7 +1437,7 @@ function registerPickColors() {
             type: 'mesh3d',
             visible: true,
             //opacity:0.8,
-            color: orangeColor,
+            color: purpleColor,
             hoverinfo: 'skip',
           };
           //traces.push(trace);
@@ -1531,7 +1531,7 @@ function registerPickColors() {
             k: [[2, 3, 3, 3]],
             type: 'mesh3d',
             visible: true,
-            intensity: [0.2, 0.4, 0.6, 0.8],
+            intensity: [[0.2, 0.4, 0.6, 0.8]],
             intensitymode: 'cell',
             showscale: false,
             cmax: 1.0,
