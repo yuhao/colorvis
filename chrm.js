@@ -1213,8 +1213,6 @@ function registerPickColors() {
     var plot = window.chrmPlot;
 
     cleanupPlot(greyColor, greenColor);
-    //plot.removeAllListeners("plotly_hover");
-    //plot.removeAllListeners("plotly_unhover");
 
     var count = 0;
     var traces = [];
@@ -1256,7 +1254,7 @@ function registerPickColors() {
       //};
       var layout_update = {};
 
-      var data_update = {'marker.color': [colors]};
+      var data_update = {'marker.color': [colors], 'hoverinfo': 'skip'};
       //var data_update = {};
 
       plot.removeAllListeners("plotly_click");
@@ -1391,7 +1389,8 @@ function registerPickColors() {
           }
 
           // https://github.com/plotly/plotly.js/issues/1467
-          // addTraces doesn't sit well with hover. plot sometimes hangs. so we use restyle.
+          // https://github.com/plotly/plotly.js/issues/1446
+          // addTraces doesn't sit well with hover. plot sometimes hangs. so we use restyle. TODO: doesn't work either.
           traceIdx.push(6, 7, 8, 9);
           //Plotly.addTraces(plot, traces).then(()=>{
           //  traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
