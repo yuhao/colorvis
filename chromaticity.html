@@ -121,7 +121,7 @@
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane" disabled>
               <label class="form-check-label" for="showPlane"><b>Show R+G+B=1 Plane</b></label>
-              <p>The chromacities of all colors line on this plane. Enabled only after the chromaticities are shown.</p>
+              <p>The chromaticities of all colors lie on this plane.</p>
             </div>
             <div class="form-check form-switch align-self-center">
               <input class="form-check-input" type="checkbox" role="switch" id="projChrm" disabled>
@@ -172,7 +172,7 @@
             <div class="form-check form-switch align-self-center mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane0" disabled>
               <label class="form-check-label" for="showPlane0"><b>Show R+G+B=0 Plane</b></label>
-              <p>The R+G+B=0 plane.</p>
+              <p>If spectral lights are all above or all below this plane (e.g., if you use Preset 1), the HVS gamut in chromaticity is bounded by the convex hull of the spectral colors.</p>
             </div>
             <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm2" disabled>
@@ -182,12 +182,12 @@
             <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvs" disabled>
               <label class="form-check-label" for="showhvs"><b>Show HVS Gamut in Chromaticity</b></label>
-              <p>Show the human visible gamut as chromaticities. If the spectral locus in chromaticity is convex, the gamut is the area under the locus.</p>
+              <p>Show the human visible gamut in chromaticity. Only enabled if all spectral colors are above or below the R+G+B=0 plane at the same time. Otherwise the HVS gamut in chromaticity is unbounded and hard to visualize.</p>
             </div>
             <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvsRGB" disabled>
               <label class="form-check-label" for="showhvsRGB"><b>Show HVS Gamut Boundary in RGB</b></label>
-              <p>Show the boundary of human visible gamut in the RGB space. The gamut boundary is drawn to stop at the chromaticity locus, but in reality it grows to infinite. Think of the boundary as a wall; anything inside the wall is a real color.</p>
+              <p>Show the boundary of human visible gamut in the RGB space. Think of the boundary as a wall; anything inside the wall is a real color. The real gamut extends to infinity since one can arbitrarily increase the light power.</p>
             </div>
           </div>
         </div>
@@ -225,13 +225,13 @@
         In general, if the condition is met that <i>all the spectral colors are all above or all below the $R+G+B=0$ plane</i>, there exists a very powerful interpretation of the chromaticity diagram: connect any two points $\mathbf{a}$ and $\mathbf{b}$ in the chromaticity diagram and form a line segment $\overline{\mathbf{ab}}$, points on $\overline{\mathbf{ab}}$ represent the <i>chromaticities</i> of all the colors that can be produced by mixing two colors whose chromaticities are $\mathbf{a}$ and $\mathbf{b}$, respectively.
 </div>
 </div>
-	<p>Visualizations of the spectral locus you can find on the Internet usually in a color space where the primaries are carefully picked such that the condition above is met. The CIE XYZ color space and the LMS cone space meet this condition, too. The primary choice in Preset 1 is one such example. We will assume such a color space for now. In Step 2.3, we will explain what happens when you build a color space that does not meet the above condition.</p>
+	<p>Visualizations of the spectral locus you can find on the Internet usually in a color space where the primaries are carefully picked such that the condition above is met. The CIE XYZ color space and the LMS cone space meet this condition, too. The primary choice in Preset 1 is one such example. We will assume such a color space for now. In Step 2.4, we will explain what happens when you build a color space that does not meet the above condition.</p>
         <p><b>Mixing Three Lights.</b> The same intuition applies to three colors. Toggle the "Pick 3 Colors" switch, and pick three colors on the RGB spectral locus, which will form a triangle. Any point on that triangle represents a color that is produced from mixing the three chosen spectral lights. That triangle is mapped to another triangle in the chromaticity diagram. In general, if you pick three colors $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ in the chromaticity diagram, the triangle $\triangle \mathbf{abc}$ contains the chromaticities of all the colors that can be produced from three lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$, respectively.</p>
         <p><b>Mixing Four Lights. </b>Let's try one more. Toggle the "Pick 4 Colors" switch and pick four colors on the RGB spectral locus. What you get is a tetrahedron. Any point within that tetrahedron represents a color that is produced from mixing the four chosen spectral lights. That tetrahedron is mapped to a quadrilateral in the chromaticity diagram. In general, if you pick four colors $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ in the chromaticity diagram, the quadrilateral $\square \mathbf{abcd}$ contains the chromaticities of all the colors that can be produced from four lights whose chromaticities are $\mathbf{a}$, $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$, respectively.</p>
         <h4>2.2 Color Perception Limit of Human Visual System (HVS)</h4>
         <p><b>Generalization.</b> We can keep playing this game. If a light is made of five spectral lights, its chromaticity will fall in the pentagon formed by the five lights; if a light is made of six spectral lights, its chromaticity will fall in the hexagon formed by the six spectral lights. Essentially, given a light's SPD $\Phi$, we can find its constituting spectral lights, which form a polygon in the chromaticity diagram. The chromaticity of $\Phi$ falls in the polygon.</p>
         <p>If we exhaust all combinations of all wavelengths in the visible spectrum, we will have found all possible colors, which we call the <b>gamut of human color vision</b>. What's the geometric structure of the gamut? Generalizing the intuition we have built so far, it's not difficult to see that the chromaticities of all colors must reside in the <a href="https://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the spectral locus in the chromaticity diagram. Click the button "Show HVS gamut in Chromaticity" to reveal it. If you choose the Preset 1 primaries, it happens to be the case that the spectral locus itself is a convex set, in which case the gamut is simply the area under the locus.</p>
-        <p><b>Gamut is a 3D Concept.</b> Visualizing the gamut of human color vision in chromaticity is nice, but the actual gamut of human color vision is 3D. How does it look like? We can't possible visualize it, because you can just keep increasing the power of the light and you will get infinite amount of colors &#8212; ignore the fact that high-intensity lights destroy retinas for a moment. But we can get a sneak peak of its bounds in the RGB space. Toggle the "Show HVS Gamut Boundary in RGB" switch. It will show the boundary of the gamut in the RGB space. The boundary grows forever, but we stop at the chromaticity locus. Any point within the boundary is a real color, i.e., a part of the human visual gamut.</p>
+        <p><b>Gamut is a 3D Concept.</b> Visualizing the gamut of human color vision in chromaticity is nice, but the actual HVS gamut lives in the RGB space and so is a 3D concept. How does HVS gamut look like in RGB? We can't possible visualize it, because you can just keep increasing the power of a light and get infinite amount of colors &#8212; ignore the fact that high-intensity lights destroy retinas for a moment. But we can get a sneak peak of the <i>bounds</i> of HVS gamut in the RGB space. Toggle the "Show HVS Gamut Boundary in RGB" switch. It will show the boundary of the gamut in the RGB space. The actual boundary grows forever by extending what's plotted. Any point within the boundary is a real color, i.e., a part of the human visual gamut.</p>
         <h4>2.3 Gamut of a Color Space</h4>
         <p>Many lights that enter our eyes are not natural lights, but lights from various light-generating devices such as smartphones, computers, and printed paper. Each output device has its own color space, such as sRGB, CMYK, and DCI-P3. All the colors that can be produced by a color space is called the <b>gamut of the color space</b>. Is there a color space that can produce all the colors?</p>
         <p>The answer is no, and we can have a very intuitive explanation. Look at the chromaticity diagram of the color space built using the Preset 1 primaries. No matter what colors and how many colors you choose as primaries to build a color space, the primaries of any color space must reside inside the spectral locus, and all the colors that are producible from that color space must be inside the polygon formed by the primaries. Since the spectral locus is convex, the polygon is guaranteed to be enclosed by the locus. Therefore, the gamut of any color space is guaranteed to be a subset of the color gamut of HVS. In addition, since the polygon is always enclosed by the locus, it's impossible to find a polygon that includes all the spectral colors. That is, no color space can produce all spectral colors.</p>
@@ -319,14 +319,14 @@
 
         <div class="col-sm-7">
           <div id="chrmLocus2Div"></div>
-          <div class="btn-toolbar d-flex justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
-            <div class="form-check form-switch mt-1">
+          <div class="btn-toolbar d-flex justify-content-center mt-4" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="form-check form-switch mx-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvs2" disabled>
-              <label class="form-check-label" for="showhvs2"><b>Show Human Visible Gamut in Chromaticity</b></label>
+              <label class="form-check-label" for="showhvs2"><b>Show HVS Gamut in Chromaticity</b></label>
             </div>
-            <div class="form-check form-switch mt-1">
+            <div class="form-check form-switch mx-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvsRGB2" disabled>
-              <label class="form-check-label" for="showhvsRGB2"><b>Show Human Visible Gamut Boundary in RGB</b></label>
+              <label class="form-check-label" for="showhvsRGB2"><b>Show HVS Gamut Boundary in RGB</b></label>
             </div>
           </div>
         </div>

@@ -301,12 +301,17 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotPlane(0);
     plotOrigin(window.chrmPlot);
 
+    var plot = window.chrmPlot;
+    var sumRGB = math.add(math.add(plot.data[0].x, plot.data[0].y), plot.data[0].z);
+    var mask = sumRGB.map(s => (s >= 0 ? 1 : 0));
+    var cond = mask.every((val, i, arr) => val === arr[0]);
+
     $('#showChrm2').prop('disabled', false);
     $('#pick0').prop('disabled', false);
     $('#pick2').prop('disabled', false);
     $('#pick3').prop('disabled', false);
     $('#pick4').prop('disabled', false);
-    $('#showhvs').prop('disabled', false);
+    if (cond) $('#showhvs').prop('disabled', false);
     $('#showhvsRGB').prop('disabled', false);
     $('#showPlane0').prop('disabled', false);
     $('#showex').prop('disabled', false);
@@ -317,38 +322,42 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotOrigin(window.chrm2Plot);
 
     $('#findspd').prop('disabled', false);
-    $('#showhvs2').prop('disabled', false);
+    if (cond) $('#showhvs2').prop('disabled', false);
     $('#showhvsRGB2').prop('disabled', false);
     $('#drawSPD').prop('disabled', false);
   });
 }
 
-// TODO: the RGB gamut isn't correct.
+// TODO: the RGB and chrm gamut isn't correct.
 // mesh3d traces don't have legends. add a dummy trace?
 function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
-  var points = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
-  var hullPoints = math.transpose(hull(points, Infinity));
-
-  var len = hullPoints[0].length; 
-  var midx = math.mean(hullPoints[0]);
-  var midy = math.mean(hullPoints[1]);
-  var midz = math.mean(hullPoints[2]);
+  var len = plot.data[1].x.length;
 
   var RGBTrace = {
-    x: [0].concat(hullPoints[0]),
-    y: [0].concat(hullPoints[1]),
-    z: [0].concat(hullPoints[2]),
+    //x: [0].concat(hullPoints[0]),
+    //y: [0].concat(hullPoints[1]),
+    //z: [0].concat(hullPoints[2]),
+    x: [0].concat(plot.data[0].x),
+    y: [0].concat(plot.data[0].y),
+    z: [0].concat(plot.data[0].z),
     i: Array(len).fill(0),
     j: [...Array(len+1).keys()].slice(1),
     k: [...Array(len+1).keys()].slice(2).concat([1]),
     type: 'mesh3d',
     visible: visiblityRGB,
     opacity:0.8,
-    color: redColor,
+    color: purpleColor,
     hoverinfo: 'skip',
     name: 'HVS gamut in RGB',
   };
 
+  var points = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
+  var hullPoints = math.transpose(hull(points, Infinity));
+
+  len = hullPoints[0].length; 
+  var midx = math.mean(hullPoints[0]);
+  var midy = math.mean(hullPoints[1]);
+  var midz = math.mean(hullPoints[2]);
   var chrmTrace = {
     x: [midx].concat(hullPoints[0]),
     y: [midy].concat(hullPoints[1]),
@@ -372,15 +381,21 @@ function plotOrigin(plot) {
     x: [0],
     y: [0],
     z: [0],
-    text: ['Origin'],
-    mode: 'markers',
+    text: ['O'],
+    textposition: 'left',
+    mode: 'markers+text',
     type: 'scatter3d',
+    showlegend: false,
     //visible: 'legendonly',
     marker: {
       color: '#000000',
       size: 6,
       symbol: 'circle',
       //opacity: 1,
+    },
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 15,
     },
     hovertemplate: 'Origin<br>R: %{x}' +
       '<br>G: %{y}' +
@@ -1572,13 +1587,14 @@ function registerShowHVSRGB(pid, id, hide) {
     var plot = ((pid == 1) ? window.chrmPlot : window.chrm2Plot);
 
     if($(id).is(":checked")) {
-      if (hide) {
-        // hide chrm if already shown 
-        if($('#showChrm2').is(":checked")) {
-          $('#showChrm2').prop('checked', false);
-          showChrm2('#showChrm2');
-        }
-      }
+      // TODO: should we do this?
+      //if (hide) {
+      //  // hide chrm if already shown 
+      //  if($('#showChrm2').is(":checked")) {
+      //    $('#showChrm2').prop('checked', false);
+      //    showChrm2('#showChrm2');
+      //  }
+      //}
 
       var data_update = {'visible': true};
       Plotly.restyle(plot, data_update, [2]);
@@ -1594,6 +1610,7 @@ function registerShowHVS(pid, id, hide) {
     var plot = ((pid == 1) ? window.chrmPlot : window.chrm2Plot);
 
     if($(id).is(":checked")) {
+      // TODO: should we do this?
       if (hide) {
         // show chrm if not already shown 
         if(!($('#showChrm2').is(":checked"))) {
@@ -1752,7 +1769,7 @@ function showColor(R, G, B) {
   var g = G/(R+G+B);
   var b = B/(R+G+B);
 
-  if (plot.data.length == 4) {
+  if (plot.data.length == 5) {
     var points = {
       x: [R, r],
       y: [G, g],
@@ -1784,7 +1801,7 @@ function showColor(R, G, B) {
                                  'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')']],
                        'textfont.size': [40], // TODO: not sure why but restyle needs bigger font sizes
                       };
-    Plotly.restyle(plot, data_update, [4]);
+    Plotly.restyle(plot, data_update, [5]);
   }
 }
 
@@ -1848,6 +1865,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   setupDrawSPDChart("canvasDrawSPD", x_data);
   registerFindSPD('#findspd');
   registerDrawSPD('#drawSPD');
+
   registerFindColor('#findColor');
   registerResetSPD('#resetSPD');
   registerShowEx('#showex');
