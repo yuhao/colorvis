@@ -1162,7 +1162,8 @@ function registerShowPrims(id) {
   });
 }
 
-function add2(data) {
+// |chain| is designed so that two back to back add2 programmably triggered won't cause a race condition on counter.
+function add2(data, chain) {
   var plot = window.chrmPlot;
 
   var cn = data.points[0].curveNumber;
@@ -1179,8 +1180,10 @@ function add2(data) {
 
   colorPicker.highlightPoint(plot, cn, pn, colorPicker.num2Letter(colorPicker.count, true), function() {
     colorPicker.count++;
-    if (colorPicker.count < 2)
+    if (colorPicker.count < 2) {
       plot.once('plotly_click', add2);
+      if (chain != undefined) chain();
+    }
     else if (colorPicker.count == 2) {
       var traces = [];
       plot.removeListener('plotly_click', add2);
@@ -1252,17 +1255,17 @@ function add2(data) {
         traces.push(trace);
       }
 
-      Plotly.addTraces(plot, traces).then(()=>{
-        colorPicker.traceIdx.push(plot.data.length - 6, plot.data.length - 5,
-            plot.data.length - 4, plot.data.length - 3,
-            plot.data.length - 2, plot.data.length - 1);
+      Plotly.addTraces(plot, traces);
 
-        // show chrm if not already shown 
-        //if(!($('#showChrm2').is(":checked"))) {
-        //  $('#showChrm2').prop('checked', true);
-        //  showChrm2('#showChrm2');
-        //}
-      });
+      colorPicker.traceIdx.push(plot.data.length - 6, plot.data.length - 5,
+          plot.data.length - 4, plot.data.length - 3,
+          plot.data.length - 2, plot.data.length - 1);
+
+      // show chrm if not already shown 
+      //if(!($('#showChrm2').is(":checked"))) {
+      //  $('#showChrm2').prop('checked', true);
+      //  showChrm2('#showChrm2');
+      //}
     }
   });
 }
@@ -1338,18 +1341,18 @@ function add3(data) {
         traces.push(trace);
       }
 
-      Plotly.addTraces(plot, traces).then(()=>{
-        colorPicker.traceIdx.push(plot.data.length - 8, plot.data.length - 7,
-            plot.data.length - 6, plot.data.length - 5,
-            plot.data.length - 4, plot.data.length - 3,
-            plot.data.length - 2, plot.data.length - 1);
+      Plotly.addTraces(plot, traces);
 
-        // show chrm if not already shown 
-        //if(!($('#showChrm2').is(":checked"))) {
-        //  $('#showChrm2').prop('checked', true);
-        //  showChrm2('#showChrm2');
-        //}
-      });
+      colorPicker.traceIdx.push(plot.data.length - 8, plot.data.length - 7,
+          plot.data.length - 6, plot.data.length - 5,
+          plot.data.length - 4, plot.data.length - 3,
+          plot.data.length - 2, plot.data.length - 1);
+
+      // show chrm if not already shown 
+      //if(!($('#showChrm2').is(":checked"))) {
+      //  $('#showChrm2').prop('checked', true);
+      //  showChrm2('#showChrm2');
+      //}
     }
   });
 }
@@ -1443,19 +1446,19 @@ function add4(data) {
         traces.push(trace);
       }
 
-      Plotly.addTraces(plot, traces).then(()=>{
-        colorPicker.traceIdx.push(plot.data.length - 10, plot.data.length - 9,
-            plot.data.length - 8, plot.data.length - 7,
-            plot.data.length - 6, plot.data.length - 5,
-            plot.data.length - 4, plot.data.length - 3,
-            plot.data.length - 2, plot.data.length - 1);
+      Plotly.addTraces(plot, traces);
 
-        // show chrm if not already shown 
-        //if(!($('#showChrm2').is(":checked"))) {
-        //  $('#showChrm2').prop('checked', true);
-        //  showChrm2('#showChrm2');
-        //}
-      });
+      colorPicker.traceIdx.push(plot.data.length - 10, plot.data.length - 9,
+          plot.data.length - 8, plot.data.length - 7,
+          plot.data.length - 6, plot.data.length - 5,
+          plot.data.length - 4, plot.data.length - 3,
+          plot.data.length - 2, plot.data.length - 1);
+
+      // show chrm if not already shown 
+      //if(!($('#showChrm2').is(":checked"))) {
+      //  $('#showChrm2').prop('checked', true);
+      //  showChrm2('#showChrm2');
+      //}
     }
   });
 }
@@ -1517,9 +1520,7 @@ var colorPicker = {
     // delete all traces
     // TODO: traceIdx might contain invalida traces if we change primaries and replot the locus
     if (this.traceIdx != undefined && this.traceIdx.length != 0) {
-      var data_update = {'visible': 'legendonly'};
-      Plotly.restyle(plot, data_update, this.traceIdx);
-      //Plotly.deleteTraces(plot, traceIdx);
+      Plotly.deleteTraces(plot, this.traceIdx);
     }
     this.traceIdx = [];
 
@@ -1705,7 +1706,7 @@ function registerShowEx(id) {
 
     $('input[type=radio][name=prim][value=usePreset2]').click();
     $('#plotLocus').trigger('click');
-    $('input[type=radio][name=pick][id=pick2]').click(); // will trigger onchange event and does clean up
+    $('input[type=radio][name=pick][id=pick2]').click();
 
     var p1 = 13, p2 = 28;
     var plot = window.chrmPlot;
@@ -1727,12 +1728,13 @@ function registerShowEx(id) {
     data.points[0].data.y[p2] = plot.data[0].y[p2];
     data.points[0].data.z[p2] = plot.data[0].z[p2];
 
-    // TODO: the two add2 overlaps. coun goes directly from 0 to 2.
+    // serialize the two add2 to avoid race condition on counter
     data.points[0].pointNumber = p1;
-    add2(data);
+    add2(data, function() {
+      data.points[0].pointNumber = p2;
+      add2(data);
+    });
 
-    data.points[0].pointNumber = p2;
-    add2(data);
   });
 }
 
