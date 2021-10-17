@@ -300,7 +300,6 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotHVSGamut(window.chrmPlot, 'legendonly', 'legendonly');
     plotPlane(0);
     plotOrigin(window.chrmPlot);
-    plotColorPicks(window.chrmPlot);
 
     $('#showChrm2').prop('disabled', false);
     $('#pick0').prop('disabled', false);
@@ -389,50 +388,6 @@ function plotOrigin(plot) {
     //hoverinfo: 'skip',
   };
   Plotly.addTraces(plot, [trace]);
-}
-
-function plotColorPicks(plot) {
-  // will be restyled later
-  var traceRGB = {
-    //x: [0],
-    //y: [0],
-    //z: [0],
-    //mode: 'markers',
-    type: 'scatter3d',
-    visible: 'legendonly',
-    //marker: {
-    //  color: '#000000',
-    //  size: 6,
-    //  symbol: 'circle',
-    //  //opacity: 1,
-    //},
-    //hovertemplate: 'Origin<br>R: %{x}' +
-    //  '<br>G: %{y}' +
-    //  '<br>B: %{z}<extra></extra>',
-    ////hoverinfo: 'skip',
-  };
-  var traceChrm = {
-    type: 'scatter3d',
-    visible: 'legendonly',
-  };
-  var traceLine0 = {
-    type: 'scatter3d',
-    visible: 'legendonly',
-  };
-  var traceLine1 = {
-    type: 'scatter3d',
-    visible: 'legendonly',
-  };
-  var traceLine2 = {
-    type: 'scatter3d',
-    visible: 'legendonly',
-  };
-  var traceLine3 = {
-    type: 'scatter3d',
-    visible: 'legendonly',
-  };
-
-  Plotly.addTraces(plot, [traceRGB, traceChrm, traceLine0, traceLine1, traceLine2, traceLine3]);
 }
 
 function plotPrims() {
@@ -1226,14 +1181,15 @@ function add2(data) {
     if (colorPicker.count < 2)
       plot.once('plotly_click', add2);
     else if (colorPicker.count == 2) {
+      var traces = [];
       plot.removeListener('plotly_click', add2);
       //plot.removeAllListeners("plotly_click");
 
       var trace = {
-        x: [[colorPicker.selectX[0], colorPicker.selectX[1]]],
-        y: [[colorPicker.selectY[0], colorPicker.selectY[1]]],
-        z: [[colorPicker.selectZ[0], colorPicker.selectZ[1]]],
-        text: [['<b>A</b>', '<b>B</b>']],
+        x: [colorPicker.selectX[0], colorPicker.selectX[1]],
+        y: [colorPicker.selectY[0], colorPicker.selectY[1]],
+        z: [colorPicker.selectZ[0], colorPicker.selectZ[1]],
+        text: ['<b>A</b>', '<b>B</b>'],
         textfont: {
           family: 'Helvetica Neue',
           size: 20,
@@ -1247,14 +1203,13 @@ function add2(data) {
         },
         hoverinfo: 'skip',
       };
-      Plotly.restyle(plot, trace, [6]);
-      //traces.push(trace);
+      traces.push(trace);
 
       var chrmTrace = {
-        x: [[colorPicker.chrmSelectX[0], colorPicker.chrmSelectX[1]]],
-        y: [[colorPicker.chrmSelectY[0], colorPicker.chrmSelectY[1]]],
-        z: [[colorPicker.chrmSelectZ[0], colorPicker.chrmSelectZ[1]]],
-        text: [['<b>a</b>', '<b>b</b>']],
+        x: [colorPicker.chrmSelectX[0], colorPicker.chrmSelectX[1]],
+        y: [colorPicker.chrmSelectY[0], colorPicker.chrmSelectY[1]],
+        z: [colorPicker.chrmSelectZ[0], colorPicker.chrmSelectZ[1]],
+        text: ['<b>a</b>', '<b>b</b>'],
         textfont: {
           family: 'Helvetica Neue',
           size: 20,
@@ -1268,14 +1223,13 @@ function add2(data) {
         },
         hoverinfo: 'skip',
       };
-      //traces.push(chrmTrace);
-      Plotly.restyle(plot, chrmTrace, [7]);
+      traces.push(chrmTrace);
 
       for (var i = 0; i < 2; i++) {
         var trace = {
-          x: [[0, colorPicker.chrmSelectX[i]]],
-          y: [[0, colorPicker.chrmSelectY[i]]],
-          z: [[0, colorPicker.chrmSelectZ[i]]],
+          x: [0, colorPicker.chrmSelectX[i]],
+          y: [0, colorPicker.chrmSelectY[i]],
+          z: [0, colorPicker.chrmSelectZ[i]],
           mode: 'lines',
           visible: true,
           type: 'scatter3d',
@@ -1285,23 +1239,20 @@ function add2(data) {
           },
           hoverinfo: 'skip',
         };
-        //traces.push(trace);
-        Plotly.restyle(plot, trace, [8+i]);
+        traces.push(trace);
       }
 
-      // https://github.com/plotly/plotly.js/issues/1467
-      // https://github.com/plotly/plotly.js/issues/1446
-      // addTraces doesn't sit well with hover. plot sometimes hangs. so we use restyle. TODO: doesn't work either.
-      colorPicker.traceIdx.push(6, 7, 8, 9);
-      //Plotly.addTraces(plot, traces).then(()=>{
-      //  traceIdx.push(plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
+      Plotly.addTraces(plot, traces).then(()=>{
+        colorPicker.traceIdx.push(plot.data.length - 6, plot.data.length - 5,
+            plot.data.length - 4, plot.data.length - 3,
+            plot.data.length - 2, plot.data.length - 1);
 
-      //  // show chrm if not already shown 
-      //  //if(!($('#showChrm2').is(":checked"))) {
-      //  //  $('#showChrm2').prop('checked', true);
-      //  //  showChrm2('#showChrm2');
-      //  //}
-      //});
+        // show chrm if not already shown 
+        //if(!($('#showChrm2').is(":checked"))) {
+        //  $('#showChrm2').prop('checked', true);
+        //  showChrm2('#showChrm2');
+        //}
+      });
     }
   });
 }
@@ -1319,47 +1270,26 @@ var colorPicker = {
   selectId: [],
 
   highlightPoint: function(plot, cn, pn, an, cb) {
-    cb();
-    return;
+    //cb();
+    //return;
 
-    var colors = Array.from(plot.data[cn].marker.color);
-    colors[pn] = brightYellowColor;
-
-    var annotation = {
-      showarrow: false,
-      x: plot.data[cn].x[pn],
-      y: plot.data[cn].y[pn],
-      z: plot.data[cn].z[pn],
-      text: "<b>" + an + "</b>",
-      font: {
-        family: 'Helvetica Neue',
-        color: "black",
-        size: 20
+    var trace = {
+      x: [plot.data[cn].x[pn]],
+      y: [plot.data[cn].y[pn]],
+      z: [plot.data[cn].z[pn]],
+      text: [plot.data[cn].text[pn]],
+      mode: 'markers',
+      type: 'scatter3d',
+      marker: {
+        size: 4,
+        color: brightYellowColor,
       },
-      xanchor: "left",
-      xshift: 0,
-      opacity: 0.7
+      hovertemplate: 'r: %{x}' +
+        '<br>g: %{y}' +
+        '<br>b: %{z}' +
+        '<br>wavelength: %{text}<extra></extra>',
     };
-
-    //var prevAnn = plot.layout.scene.annotations;
-    //var layout_update = {
-    //  //'scene.annotations': [annotation],
-    //  'scene.annotations': prevAnn.concat([annotation]),
-    //};
-    var layout_update = {};
-
-    var data_update = {'marker.color': [colors], 'hoverinfo': 'skip'};
-    //var data_update = {};
-
-    plot.removeAllListeners("plotly_click");
-    if (cb == undefined) Plotly.update(plot, data_update, layout_update, [cn]);
-    else Plotly.update(plot, data_update, layout_update, [cn]).then(cb);
-    //if (cb == undefined) Plotly.relayout(plot, layout_update);
-    //else Plotly.relayout(plot, layout_update).then(cb);
-    //if (cb == undefined) Plotly.restyle(plot, data_update, [cn]);
-    //else Plotly.restyle(plot, data_update, [cn]).then(() => {
-    //  cb();
-    //});
+    Plotly.addTraces(plot, [trace]).then(cb);
   },
 
   cleanupPlot: function(color1, color2) {
@@ -1890,7 +1820,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plots are plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin, RGB select, rgb select, 4 lines
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin
   registerShowChrm2('#showChrm2');
   registerPickColors();
   registerShowHVS(1, '#showhvs', true);
