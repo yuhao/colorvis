@@ -1175,6 +1175,7 @@ function add2(data) {
   colorPicker.chrmSelectX[colorPicker.count] = plot.data[1].x[pn];
   colorPicker.chrmSelectY[colorPicker.count] = plot.data[1].y[pn];
   colorPicker.chrmSelectZ[colorPicker.count] = plot.data[1].z[pn];
+  colorPicker.selectId[colorPicker.count] = pn;
 
   colorPicker.highlightPoint(plot, cn, pn, colorPicker.num2Letter(colorPicker.count, true), function() {
     colorPicker.count++;
@@ -1214,14 +1215,23 @@ function add2(data) {
           family: 'Helvetica Neue',
           size: 20,
         },
-        mode: 'lines+text',
+        mode: 'lines+markers+text',
         visible: true,
         type: 'scatter3d',
         line: {
           color: greenColor,
           width: 2,
         },
-        hoverinfo: 'skip',
+        marker: {
+          size: 4,
+          color: brightYellowColor,
+        },
+        //hoverinfo: 'skip',
+        customdata: [plot.data[cn].text[colorPicker.selectId[0]], plot.data[cn].text[colorPicker.selectId[1]]],
+        hovertemplate: 'r: %{x}' +
+          '<br>g: %{y}' +
+          '<br>b: %{z}' +
+          '<br>wavelength: %{customdata}<extra></extra>',
       };
       traces.push(chrmTrace);
 
@@ -1284,9 +1294,9 @@ var colorPicker = {
         size: 4,
         color: brightYellowColor,
       },
-      hovertemplate: 'r: %{x}' +
-        '<br>g: %{y}' +
-        '<br>b: %{z}' +
+      hovertemplate: 'R: %{x}' +
+        '<br>G: %{y}' +
+        '<br>B: %{z}' +
         '<br>wavelength: %{text}<extra></extra>',
     };
     Plotly.addTraces(plot, [trace]).then(cb);
