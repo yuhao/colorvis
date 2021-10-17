@@ -1267,10 +1267,202 @@ function add2(data) {
   });
 }
 
+function add3(data) {
+  var plot = window.chrmPlot;
+
+  var cn = data.points[0].curveNumber;
+  if (cn != 0) return;
+
+  var pn = data.points[0].pointNumber;
+  colorPicker.selectX[colorPicker.count] = data.points[0].data.x[pn];
+  colorPicker.selectY[colorPicker.count] = data.points[0].data.y[pn];
+  colorPicker.selectZ[colorPicker.count] = data.points[0].data.z[pn];
+  colorPicker.chrmSelectX[colorPicker.count] = plot.data[1].x[pn];
+  colorPicker.chrmSelectY[colorPicker.count] = plot.data[1].y[pn];
+  colorPicker.chrmSelectZ[colorPicker.count] = plot.data[1].z[pn];
+  colorPicker.selectId[colorPicker.count] = pn;
+
+  colorPicker.highlightPoint(plot, cn, pn, colorPicker.num2Letter(colorPicker.count, true), function() {
+    colorPicker.count++;
+    if (colorPicker.count < 3)
+      plot.once('plotly_click', add3);
+    else if (colorPicker.count == 3) {
+      var traces = [];
+      plot.removeListener('plotly_click', add3);
+      //plot.removeAllListeners("plotly_click");
+
+      var trace = {
+        x: [colorPicker.selectX[0], colorPicker.selectX[1], colorPicker.selectX[2]],
+        y: [colorPicker.selectY[0], colorPicker.selectY[1], colorPicker.selectY[2]],
+        z: [colorPicker.selectZ[0], colorPicker.selectZ[1], colorPicker.selectZ[2]],
+        i: [0],
+        j: [1],
+        k: [2],
+        type: 'mesh3d',
+        visible: true,
+        //opacity:0.8,
+        color: purpleColor,
+        hoverinfo: 'skip',
+      };
+      traces.push(trace);
+
+      var chrmTrace = {
+        x: [colorPicker.chrmSelectX[0], colorPicker.chrmSelectX[1], colorPicker.chrmSelectX[2]],
+        y: [colorPicker.chrmSelectY[0], colorPicker.chrmSelectY[1], colorPicker.chrmSelectY[2]],
+        z: [colorPicker.chrmSelectZ[0], colorPicker.chrmSelectZ[1], colorPicker.chrmSelectZ[2]],
+        i: [0],
+        j: [1],
+        k: [2],
+        type: 'mesh3d',
+        visible: true,
+        opacity:0.8,
+        color: greenColor,
+        hoverinfo: 'skip',
+      };
+      traces.push(chrmTrace);
+
+      for (var i = 0; i < 3; i++) {
+        var trace = {
+          x: [0, colorPicker.chrmSelectX[i]],
+          y: [0, colorPicker.chrmSelectY[i]],
+          z: [0, colorPicker.chrmSelectZ[i]],
+          mode: 'lines',
+          type: 'scatter3d',
+          visible: true,
+          line: {
+            color: redColor,
+            width: 2,
+          },
+          hoverinfo: 'skip',
+        };
+        traces.push(trace);
+      }
+
+      Plotly.addTraces(plot, traces).then(()=>{
+        colorPicker.traceIdx.push(plot.data.length - 8, plot.data.length - 7,
+            plot.data.length - 6, plot.data.length - 5,
+            plot.data.length - 4, plot.data.length - 3,
+            plot.data.length - 2, plot.data.length - 1);
+
+        // show chrm if not already shown 
+        //if(!($('#showChrm2').is(":checked"))) {
+        //  $('#showChrm2').prop('checked', true);
+        //  showChrm2('#showChrm2');
+        //}
+      });
+    }
+  });
+}
+
+function add4(data) {
+  var plot = window.chrmPlot;
+
+  var cn = data.points[0].curveNumber;
+  if (cn != 0) return;
+
+  selectX = colorPicker.selectX;
+  selectY = colorPicker.selectY;
+  selectZ = colorPicker.selectZ;
+  chrmSelectX = colorPicker.chrmSelectX;
+  chrmSelectY = colorPicker.chrmSelectY;
+  chrmSelectZ = colorPicker.chrmSelectZ;
+  selectId = colorPicker.selectId;
+  colors = colorPicker.colors;
+
+  var pn = data.points[0].pointNumber;
+  selectX[colorPicker.count] = data.points[0].data.x[pn];
+  selectY[colorPicker.count] = data.points[0].data.y[pn];
+  selectZ[colorPicker.count] = data.points[0].data.z[pn];
+  chrmSelectX[colorPicker.count] = plot.data[1].x[pn];
+  chrmSelectY[colorPicker.count] = plot.data[1].y[pn];
+  chrmSelectZ[colorPicker.count] = plot.data[1].z[pn];
+  selectId[colorPicker.count] = pn;
+  colors.push({id: colorPicker.count, value: pn});
+
+  colorPicker.highlightPoint(plot, cn, pn, colorPicker.num2Letter(colorPicker.count, true), function() {
+    colorPicker.count++;
+    if (colorPicker.count < 4)
+      plot.once('plotly_click', add4);
+    else if (colorPicker.count == 4) {
+      var traces = [];
+      // to avoid the weird bug in plotly where addtraces trigger click
+      plot.removeListener('plotly_click', add4);
+      //plot.removeAllListeners("plotly_click");
+
+      var trace = {
+        x: [selectX[0], selectX[1], selectX[2], selectX[3]],
+        y: [selectY[0], selectY[1], selectY[2], selectY[3]],
+        z: [selectZ[0], selectZ[1], selectZ[2], selectZ[3]],
+        i: [0, 0, 1, 0],
+        j: [1, 1, 2, 2],
+        k: [2, 3, 3, 3],
+        type: 'mesh3d',
+        visible: true,
+        intensity: [0.2, 0.4, 0.6, 0.8],
+        intensitymode: 'cell',
+        showscale: false,
+        cmax: 1.0,
+        cmin: 0.0,
+        //color: purpleColor,
+        hoverinfo: 'skip',
+      };
+      traces.push(trace);
+
+      colors.sort(function (a, b) {
+        return a.value - b.value;
+      });
+      var chrmTrace = {
+        x: [chrmSelectX[colors[0].id], chrmSelectX[colors[1].id], chrmSelectX[colors[2].id], chrmSelectX[colors[3].id]],
+        y: [chrmSelectY[colors[0].id], chrmSelectY[colors[1].id], chrmSelectY[colors[2].id], chrmSelectY[colors[3].id]],
+        z: [chrmSelectZ[colors[0].id], chrmSelectZ[colors[1].id], chrmSelectZ[colors[2].id], chrmSelectZ[colors[3].id]],
+        i: [0, 0],
+        j: [1, 2],
+        k: [2, 3],
+        type: 'mesh3d',
+        visible: true,
+        opacity:0.8,
+        color: greenColor,
+        hoverinfo: 'skip',
+      };
+      traces.push(chrmTrace);
+
+      for (var i = 0; i < 4; i++) {
+        var trace = {
+          x: [0, chrmSelectX[i]],
+          y: [0, chrmSelectY[i]],
+          z: [0, chrmSelectZ[i]],
+          mode: 'lines',
+          type: 'scatter3d',
+          visible: true,
+          line: {
+            color: redColor,
+            width: 2,
+          },
+          hoverinfo: 'skip',
+        };
+        traces.push(trace);
+      }
+
+      Plotly.addTraces(plot, traces).then(()=>{
+        colorPicker.traceIdx.push(plot.data.length - 10, plot.data.length - 9,
+            plot.data.length - 8, plot.data.length - 7,
+            plot.data.length - 6, plot.data.length - 5,
+            plot.data.length - 4, plot.data.length - 3,
+            plot.data.length - 2, plot.data.length - 1);
+
+        // show chrm if not already shown 
+        //if(!($('#showChrm2').is(":checked"))) {
+        //  $('#showChrm2').prop('checked', true);
+        //  showChrm2('#showChrm2');
+        //}
+      });
+    }
+  });
+}
+
 var colorPicker = {
   traceIdx: undefined,
   count: 0,
-  traces: [],
   selectX: [],
   selectY: [],
   selectZ: [],
@@ -1278,6 +1470,7 @@ var colorPicker = {
   chrmSelectY: [],
   chrmSelectZ: [],
   selectId: [],
+  colors: [],
 
   highlightPoint: function(plot, cn, pn, an, cb) {
     //cb();
@@ -1299,6 +1492,7 @@ var colorPicker = {
         '<br>B: %{z}' +
         '<br>wavelength: %{text}<extra></extra>',
     };
+    // use addTraces. restyle is logically nice, but seems to hand plotly every now and then due to the simultaneous hover and unhover.
     Plotly.addTraces(plot, [trace]).then(cb);
   },
 
@@ -1313,6 +1507,7 @@ var colorPicker = {
     this.chrmSelectY = [];
     this.chrmSelectZ = [];
     this.selectId = [];
+    this.colors = [];
 
     // https://github.com/plotly/plotly.js/issues/107#issuecomment-279716312
     // remove all event listerners so that no callbacks are accidently fired.
@@ -1351,199 +1546,6 @@ var colorPicker = {
     else if (num == 1) return (cap ? 'B' : 'b');
     else if (num == 2) return (cap ? 'C' : 'c');
     else if (num == 3) return (cap ? 'D' : 'd');
-  },
-
-  add3: function(data) {
-    var cn = data.points[0].curveNumber;
-    if (cn != 0) return;
-
-    var pn = data.points[0].pointNumber;
-    selectX[count] = data.points[0].data.x[pn];
-    selectY[count] = data.points[0].data.y[pn];
-    selectZ[count] = data.points[0].data.z[pn];
-    chrmSelectX[count] = plot.data[1].x[pn];
-    chrmSelectY[count] = plot.data[1].y[pn];
-    chrmSelectZ[count] = plot.data[1].z[pn];
-    selectId[count] = pn;
-
-    highlightPoint(plot, cn, pn, num2Letter(count, true), function() {
-      count++;
-      if (count < 3)
-        plot.once('plotly_click', add3);
-      else if (count == 3) {
-        plot.removeListener('plotly_click', add3);
-        //plot.removeAllListeners("plotly_click");
-
-        var trace = {
-          x: [[selectX[0], selectX[1], selectX[2]]],
-          y: [[selectY[0], selectY[1], selectY[2]]],
-          z: [[selectZ[0], selectZ[1], selectZ[2]]],
-          i: [[0]],
-          j: [[1]],
-          k: [[2]],
-          type: 'mesh3d',
-          visible: true,
-          //opacity:0.8,
-          color: purpleColor,
-          hoverinfo: 'skip',
-        };
-        //traces.push(trace);
-        Plotly.restyle(plot, trace, [6]);
-
-        var chrmTrace = {
-          x: [[chrmSelectX[0], chrmSelectX[1], chrmSelectX[2]]],
-          y: [[chrmSelectY[0], chrmSelectY[1], chrmSelectY[2]]],
-          z: [[chrmSelectZ[0], chrmSelectZ[1], chrmSelectZ[2]]],
-          i: [[0]],
-          j: [[1]],
-          k: [[2]],
-          type: 'mesh3d',
-          visible: true,
-          opacity:0.8,
-          color: greenColor,
-          hoverinfo: 'skip',
-        };
-        //traces.push(chrmTrace);
-        Plotly.restyle(plot, chrmTrace, [7]);
-
-        for (var i = 0; i < 3; i++) {
-          var trace = {
-            x: [[0, chrmSelectX[i]]],
-            y: [[0, chrmSelectY[i]]],
-            z: [[0, chrmSelectZ[i]]],
-            mode: 'lines',
-            type: 'scatter3d',
-            visible: true,
-            line: {
-              color: redColor,
-              width: 2,
-            },
-            hoverinfo: 'skip',
-          };
-          //traces.push(trace);
-          Plotly.restyle(plot, trace, [8+i]);
-        }
-
-        // https://github.com/plotly/plotly.js/issues/1467
-        traceIdx.push(6, 7, 8, 9, 10);
-        //Plotly.addTraces(plot, traces).then(()=>{
-        //  traceIdx.push(plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
-
-        //  // show chrm if not already shown 
-        //  //if(!($('#showChrm2').is(":checked"))) {
-        //  //  $('#showChrm2').prop('checked', true);
-        //  //  showChrm2('#showChrm2');
-        //  //}
-        //});
-
-        // TODO: do these in one update
-        // add annotation to chrm curve
-        //highlightPoint(plot, 1, selectId[0], num2Letter(0, false));
-        //highlightPoint(plot, 1, selectId[1], num2Letter(1, false));
-        //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
-
-      }
-    });
-  },
-
-  add4: function(data) {
-    var cn = data.points[0].curveNumber;
-    if (cn != 0) return;
-
-    var pn = data.points[0].pointNumber;
-    selectX[count] = data.points[0].data.x[pn];
-    selectY[count] = data.points[0].data.y[pn];
-    selectZ[count] = data.points[0].data.z[pn];
-    chrmSelectX[count] = plot.data[1].x[pn];
-    chrmSelectY[count] = plot.data[1].y[pn];
-    chrmSelectZ[count] = plot.data[1].z[pn];
-    selectId[count] = pn;
-    colors.push({id: count, value: pn});
-
-    highlightPoint(plot, cn, pn, num2Letter(count, true), function() {
-      count++;
-      if (count < 4)
-        plot.once('plotly_click', add4);
-      else if (count == 4) {
-        // to avoid the weird bug in plotly where addtraces trigger click
-        plot.removeListener('plotly_click', add4);
-        //plot.removeAllListeners("plotly_click");
-
-        var trace = {
-          x: [[selectX[0], selectX[1], selectX[2], selectX[3]]],
-          y: [[selectY[0], selectY[1], selectY[2], selectY[3]]],
-          z: [[selectZ[0], selectZ[1], selectZ[2], selectZ[3]]],
-          i: [[0, 0, 1, 0]],
-          j: [[1, 1, 2, 2]],
-          k: [[2, 3, 3, 3]],
-          type: 'mesh3d',
-          visible: true,
-          intensity: [[0.2, 0.4, 0.6, 0.8]],
-          intensitymode: 'cell',
-          showscale: false,
-          cmax: 1.0,
-          cmin: 0.0,
-          //color: purpleColor,
-          hoverinfo: 'skip',
-        };
-        //traces.push(trace);
-        Plotly.restyle(plot, trace, [6]);
-
-        colors.sort(function (a, b) {
-          return a.value - b.value;
-        });
-        var chrmTrace = {
-          x: [[chrmSelectX[colors[0].id], chrmSelectX[colors[1].id], chrmSelectX[colors[2].id], chrmSelectX[colors[3].id]]],
-          y: [[chrmSelectY[colors[0].id], chrmSelectY[colors[1].id], chrmSelectY[colors[2].id], chrmSelectY[colors[3].id]]],
-          z: [[chrmSelectZ[colors[0].id], chrmSelectZ[colors[1].id], chrmSelectZ[colors[2].id], chrmSelectZ[colors[3].id]]],
-          i: [[0, 0]],
-          j: [[1, 2]],
-          k: [[2, 3]],
-          type: 'mesh3d',
-          visible: true,
-          opacity:0.8,
-          color: greenColor,
-          hoverinfo: 'skip',
-        };
-        //traces.push(chrmTrace);
-        Plotly.restyle(plot, chrmTrace, [7]);
-
-        for (var i = 0; i < 4; i++) {
-          var trace = {
-            x: [[0, chrmSelectX[i]]],
-            y: [[0, chrmSelectY[i]]],
-            z: [[0, chrmSelectZ[i]]],
-            mode: 'lines',
-            type: 'scatter3d',
-            visible: true,
-            line: {
-              color: redColor,
-              width: 2,
-            },
-            hoverinfo: 'skip',
-          };
-          //traces.push(trace);
-          Plotly.restyle(plot, trace, [8+i]);
-        }
-
-        traceIdx.push(6, 7, 8, 9, 10, 11);
-        //Plotly.addTraces(plot, traces).then(()=>{
-        //  traceIdx.push(plot.data.length - 6, plot.data.length - 5, plot.data.length - 4, plot.data.length - 3, plot.data.length - 2, plot.data.length - 1);
-
-        //  // show chrm if not already shown 
-        //  //if(!($('#showChrm2').is(":checked"))) {
-        //  //  $('#showChrm2').prop('checked', true);
-        //  //  showChrm2('#showChrm2');
-        //  //}
-        //});
-
-        // add annotation to chrm curve
-        //highlightPoint(plot, 1, selectId[0], num2Letter(0, false));
-        //highlightPoint(plot, 1, selectId[1], num2Letter(1, false));
-        //highlightPoint(plot, 1, selectId[2], num2Letter(2, false));
-        //highlightPoint(plot, 1, selectId[3], num2Letter(3, false));
-      }
-    });
   }
 }
 
@@ -1557,10 +1559,9 @@ function registerPickColors() {
     if (this.id == 'pick2') {
       plot.once('plotly_click', add2);
     } else if (this.id == 'pick3') {
-      plot.once('plotly_click', colorPicker.add3);
+      plot.once('plotly_click', add3);
     } else if (this.id == 'pick4') {
-      var colors = [];
-      plot.once('plotly_click', colorPicker.add4);
+      plot.once('plotly_click', add4);
     }
   });
 }
