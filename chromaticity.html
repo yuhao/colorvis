@@ -169,7 +169,11 @@
               <input type="radio" class="btn-check" name="pick" id="pick4" autocomplete="off" disabled>
               <label class="btn btn-outline-primary btn-sm" for="pick4">Pick 4 Colors</label>
             </div>
-            <div class="form-check form-switch align-self-center mt-3">
+            <div class="form-check form-switch mt-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="showPlane1" disabled>
+              <label class="form-check-label" for="showPlane1"><b>Show R+G+B=1 Plane</b></label>
+            </div>
+            <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane0" disabled>
               <label class="form-check-label" for="showPlane0"><b>Show R+G+B=0 Plane</b></label>
               <p>If spectral lights are all above or all below this plane (e.g., if you use Preset 1), the HVS gamut in chromaticity is bounded by the convex hull of the spectral colors.</p>
@@ -177,7 +181,6 @@
             <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm2" disabled>
               <label class="form-check-label" for="showChrm2"><b>Show Locus in Chromaticity</b></label>
-              <p>Show the chromacitities of the spectral lights.</p>
             </div>
             <div class="form-check form-switch mt-3">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvs" disabled>

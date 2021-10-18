@@ -286,7 +286,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
     window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv', false);
     plotChrm(window.locusPlot, true);
-    plotPlane(1);
+    plotPlane(1, window.locusPlot);
     plotOrigin(window.locusPlot);
     //plotPrims();
 
@@ -298,8 +298,9 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     window.chrmPlot = plotLocus(lmsChart.data.labels, 'chrmLocusDiv', false);
     plotChrm(window.chrmPlot, false);
     plotHVSGamut(window.chrmPlot, 'legendonly', 'legendonly');
-    plotPlane(0);
+    plotPlane(0, window.chrmPlot);
     plotOrigin(window.chrmPlot);
+    plotPlane(1, window.chrmPlot);
 
     var plot = window.chrmPlot;
     var sumRGB = math.add(math.add(plot.data[0].x, plot.data[0].y), plot.data[0].z);
@@ -314,6 +315,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     if (cond) $('#showhvs').prop('disabled', false);
     $('#showhvsRGB').prop('disabled', false);
     $('#showPlane0').prop('disabled', false);
+    $('#showPlane1').prop('disabled', false);
     $('#showex').prop('disabled', false);
 
     window.chrm2Plot = plotLocus(lmsChart.data.labels, 'chrmLocus2Div', true);
@@ -450,12 +452,10 @@ function plotPrims() {
   Plotly.addTraces(plot, [RGBTrace, rgbTrace]);
 }
 
-function plotPlane(planeId) {
-  var plot, trace;
+function plotPlane(planeId, plot) {
+  var trace;
 
   if (planeId == 1) {
-    plot = window.locusPlot;
-    
     // r+g+b=1 plane
     trace = {
       x: [0, 0, 1],
@@ -478,8 +478,6 @@ function plotPlane(planeId) {
       //  '<br>wavelength: %{text}<extra></extra>' ,
     };
   } else if (planeId == 0) {
-    plot = window.chrmPlot;
-
     // r+g+b=0 plane
     trace = {
       x: [0.3, -0.3, 0.3, -0.3],
@@ -1141,17 +1139,17 @@ function showPlane(id, plot, traceId) {
   }
 }
 
-function registerShowPlane(id, planeId) {
+function registerShowPlane(id, step, traceId) {
   $(id).on('change', function(evt) {
-    var plot, traceId;
-    if (planeId == 1) {
+    var plot;
+    if (step == 1) {
       plot = window.locusPlot;
-      var numWaves = plot.data[0].x.length;
-      traceId = numWaves + 2;
     }
-    else if (planeId == 0) {
+    else if (step == 2) {
       plot = window.chrmPlot;
-      traceId = 4;
+    }
+    else if (step == 3) {
+      plot = window.chrm2Plot;
     }
     showPlane(id, plot, traceId);
   });
@@ -1846,16 +1844,17 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
 
   registerShowChrm('#showChrm');
   registerShowChrmLine('#showChrmLine');
-  registerShowPlane('#showPlane', 1);
+  registerShowPlane('#showPlane', 1, wlen.length + 2);
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plots are plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin, r+g+b=0 plane
   registerShowChrm2('#showChrm2');
   registerPickColors();
   registerShowHVS(1, '#showhvs', true);
   registerShowHVSRGB(1, '#showhvsRGB', true);
-  registerShowPlane('#showPlane0', 0);
+  registerShowPlane('#showPlane0', 2, 4);
+  registerShowPlane('#showPlane1', 2, 6);
 
   // Step 3 (the locus plots are plotted in |registerPlotLocus|)
   // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, origin
