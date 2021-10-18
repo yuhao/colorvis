@@ -96,7 +96,7 @@
           <canvas id="canvasRGBPrim"></canvas>
         </div>
       </div>
-      <p>Once the color space is built, we can <button id="plotLocus" class="btn btn-primary btn-sm" disabled>Plot Spectral Locus</button> in the color space. The locus is calculated, under the hood, by calculating the Color Matching Functions (CMFs) using the method we explored in the previous tutorial.</p>
+      <p>Once the primaries are picked, we can <button id="plotLocus" class="btn btn-primary btn-sm" disabled>Generate Color Space</button>, which will affect the rest of the tutorial. If you want to use a different color space, simply make the change and click the button again. The color space is built, under the hood, by calculating the Color Matching Functions (CMFs) using the method we explored in the previous tutorial.</p>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
@@ -154,7 +154,7 @@
 
       <div class="row">
         <p>The chromaticity plot is useful in helping us understand the limit of human visual system (HVS) and the limit of a particular color space: what are all the colors that human can see, and can a color space produce all the colors that human can see? To answer these questions, one could construct every single real light one by one and find its color. While we can't really do that in practice, constructing a few lights that way would help us build the intuition.</p>
-        <div class="col-sm-4 d-flex align-self-center">
+        <div class="col-sm-4 d-flex align-self-center mt-4">
           <div>
             <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
               <input type="radio" class="btn-check" name="pick" id="pick0" autocomplete="off" checked disabled>
@@ -169,28 +169,31 @@
               <input type="radio" class="btn-check" name="pick" id="pick4" autocomplete="off" disabled>
               <label class="btn btn-outline-primary btn-sm" for="pick4">Pick 4 Colors</label>
             </div>
-            <div class="form-check form-switch mt-3">
+            <div class="form-check form-switch mt-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane1" disabled>
               <label class="form-check-label" for="showPlane1"><b>Show R+G+B=1 Plane</b></label>
             </div>
-            <div class="form-check form-switch mt-3">
+            <div class="form-check form-switch mt-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlane0" disabled>
               <label class="form-check-label" for="showPlane0"><b>Show R+G+B=0 Plane</b></label>
               <p>If spectral lights are all above or all below this plane (e.g., if you use Preset 1), the HVS gamut in chromaticity is bounded by the convex hull of the spectral colors.</p>
             </div>
-            <div class="form-check form-switch mt-3">
+            <div class="form-check form-switch mt-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showChrm2" disabled>
               <label class="form-check-label" for="showChrm2"><b>Show Locus in Chromaticity</b></label>
             </div>
-            <div class="form-check form-switch mt-3">
+            <div class="form-check form-switch mt-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvs" disabled>
               <label class="form-check-label" for="showhvs"><b>Show HVS Gamut in Chromaticity</b></label>
-              <p>Show the human visible gamut in chromaticity. Only enabled if all spectral colors are above or below the R+G+B=0 plane at the same time. Otherwise the HVS gamut in chromaticity is unbounded and hard to visualize.</p>
+              <p>Show the human visible gamut in chromaticity. Enabled only if all spectral colors are above or below the R+G+B=0 plane at the same time. Otherwise the HVS gamut in chromaticity is unbounded and hard to visualize.</p>
             </div>
-            <div class="form-check form-switch mt-3">
+            <div class="form-check form-switch mt-2">
               <input class="form-check-input" type="checkbox" role="switch" id="showhvsRGB" disabled>
               <label class="form-check-label" for="showhvsRGB"><b>Show HVS Gamut Boundary in RGB</b></label>
-              <p>Show the boundary of human visible gamut in the RGB space. Think of the boundary as a wall; anything inside the wall is a real color. The real gamut extends to infinity since one can arbitrarily increase the light power.</p>
+              <p>Show partial boundary of human visible gamut in the RGB space. The real gamut extends to infinity as one increases the light power. Any point inside the boundary is a real color.</p>
+            </div>
+            <div>
+              <button class="btn btn-primary btn-sm" type="button" id="showex" disabled>Unusual Example</button> Short-cut for using Preset 2 to build a color space followed by picking 2 spectral colors, one above and the other below the R+G+B=0 plane.
             </div>
           </div>
         </div>
@@ -199,11 +202,11 @@
         </div>
       </div>
 
-      <div class="row">
+      <div class="row mt-4">
         <h4>2.1 Building the Intuition</h4>
         <p><b>Mixing Two Lights.</b> 
         We could think of the SPD of a light as the "recipe" of making that light &#8212; by mixing different amount of spectral lights specified in the SPD. Let's start by mixing two lights and see what happens to the resulting color. If you toggle the "Pick 2 Colors" switch, you can click 2 arbitrary points $\mathbf{A}$ and $\mathbf{B}$ along the RGB locus. What you will get is a line segmentation $\overline{\mathbf{AB}}$. Any point on $\overline{\mathbf{AB}}$ represents a color producible by mixing some portion of colors $\mathbf{A}$ and $\mathbf{B}$.
-        <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Show Proof</button>
+        <button class="btn btn-secondary btn-xs" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Show Proof</button>
         </p>
         <div class="collapse" id="collapseExample">
           <div class="card card-body">
@@ -238,22 +241,26 @@
         <h4>2.3 Gamut of a Color Space</h4>
         <p>Many lights that enter our eyes are not natural lights, but lights from various light-generating devices such as smartphones, computers, and printed paper. Each output device has its own color space, such as sRGB, CMYK, and DCI-P3. All the colors that can be produced by a color space is called the <b>gamut of the color space</b>. Is there a color space that can produce all the colors?</p>
         <p>The answer is no, and we can have a very intuitive explanation. Look at the chromaticity diagram of the color space built using the Preset 1 primaries. No matter what colors and how many colors you choose as primaries to build a color space, the primaries of any color space must reside inside the spectral locus, and all the colors that are producible from that color space must be inside the polygon formed by the primaries. Since the spectral locus is convex, the polygon is guaranteed to be enclosed by the locus. Therefore, the gamut of any color space is guaranteed to be a subset of the color gamut of HVS. In addition, since the polygon is always enclosed by the locus, it's impossible to find a polygon that includes all the spectral colors. That is, no color space can produce all spectral colors.</p>
-        <p>These conclusions, however, apply only to color spaces whose primaries are real colors. If a color space, such as CIE XYZ, LMS, and ProPhoto RGB, uses imaginary primaries, its color gamut could include imaginary colors and thus is not a subset of HVS gamut. The color gamut of CIE XYZ completely covers the entire HVS gamut (and by extension all the spectral colors). We will explore the formation and properties of CIE XYZ color space in another tutorial.</p>
+        <p>These conclusions, however, apply only to color spaces whose primaries are real colors. If a color space, such as CIE XYZ, LMS, and ProPhoto RGB, uses imaginary primaries, its color gamut could include imaginary colors and thus is not a subset of HVS gamut. The color gamut of CIE XYZ completely covers the entire HVS gamut (and by extension all the spectral colors). We will explore imaginary colors in more details in Step 4.</p>
         <h4>2.4 Visualizing a Counter-Intuitive Color Space</h4>
-	<p>The primaries in Preset 1 lead to a color space where the spectral colors are all above the $R+G+B=0$ plane. However, that condition is not always met for any arbitrary choice of primaries. Preset 2 is a counter-example. Select that preset and compare the RGB locus points with the $R+G+B=0$ plane. Then pick two colors $\mathbf{A}$ and $\mathbf{B}$, one above and the other below the $R+G+B=0$ plane. You will see that a point on $\overline{\mathbf{AB}}$ won't be mapped to a point on $\overline{\mathbf{ab}}$ by projecting through the origin. We have cooked an example for you. Click <button class="btn btn-primary btn-sm" type="button" id="showex" disabled>Show Example</button> to see it.</p>
+	<p>The primaries in Preset 1 lead to a color space where the spectral colors are all above the $R+G+B=0$ plane. However, that condition is not always met for any arbitrary choice of primaries. Preset 2 is a counter-example. Select that preset and compare the RGB locus points with the $R+G+B=0$ plane. Then pick two colors $\mathbf{A}$ and $\mathbf{B}$, one above and the other below the $R+G+B=0$ plane. You will see that a point on $\overline{\mathbf{AB}}$ won't be mapped to a point on $\overline{\mathbf{ab}}$ after being projected through the origin. We have cooked an example for you. Click "Unusual Example" to see it. In general, when the spectral colors are separated by the $R+G+B=0$ plane, the HVS gamut extends to infinity in the chromaticity <button class="btn btn-secondary btn-xs" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample">Show Intuition</button>, which becomes hard to visualize. Under that circumstance, we disable the "Show HVS Gamut in Chromaticity" button.</p>
+        <div class="collapse" id="collapseExample1">
+          <div class="card card-body">
+            <span>If a spectral color is above $R+G+B=0$ and another is below $R+G+B=0$, then there must be a color that's mixed from these two colors and that lies on the $R+G+B=0$ plane. The chromaticity values of that new color are infinities, since $R+G+B$ is the denominator in calculating the chromaticity.</span>
+          </div>
+        </div>
         <p>Also try showing the locus in chromaticity; see how weird that locus becomes. This could initially seem odd; how could a nice smooth curve in RGB become so entangled in the rgb space? The reason is that the transformation from RGB to rgb isn't linear (or affine for that matter); it's a perspective transformation.</p>
-        <p>Nothing is wrong with a color space where spectral colors are separate by the $R+G+B=0$ plane. It just means we can't use the chromaticity diagram to easily reason about the effect of mixing colors in that color space. For instance, we can't say the HVS gamut in such a color space is the area under the convex hull of the locus. It's also possible to pick three spectral colors such that the resulting triangle in chromaticity contains other spectral colors. It doesn't mean all of a sudden we can build a RGB color space that can produce spectral colors. The conclusion that no spectral colors can be expressed by a RGB color space still holds, because it's tied to the inherent properties of color, which won't change with how we represent colors; it's just we can't intuitively draw that conclusion by simply looking at the locus in chromaticity.</p>
-        <!--<p>One final note, if you use the preset spectral lights as the primaries, the locus itself is convex. Therefore, the gamut is the area enclosed by the locus. However, it's possible to use primaries such that the spectral locus isn't convex, in which case we can't say that the human gamut is the area under the locus. The exact shape of gamut in both RGB and the chromaticity plot varies with the particular RGB color space you built. Try changing the primaries in Step 0 and visualize the gamut (the reference white in this tutorial is fixed).</p>-->
+        <p>Nothing is wrong with a color space where spectral colors are separate by the $R+G+B=0$ plane. It just means we can't use the chromaticity diagram to easily reason about the effect of mixing colors in that color space. For instance, we can't say the HVS gamut in such a color space is the area under the convex hull of the locus. In addition, since the spectral colors do not form a convex set anymore, it's possible to pick three spectral colors such that the resulting triangle in chromaticity contains other spectral colors. It doesn't mean all of a sudden we can build a RGB color space that can produce spectral colors. We didn't (and couldn't) change the fundamental, inherent properties of color, which hold regardless in which color space we represent colors. However, it does mean that the intuitive interpretations of the chromaticity diagram we developed above don't apply to these "usual" color spaces.</p>
       </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 3: Physically-Unrealizable Lights and Imaginary Colors</h3>
-        <p>We know that points on the locus are colors of spectral lights, and points inside the locus are colors that can be produced by mixing different spectral lights. What about points outside the locus? Intuitively, they do not represent any real color since they can't be produced by mixing spectral lights, but exactly what are they? For simplicity, we will use the color space built from the preset primaries (and EEW as reference white) for this part.</p>
-        <p><b>Physically-Realizable Lights.</b> Lights whose SPDs are non-negative everywhere are physically-realizable. We can, in theory, generate such lights by collecting photons at different wavelengths as specified by the SPD. The RGB triplet of a physically-realizable light corresponds to a real color. As discussed above, a real color is a part of the gamut of human color perception; in the chromaticity diagram, a real color falls within the area under the locus if the locus is convex, which is the case here.</p>
-        <p>Since photons always have positive energy, a "light" would be physically unrealizable if its SPD is negative at certain wavelengths. Mathematically, however, nothing prevents us from calculating the RGB triplet of a physically-unrealizable light using the CMFs of a color space. An RGB point would not represent a real color if the RGB triplet can not be produced from <i>any</i> physically-realizable light. We call such a color an <i>imaginary color</i>.</p>
-        <p><b>The Math of Imaginary Colors.</b> Given an RGB color space, can you find all the imaginary colors, those that can never be generated from real lights? Intuitively, you could probably tell that any point outside the gamut is an imaginary color, but let's reason about this a bit more rigorously. Mathematically stated, given an RGB point $[R_t, G_t, B_t]$ in a color space whose CMFs are $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$, we want to know whether the following <i>constrained</i> system of equations have a solution:<p>
+        <p>From the visualization above, we can see that the HVS gamut occupies a subset of the entire RGB space. A natural question then is: what about those RGB points that are outside the HVS gamut? What exactly are they? Can we generate colors at those points? It turns out that we can mathematically construct "imaginary colors" whose RGB triplets are outside the HVS gamut &#8212; from physically-unrealizable lights.</p>
+        <p><b>Physically-Realizable Lights.</b> Lights whose SPDs are non-negative everywhere are physically-realizable. We can, in theory, generate such lights by collecting photons at different wavelengths as specified by the SPD. The RGB triplet of a physically-realizable light corresponds to a real color. As discussed above, a real color is a part of the gamut of human color perception; in the chromaticity diagram, a real color falls within the area under the locus if the locus is convex, which is the case if you use Preset 1.</p>
+        <p>Since photons always have positive energy, a "light" would be physically-unrealizable if its SPD is negative at certain wavelengths. Mathematically, however, nothing prevents us from calculating the RGB triplet of a physically-unrealizable light using the CMFs of a color space. An RGB point would not represent a real color if the RGB triplet can not be produced from <i>any</i> physically-realizable light. We call such a color an <i>imaginary color</i>.</p>
+        <p><b>The Math of Imaginary Colors.</b> Given an RGB color space, can you find all the imaginary colors, those that can never be generated from real lights? Intuitively, any point outside the gamut is an imaginary color, but let's reason about this a bit more rigorously. Mathematically stated, given an RGB point $[R_t, G_t, B_t]$ in a color space whose CMFs are $\bar{r}(\lambda), \bar{g}(\lambda), \bar{b}(\lambda)$, we want to know whether the following <i>constrained</i> system of equations have a solution:<p>
         <p>$
           \begin{bmatrix}
           R_t \\
@@ -283,6 +290,7 @@
             <li>If the color is indeed an imaginary color (great job!), there isn't a real light that could lead to that RGB point, but a physically-unrealizable light could. To convince yourself of this, click the "Find an Unreal Light" button. A light that mathematically gives the target RGB triplet but with negative SPD values is plotted. You will also see that the RGB triplet is outside the gamut and the chromaticity is outside the convex hull of the locus.</li>
           </ul>
         </div>
+        <p>You are invited to change the color space, and see how a RGB point that represents a real color in one color space will represent an imaginary color in another color space.</p>
       </div>
 
       <div class="row">
@@ -335,8 +343,9 @@
         </div>
       </div>
 
-      <div class="row">
+      <div class="row mt-4">
         <p><b>Real and Unreal Lights Could Generate the "Same Color".</b> Interestingly but perhaps unsurprisingly, it is possible that a real light and a unreal light are mapped to the same RGB point. This is because the system of equations above is under-determined. It could have two solutions, one meets the non-negative constraints and the other does not. That is, a real light can be a metamer of a unreal light, mathematically!</p>
+        <p>To verify that, click the "Draw Light" switch above and draw an SPD. Then click "Calculate color", which will show you whether that SPD corresponds to a real color or an imaginary color. Try intentionally giving some negative power to a light to see if you can generate a real color.</p>
       </div>
 
     </div>

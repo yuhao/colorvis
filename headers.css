@@ -31,3 +31,8 @@
   outline: 0;
 }
 
+.btn-xs {
+  padding: 3px 3px;
+  font-size: .8rem;
+  border-radius: 2px;
+}

@@ -730,8 +730,8 @@ function setupDrawSPDChart(id, x_data) {
       },
       scales: {
         yAxes:{
-          min: -1,
-          max: 1,
+          min: -0.5,
+          max: 0.5,
           position: 'left',
         },
       },
@@ -1631,7 +1631,7 @@ function registerDrawSPD(id) {
     if($(id).is(":checked")) {
       $('#findColor').prop('disabled', false);
       $('#resetSPD').prop('disabled', false);
-      registerDrag(window.spdDrawCanvas, window.spdDrawChart, undefined, true, [0], [-1, 1]);
+      registerDrag(window.spdDrawCanvas, window.spdDrawChart, undefined, true, [0], [-0.5, 0.5]);
     } else {
       toggleDrag(window.spdDrawCanvas, false);
       $('#findColor').prop('disabled', true);
@@ -1685,9 +1685,13 @@ function registerFindSPD(id) {
       chart.data.datasets[0].hidden = true;
       chart.update();
 
+      var num = sCMFR.length;
       var coeff = Array(num).fill(-1);
       var left = math.diag(Array(num).fill(0));
-      var lp=numeric.solveLP(coeff, left,  right, leftEq, rightEq);
+      var right = Array(num).fill(0);
+      var leftEq = [sCMFR, sCMFG, sCMFB];
+      var rightEq = [rVal, gVal, bVal];
+      var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
       solution=numeric.trunc(lp.solution, 1e-12);
 
       $('#findImgSpd').on('click', function(evt) {
@@ -1804,6 +1808,7 @@ function showColor(R, G, B) {
 }
 
 function solveLP(rVal, gVal, bVal) {
+  // min the sum of all variables
   // https://ccc-js.github.io/numeric2/documentation.html
   var num = sCMFR.length;
   var coeff = Array(num).fill(1);
