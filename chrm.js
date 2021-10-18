@@ -282,15 +282,18 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
 
     // we don't know how white is defined in LMS, so we can't scale based on white. but we do know how the CMFs in LMS should look like (i.e., the cone sensitivities), so just pick a wave there and scale accordingly.
     if (val == 'usePreset3') {
-      var waveId = 10; // any wave will do.
-      var L = window.lmsChart.data.datasets[0].data[waveId];
-      var M = window.lmsChart.data.datasets[1].data[waveId];
-      var S = window.lmsChart.data.datasets[2].data[waveId];
+      //var waveId = 10; // any wave will do.
+      //var L = window.lmsChart.data.datasets[0].data[waveId];
+      //var M = window.lmsChart.data.datasets[1].data[waveId];
+      //var S = window.lmsChart.data.datasets[2].data[waveId];
 
-      rRad = unscaledR[waveId]/L;
-      gRad = unscaledG[waveId]/M;
-      bRad = unscaledB[waveId]/S;
+      //rRad = unscaledR[waveId]/L;
+      //gRad = unscaledG[waveId]/M;
+      //bRad = unscaledB[waveId]/S;
 
+      rRad = 1;
+      gRad = 1;
+      bRad = 1;
       scaling = 1;
     }
 
@@ -1696,7 +1699,7 @@ function registerFindSPD(id) {
     var solution = solveLP(rVal, gVal, bVal);
     showColor(rVal, gVal, bVal);
 
-    // then find the maximum negative SPD
+    // then find one such SPD with negative values
     if(Number.isNaN(solution)) {
       $('#findImgSpd').prop('disabled', false);
       $('#colortype').text("Imaginary Color!");
@@ -1708,7 +1711,7 @@ function registerFindSPD(id) {
       chart.update();
 
       var num = sCMFR.length;
-      var coeff = Array(num).fill(-1);
+      var coeff = Array(num).fill(-1); // seems to be ignored when the inequalities are always met
       var left = math.diag(Array(num).fill(0));
       var right = Array(num).fill(0);
       var leftEq = [sCMFR, sCMFG, sCMFB];
@@ -1802,8 +1805,9 @@ function showColor(R, G, B) {
              'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')',],
       textfont: {
         family: 'Helvetica Neue',
-        size: 20,
+        size: [20, 20],
       },
+      //textposition: ['top center', 'bottom center'],
       mode: 'markers+text',
       type: 'scatter3d',
       marker: {
@@ -1847,7 +1851,7 @@ function plotLMSPrims() {
   // find lights that exclusively stimulate the cones at unity. will scale later when calculating the CMFs.
   var chart = window.rgbPrimChart;
   var num = chart.data.datasets[0].data.length;
-  var coeff = Array(num).fill(-1);
+  var coeff = Array(num).fill(-1); // seems to be ignored
   var left = math.diag(Array(num).fill(0));
   var right = Array(num).fill(0);
   var leftEq = [coneL, coneM, coneS];
