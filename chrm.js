@@ -322,7 +322,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     $('#pick2').prop('disabled', false);
     $('#pick3').prop('disabled', false);
     $('#pick4').prop('disabled', false);
-    if (cond) $('#showhvs').prop('disabled', false);
+    $('#showhvs').prop('disabled', !cond);
     $('#showhvsRGB').prop('disabled', false);
     $('#showPlane0').prop('disabled', false);
     $('#showPlane1').prop('disabled', false);
@@ -334,7 +334,7 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     plotOrigin(window.chrm2Plot);
 
     $('#findspd').prop('disabled', false);
-    if (cond) $('#showhvs2').prop('disabled', false);
+    $('#showhvs2').prop('disabled', !cond);
     $('#showhvsRGB2').prop('disabled', false);
     $('#drawSPD').prop('disabled', false);
   });
