@@ -1867,7 +1867,7 @@ function plotLMSPrims() {
   chart.update();
 }
 
-d3.csv('linss2_10e_5_ext.csv', function(err, rows){
+d3.csv('linss2_10e_5_ext.csv').then(function(rows){
   var stride = 5;
 
   var wlen = unpack(rows, 'wavelength');
@@ -1925,4 +1925,7 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerFindColor('#findColor');
   registerResetSPD('#resetSPD');
   registerShowEx('#showex');
+
+  $('input[type=radio][name=prim][value=usePreset1]').click();
+  $('#plotLocus').trigger('click');
 });
