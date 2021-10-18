@@ -81,11 +81,16 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 0: Picking a Color Space</h3>
-        <p>To be concrete, you will need a specific RGB color space for this tutorial. We invite you to build your own and use it to drive the rest of the tutorial. We know that a color space is uniquely defined by its primaries and the reference white. For simplicity, we will assume CIE Standard Illuminant E (Equal-Energy White) as the reference white, and provide you four ways to pick the primaries.</p>
+        <p>To be concrete, you will need a specific RGB color space for this tutorial. We invite you to build your own and use it to drive the rest of the tutorial. We know that a color space is uniquely defined by its primaries and the reference white. For simplicity, we will assume CIE Standard Illuminant E (Equal-Energy White) as the reference white, and provide you five ways to pick the primaries.</p>
+        <span><b>Spectral primaries:</b></span>
         <ul style="list-style-type:none;">
           <li><input type="radio" value="usePreset1" name="prim"><label for="usePreset1">&nbsp;&nbsp;<b>Use Preset 1</b></label>: spectral lights $445~nm$, $540~nm$, and $590~nm$. This will build a color space that allows us to have an intuitive geometric interpretation of color space.</li>
           <li><input type="radio" value="usePreset2" name="prim"><label for="usePreset2">&nbsp;&nbsp;<b>Use Preset 2</b></label>: spectral lights $415~nm$, $500~nm$, and $540~nm$. Use this option if you want to explore a counter-intuitive color space (see Step 2.4).</li>
           <li><input type="radio" value="selPrim" name="prim"><label for="selPrim">&nbsp;&nbsp;<b>Select Spectral Primaries</b></label>. This will allow you to select three spectral lights as the primaries, exactly like what you did in the previous tutorial.</li>
+        </ul>
+        <span><b>Non-Spectral primaries:</b></span>
+        <ul style="list-style-type:none;">
+          <li><input type="radio" value="usePreset3" name="prim"><label for="usePreset3">&nbsp;&nbsp;<b>Use Preset 3</b></label>: primaries are physically-unrealizable lights, each exclusively stimulating only the L, M, and S cone, respectively. This constructs the LMS color space.</li>
           <li><input type="radio" value="drawPrim" name="prim"><label for="drawPrim">&nbsp;&nbsp;<b>Draw Primaries</b></label>. You can draw the spectral power distribution (SPD) of the primaries in the right chart below. You can <button id="resetPrim" class="btn btn-primary btn-sm" disabled>Reset Draw</button> to start over.</li>
         </ul>
       </div>
@@ -200,8 +205,8 @@
             </div>
           </div>
         </div>
-        <div class="col-sm-8">
-          <div id="chrmLocusDiv" class="mb-4"></div>
+        <div class="col-sm-8 mt-4">
+          <div id="chrmLocusDiv"></div>
         </div>
       </div>
 

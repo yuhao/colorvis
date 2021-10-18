@@ -101,7 +101,7 @@ function registerDrag(canvas, chart, plotId, disableTT, targetTraces, bounds) {
   
           // convert mouse position to chart y axis value 
           var chartArea = chart.chartArea;
-          var yAxis = chart.scales.yAxes;
+          var yAxis = chart.scales.yAxes; // TODO: shouldn't it be chart.options.scales?
           var yValue = map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
   
           // update y value of active data point; do not go beyond [0, 1]
@@ -246,7 +246,7 @@ var sCMFR = [], sCMFG = [], sCMFB = []; // these are precise values without roun
 function registerPlotLocus(buttonId, lmsChart, primChart) {
   $(buttonId).on('click', function(evt) {
     var val = $('input[type=radio][name=prim]:checked').val();
-    if (val == 'drawPrim') {
+    if (val == 'drawPrim' || val == 'usePreset3') {
       // B
       lMat[0][0] = math.dot(lmsChart.data.datasets[0].data, primChart.data.datasets[0].data);
       lMat[1][0] = math.dot(lmsChart.data.datasets[1].data, primChart.data.datasets[0].data);
@@ -278,11 +278,27 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
     gRad = math.dot(unscaledG, whiteSPD);
     bRad = math.dot(unscaledB, whiteSPD);
 
+    var scaling = 10;
+
+    // we don't know how white is defined in LMS, so we can't scale based on white. but we do know how the CMFs in LMS should look like (i.e., the cone sensitivities), so just pick a wave there and scale accordingly.
+    if (val == 'usePreset3') {
+      var waveId = 10; // any wave will do.
+      var L = window.lmsChart.data.datasets[0].data[waveId];
+      var M = window.lmsChart.data.datasets[1].data[waveId];
+      var S = window.lmsChart.data.datasets[2].data[waveId];
+
+      rRad = unscaledR[waveId]/L;
+      gRad = unscaledG[waveId]/M;
+      bRad = unscaledB[waveId]/S;
+
+      scaling = 1;
+    }
+
     // *10 just so that the RGB and rgb are comparable in magnitude and can shown in the same plot
     // TODO: automatically calculate this scaling factor
-    sCMFR = math.dotDivide(unscaledR, rRad).map(element => element * 10);
-    sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * 10);
-    sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * 10);
+    sCMFR = math.dotDivide(unscaledR, rRad).map(element => element * scaling);
+    sCMFG = math.dotDivide(unscaledG, gRad).map(element => element * scaling);
+    sCMFB = math.dotDivide(unscaledB, bRad).map(element => element * scaling);
 
     window.locusPlot = plotLocus(lmsChart.data.labels, 'rgbLocusDiv', false);
     plotChrm(window.locusPlot, true);
@@ -795,7 +811,7 @@ function setupSPDChart(id, x_data) {
       },
       scales: {
         yAxes:{
-          //min: 0,
+          //min:R 0,
           //max: 1,
           position: 'left',
         },
@@ -827,11 +843,12 @@ function setupSPDChart(id, x_data) {
   });
 }
 
+var coneL = [], coneM = [], coneS = [];
 function plotCones(rows, x_data) {
   // points to the cone arrays that will be used to plot the chart;
-  var coneL = unpack(rows, 'l');
-  var coneM = unpack(rows, 'm');
-  var coneS = unpack(rows, 's');
+  coneL = unpack(rows, 'l');
+  coneM = unpack(rows, 'm');
+  coneS = unpack(rows, 's');
 
   var y_data_1 = coneL;
   var y_data_2 = coneM;
@@ -1035,7 +1052,12 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
       selectPrims(lmsCanvas, lmsChart, [getWaveId(lmsChart, 415), getWaveId(lmsChart, 500), getWaveId(lmsChart, 540)]);
+    } else if (this.value == 'usePreset3') {
+      toggleDrag(rgbCanvas, false);
+      $('#resetPrim').prop('disabled', true);
+      plotLMSPrims();
     } else if (this.value == 'drawPrim') {
+      $('#resetPrim').trigger('click');
       drawPrims(rgbChart, rgbCanvas);
     }
   });
@@ -1821,6 +1843,35 @@ function solveLP(rVal, gVal, bVal) {
   return solution=numeric.trunc(lp.solution, 1e-12);
 }
 
+function plotLMSPrims() {
+  // find lights that exclusively stimulate the cones at unity. will scale later when calculating the CMFs.
+  var chart = window.rgbPrimChart;
+  var num = chart.data.datasets[0].data.length;
+  var coeff = Array(num).fill(-1);
+  var left = math.diag(Array(num).fill(0));
+  var right = Array(num).fill(0);
+  var leftEq = [coneL, coneM, coneS];
+  var rightEq = [1, 0, 0];
+
+  var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+  var R = numeric.trunc(lp.solution, 1e-12);
+
+  rightEq = [0, 1, 0];
+  lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+  var G = numeric.trunc(lp.solution, 1e-12);
+
+  rightEq = [0, 0, 1];
+  lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+  var B = numeric.trunc(lp.solution, 1e-12);
+
+  chart.data.datasets[0].data = B;
+  chart.data.datasets[1].data = G;
+  chart.data.datasets[2].data = R;
+  chart.options.scales.yAxes.min = Math.min(Math.min(...R), Math.min(...G), Math.min(...B));
+  chart.options.scales.yAxes.max = Math.max(Math.max(...R), Math.max(...G), Math.max(...B));
+  chart.update();
+}
+
 d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   var stride = 5;
 
@@ -1840,7 +1891,13 @@ d3.csv('linss2_10e_5_ext.csv', function(err, rows){
   registerChartReset('#resetPrim', undefined, window.rgbPrimChart, window.rgbPrimCanvas, [0, 1, 2],
       [[Array(wlen.length).fill(0.6), blueColor],
        [Array(wlen.length).fill(0.9), greenColor],
-       [Array(wlen.length).fill(0.8), redColor]]);
+       [Array(wlen.length).fill(0.8), redColor]],
+       function() {
+         var chart = window.rgbPrimChart;
+         chart.options.scales.yAxes.min = 0;
+         chart.options.scales.yAxes.max = 1;
+         chart.update();
+       });
 
   // Step 1
   // will calculate everything but hide them except the RGB locus
