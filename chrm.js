@@ -1788,15 +1788,14 @@ function showColor(R, G, B) {
   var b = B/(R+G+B);
 
   if (plot.data.length == 5) {
-    var points = {
-      x: [R, r],
-      y: [G, g],
-      z: [B, b],
-      text: ['RGB: (' + R.toFixed(2) + ', ' + G.toFixed(2) + ', ' + B.toFixed(2) + ')',
-             'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')',],
+    var pointRGB = {
+      x: [R],
+      y: [G],
+      z: [B],
+      text: ['RGB: (' + R.toFixed(2) + ', ' + G.toFixed(2) + ', ' + B.toFixed(2) + ')'],
       textfont: {
         family: 'Helvetica Neue',
-        size: [20, 20],
+        size: 20,
       },
       textposition: 'bottom',
       mode: 'markers+text',
@@ -1808,19 +1807,41 @@ function showColor(R, G, B) {
         //opacity: 1,
       },
       hoverinfo: 'skip',
-      name: 'Target color',
+      name: 'Target color (RGB)',
     };
 
-    Plotly.addTraces(plot, [points]);
+    var pointChrm = {
+      x: [r],
+      y: [g],
+      z: [b],
+      text: ['rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')'],
+      textfont: {
+        family: 'Helvetica Neue',
+        size: 20,
+      },
+      textposition: 'bottom',
+      mode: 'markers+text',
+      type: 'scatter3d',
+      marker: {
+        color: '#000000',
+        size: 6,
+        symbol: 'circle',
+        //opacity: 1,
+      },
+      hoverinfo: 'skip',
+      name: 'Target color (rgb)',
+    };
+
+    Plotly.addTraces(plot, [pointRGB, pointChrm]);
   } else {
-    var data_update = {'x': [[R, r]],
-                       'y': [[G, g]],
-                       'z': [[B, b]],
-                       'text': [['RGB: (' + R.toFixed(2) + ', ' + G.toFixed(2) + ', ' + B.toFixed(2) + ')',
-                                 'rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')']],
-                       'textfont.size': [40], // TODO: not sure why but restyle needs bigger font sizes
+    var data_update = {'x': [[R], [r]],
+                       'y': [[G], [g]],
+                       'z': [[B], [b]],
+                       'text': [['RGB: (' + R.toFixed(2) + ', ' + G.toFixed(2) + ', ' + B.toFixed(2) + ')'],
+                                ['rgb: (' + r.toFixed(2) + ', ' + g.toFixed(2) + ', ' + b.toFixed(2) + ')']],
+                       'textfont.size': [[40], [40]], // TODO: not sure why but restyle needs bigger font sizes
                       };
-    Plotly.restyle(plot, data_update, [5]);
+    Plotly.restyle(plot, data_update, [5, 6]);
   }
 }
 
