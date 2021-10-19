@@ -358,7 +358,7 @@ function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
     type: 'mesh3d',
     visible: visiblityRGB,
     opacity:0.8,
-    color: purpleColor,
+    color: orangeColor,
     hoverinfo: 'skip',
     name: 'HVS gamut in RGB',
   };
@@ -1798,7 +1798,7 @@ function showColor(R, G, B) {
         family: 'Helvetica Neue',
         size: [20, 20],
       },
-      //textposition: ['top center', 'bottom center'],
+      textposition: 'bottom',
       mode: 'markers+text',
       type: 'scatter3d',
       marker: {
