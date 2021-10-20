@@ -135,24 +135,28 @@ var colorPicker = {
 
       // TODO: support any number of data sequences
       // update 3d plot dynamically; do not update 3d plot if none is present
-      if (canvas.plotId != undefined)  {
-        var seq0 = chart.data.datasets[0].data;
-        var seq1 = chart.data.datasets[1].data;
-        var seq2 = chart.data.datasets[2].data;
-        var title = (chart.canvas.id == 'canvasLMS') ?
-            'Updated spectral locus in LMS cone space' :
-            'Updated spectral locus in RGB space';
-        // TODO: should update chromaticities if the 3d plot shows chromaticities
-        //var plot = document.getElementById(plotId);
-        updateLocus(seq0, seq1, seq2, title, plotId);
+      if (canvas.plot != undefined)  {
+        var allPoints = getVertices();
+
+        var xUpdate = [], yUpdate = [], zUpdate = [];
+        var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
+        for (var i = 0; i < indices.length; i++) {
+          var start = indices[i][0];
+          var end = indices[i][1];
+          xUpdate.push([allPoints[0][start], allPoints[0][end]]);
+          yUpdate.push([allPoints[1][start], allPoints[1][end]]);
+          zUpdate.push([allPoints[2][start], allPoints[2][end]]);
+        }
+        var data_update = {'x': xUpdate, 'y': yUpdate, 'z': zUpdate};
+        Plotly.restyle(canvas.plot, data_update, [...Array(13).keys()].slice(1));
       }
     }
   },
 }
 
-function registerDraw(canvas, plotId, disableTT) {
+function registerDraw(canvas, plot, disableTT) {
   canvas.disableTT = disableTT;
-  canvas.plotId = undefined;
+  canvas.plot = plot;
   canvas.targetTraces = [2];
   canvas.onpointerdown = colorPicker.down_handler;
   canvas.onpointerup = colorPicker.up_handler;
@@ -312,6 +316,36 @@ function plotxyChrm(id, points, x_data) {
   window.xyCanvas.chart = window.xyChart;
 }
 
+function getVertices() {
+  var o = [0, 0, 0];
+  var r = [window.xyChart.data.datasets[2].data[0].x,
+           window.xyChart.data.datasets[2].data[0].y,
+           (1 - window.xyChart.data.datasets[2].data[0].x - window.xyChart.data.datasets[2].data[0].y)];
+  var g = [window.xyChart.data.datasets[2].data[1].x,
+           window.xyChart.data.datasets[2].data[1].y,
+           (1 - window.xyChart.data.datasets[2].data[1].x - window.xyChart.data.datasets[2].data[1].y)];
+  var b = [window.xyChart.data.datasets[2].data[1].x,
+           window.xyChart.data.datasets[2].data[2].y,
+           (1 - window.xyChart.data.datasets[2].data[2].x - window.xyChart.data.datasets[2].data[2].y)];
+  var w = [window.xyChart.data.datasets[2].data[3].x,
+           window.xyChart.data.datasets[2].data[3].y,
+           (1 - window.xyChart.data.datasets[2].data[3].x - window.xyChart.data.datasets[2].data[3].y)];
+  var rg = math.add(r, g);
+  var rb = math.add(r, b);
+  var gb = math.add(g, b);
+  var rgb = math.add(math.add(r, g), b);
+
+  var scale = math.dotDivide(w, rgb);
+  return math.transpose([math.dotMultiply(o, scale),
+                         math.dotMultiply(r, scale),
+                         math.dotMultiply(g, scale),
+                         math.dotMultiply(b, scale),
+                         math.dotMultiply(rg, scale),
+                         math.dotMultiply(rb, scale),
+                         math.dotMultiply(gb, scale),
+                         math.dotMultiply(rgb, scale)]);
+}
+
 function plotRGB(plotId, wlen) {
   var locus = {
     x: CMFX,
@@ -338,29 +372,14 @@ function plotRGB(plotId, wlen) {
     name: 'Spectral locus in XYZ',
   };
 
-  var w = [1, 1, 1];
-  var o = [0, 0, 0];
-  var r = [window.xyChart.data.datasets[2].data[0].x,
-           window.xyChart.data.datasets[2].data[0].y,
-           (1 - window.xyChart.data.datasets[2].data[0].x - window.xyChart.data.datasets[2].data[0].y)];
-  var g = [window.xyChart.data.datasets[2].data[1].x,
-           window.xyChart.data.datasets[2].data[1].y,
-           (1 - window.xyChart.data.datasets[2].data[1].x - window.xyChart.data.datasets[2].data[1].y)];
-  var b = [window.xyChart.data.datasets[2].data[1].x,
-           window.xyChart.data.datasets[2].data[2].y,
-           (1 - window.xyChart.data.datasets[2].data[2].x - window.xyChart.data.datasets[2].data[2].y)];
-  var rg = math.add(r, g);
-  var rb = math.add(r, b);
-  var gb = math.add(g, b);
-  var rgb = math.add(math.add(r, g), b);
-
-  var scale = math.dotDivide(w, rgb);
-  var allPoints = math.transpose([math.dotMultiply(o, scale), math.dotMultiply(r, scale), math.dotMultiply(g, scale), math.dotMultiply(b, scale), math.dotMultiply(rg, scale), math.dotMultiply(rb, scale), math.dotMultiply(gb, scale), math.dotMultiply(rgb, scale)]);
+  var allPoints = getVertices();
 
   var traces = [];
   // O: 0; R: 1; G: 2: B: 3
   // RG: 4; RB: 5; GB: 6; RGB: 7
-  var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]]
+  var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
+  var names = ['O', 'R', 'G', 'B', 'R+G', 'R+B', 'G+B', 'R+G+B'];
+  var hoverSkip = [true, true, true, 'skip', 'skip', 'skip', 'skip', 'skip', 'skip', true, true, true];
   for (var i = 0; i < indices.length; i++) {
     var start = indices[i][0];
     var end = indices[i][1];
@@ -368,6 +387,7 @@ function plotRGB(plotId, wlen) {
       x: [allPoints[0][start], allPoints[0][end]],
       y: [allPoints[1][start], allPoints[1][end]],
       z: [allPoints[2][start], allPoints[2][end]],
+      text: [names[start], names[end]],
       mode: 'lines+markers',
       type: 'scatter3d',
       showlegend: false,
@@ -381,8 +401,8 @@ function plotRGB(plotId, wlen) {
         opacity: 1,
         color: '#000000',
       },
-      //hoverinfo: 'skip',
-      hovertemplate: 'X: %{x}' +
+      hoverinfo: hoverSkip[i],
+      hovertemplate: '%{text}<br>X: %{x}' +
         '<br>Y: %{y}' +
         '<br>Z: %{z}<extra></extra>',
     };
@@ -480,9 +500,9 @@ d3.csv('ciexyz31.csv', function(err, rows){
 
   var locus = math.transpose([cX, cY, cZ]);
   plotxyChrm('canvas2d', locus, x_data);
-  plotRGB('spaceDiv', wlen);
+  var plot = plotRGB('spaceDiv', wlen);
 
-  registerDraw(window.xyCanvas, undefined, false);
+  registerDraw(window.xyCanvas, plot, false);
 });
 
 
