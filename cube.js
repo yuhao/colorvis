@@ -527,6 +527,76 @@ function plotHVSGamut(plot) {
   Plotly.addTraces(plot, [RGBTrace]);
 }
 
+function updateLocusPoints(allPoints) {
+  var xUpdate = [], yUpdate = [], zUpdate = [];
+  var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
+  for (var i = 0; i < indices.length; i++) {
+    var start = indices[i][0];
+    var end = indices[i][1];
+    xUpdate.push([allPoints[0][start], allPoints[0][end]]);
+    yUpdate.push([allPoints[1][start], allPoints[1][end]]);
+    zUpdate.push([allPoints[2][start], allPoints[2][end]]);
+  }
+
+  return data_update = {'x': xUpdate, 'y': yUpdate, 'z': zUpdate};
+}
+
+function genPara(plot) {
+  var allPoints = getVertices();
+
+  var data_update = updateLocusPoints(allPoints);
+  Plotly.restyle(plot, data_update, [...Array(13).keys()].slice(1));
+
+  var locus = math.transpose([plot.data[0].x, plot.data[0].y, plot.data[0].z]);
+  var transLocus = math.transpose(math.multiply(locus, transMat));
+
+  data_update = {'x': [transLocus[0]], 'y': [transLocus[1]], 'z': [transLocus[2]]};
+  var layout_update = {
+    'scene.aspectmode': 'data',
+    'scene.xaxis.title.text': 'X',
+    'scene.yaxis.title.text': 'Y',
+    'scene.zaxis.title.text': 'Z',
+  };
+  Plotly.update(plot, data_update, layout_update, [0]);
+}
+
+function genCube(plot) {
+  var allPoints = getVertices();
+  allPoints = math.transpose(math.multiply(math.transpose(allPoints), transMat));
+
+  var data_update = updateLocusPoints(allPoints);
+  Plotly.restyle(plot, data_update, [...Array(13).keys()].slice(1));
+
+  var locus = math.transpose([plot.data[0].x, plot.data[0].y, plot.data[0].z]);
+  var transLocus = math.transpose(math.multiply(locus, transMat));
+
+  data_update = {'x': [transLocus[0]], 'y': [transLocus[1]], 'z': [transLocus[2]]};
+  var layout_update = {
+    'scene.aspectmode': 'data',
+    'scene.xaxis.title.text': 'R',
+    'scene.yaxis.title.text': 'G',
+    'scene.zaxis.title.text': 'B',
+  };
+  Plotly.update(plot, data_update, layout_update, [0]);
+}
+
+var transMat;
+function registerGenCube(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.spacePlot;
+    if($(id).is(":checked")) {
+      var allPoints = getVertices();
+      var prims = math.transpose([allPoints[0].slice(1, 4), allPoints[1].slice(1, 4), allPoints[2].slice(1, 4)]);
+      transMat = math.inv(prims);
+
+      genCube(plot);
+    } else {
+      transMat = math.inv(transMat);
+      genPara(plot);
+    }
+  });
+}
+
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
 d3.csv('ciexyz31.csv', function(err, rows){
   var stride = 5;
@@ -553,6 +623,7 @@ d3.csv('ciexyz31.csv', function(err, rows){
 
   registerPickColor('#pickColor');
   registerResetColor('#resetColor');
+  registerGenCube('#genCube');
 });
 
 

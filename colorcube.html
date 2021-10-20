@@ -78,7 +78,7 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Step 1: Picking Primaries</h3>
+        <h3>Step 1: Picking Primaries and Reference White</h3>
         <div class="col-sm-5">
           <canvas id="canvas2d"></canvas>
           <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
@@ -89,8 +89,14 @@
             <button id="resetColor" class="btn btn-primary btn-sm">Reset</button>
           </div>
         </div>
-        <div class="col-sm-7 d-flex align-items-center">
+        <div class="col-sm-7">
           <div id="spaceDiv"></div>
+          <div class="btn-toolbar d-flex justify-content-center mt-4" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="form-check form-switch mx-4 mt-1">
+              <input class="form-check-input" type="checkbox" role="switch" id="genCube">
+              <label class="form-check-label" for="genCube"><b>Generate Cube</b></label>
+            </div>
+          </div>
         </div>
       </div>
     </div>
