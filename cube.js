@@ -330,20 +330,28 @@ function getVertices() {
   var w = [window.xyChart.data.datasets[2].data[3].x,
            window.xyChart.data.datasets[2].data[3].y,
            (1 - window.xyChart.data.datasets[2].data[3].x - window.xyChart.data.datasets[2].data[3].y)];
+  var scaleW = 1/w[1]; // scale so that Y of w is 1.
+  w = math.dotMultiply(scaleW, w);
+
+  // scale R, G, B so that the chromaticity of R+G+B is the same as W
+  /*
+     Rx, Gx, Bx      alpha     Wx 
+    [Ry, Gy, By] * [ beta ] = [Wy]
+     Rz, Gz, Bz      gamma     Wz 
+  */
+  var invPrims = math.inv(math.transpose([r, g, b]));
+  var scale = math.multiply(invPrims, math.transpose(w));
+
+  r = math.dotMultiply(scale[0], r);
+  g = math.dotMultiply(scale[1], g);
+  b = math.dotMultiply(scale[2], b);
   var rg = math.add(r, g);
   var rb = math.add(r, b);
   var gb = math.add(g, b);
+
   var rgb = math.add(math.add(r, g), b);
 
-  var scale = math.dotDivide(w, rgb);
-  return math.transpose([math.dotMultiply(o, scale),
-                         math.dotMultiply(r, scale),
-                         math.dotMultiply(g, scale),
-                         math.dotMultiply(b, scale),
-                         math.dotMultiply(rg, scale),
-                         math.dotMultiply(rb, scale),
-                         math.dotMultiply(gb, scale),
-                         math.dotMultiply(rgb, scale)]);
+  return math.transpose([o,r,g,b,rg,rb,gb,w]);
 }
 
 function plotRGB(plotId, wlen) {
@@ -433,7 +441,7 @@ function plotRGB(plotId, wlen) {
         }
       },
       // https://plotly.com/javascript/3d-axes/
-      aspectmode: 'cube',
+      //aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1],
@@ -441,7 +449,7 @@ function plotRGB(plotId, wlen) {
         zerolinecolor: '#000000',
         zerolinewidth: 5,
         //constrain: 'domain',
-        //dtick: 0.2,
+        //dtick: 0.1,
         showspikes: false,
         title: {
           text: 'X'
@@ -453,8 +461,8 @@ function plotRGB(plotId, wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        //scaleanchor: 'x',
-        //dtick: 0.2,
+        scaleanchor: 'x',
+        //dtick: 0.1,
         showspikes: false,
         title: {
           text: 'Y'
@@ -466,6 +474,8 @@ function plotRGB(plotId, wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
+        scaleanchor: 'y',
+        //dtick: 0.1,
         showspikes: false,
         title: {
           text: 'Z'
@@ -493,7 +503,7 @@ function registerPickColor(id) {
 
 function registerResetColor(id) {
   registerChartReset(id, undefined, window.xyChart, window.xyCanvas, [2],
-      [[[{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 0.3333, y: 0.3333}], [redColor, greenColor, blueColor, '#FFFFFF'], [redColor, greenColor, blueColor, '#000000']]],
+      [[[{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 1/3, y: 1/3}], [redColor, greenColor, blueColor, '#FFFFFF'], [redColor, greenColor, blueColor, '#000000']]],
       function() {
         updateSpacePlot(window.xyCanvas.plot);
       });
