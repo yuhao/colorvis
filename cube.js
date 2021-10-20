@@ -58,68 +58,102 @@ var colorPicker = {
     var canvas = event.currentTarget;
     var chart = canvas.chart;
 
-    // convert mouse position to chart x/y axis value 
-    const helpers = Chart.helpers;
-    var position = helpers.getRelativePosition(event, chart);
- 
-    var chartArea = chart.chartArea;
-    var yAxis = chart.scales.yAxes; // TODO: shouldn't it be chart.options.scales?
-    var yValue = colorPicker.map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
-    var xAxis = chart.scales.xAxes;
-    var xValue = colorPicker.map(position.x, chartArea.left, chartArea.right, xAxis.min, xAxis.max);
-
-    var trace = canvas.chart.data.datasets[canvas.primId];
-    if (canvas.count == 0) {
-      trace.data.push({x: xValue, y: yValue});
-      trace.backgroundColor.push(redColor);
-      trace.borderColor.push(redColor);
-    } else if (canvas.count == 1) {
-      trace.data.push({x: xValue, y: yValue});
-      trace.backgroundColor.push(greenColor);
-      trace.borderColor.push(greenColor);
-    } else if (canvas.count == 2) {
-      trace.data.push({x: xValue, y: yValue});
-      trace.backgroundColor.push(blueColor);
-      trace.borderColor.push(blueColor);
-    } else if (canvas.count == 3) {
-      trace.data.push({x: xValue, y: yValue});
-      trace.backgroundColor.push('#FFFFFF');
-      trace.borderColor.push('#000000');
-    }
-    canvas.count++;
+    // get the intersecting data point
+    const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: true});
+    if (points.length > 0) {
+      // only drag draggable curves
+      if ((canvas.targetTraces.length != 0) && (canvas.targetTraces.indexOf(points[0].datasetIndex) == -1)) {
+        return;
+      }
+      // grab the point, start dragging
+      canvas.activePoint = points[0];
+      canvas.selectedTrace = canvas.activePoint.datasetIndex;
+      canvas.onpointermove = colorPicker.move_handler;
+    };
 
     if (canvas.disableTT == true) {
       chart.options.plugins.tooltip.enabled = false;
+      chart.update();
     }
-    chart.update();
   },
 
   up_handler: function(event) {
     var canvas = event.currentTarget;
     var chart = canvas.chart;
 
-    // release grabbed point
+    // release grabbed point, stop dragging
+    if (canvas.activePoint) {
+      canvas.activePoint = null;
+      canvas.onpointermove = null;
+    }
+
     if (canvas.disableTT == true) {
       chart.options.plugins.tooltip.enabled = true;
       chart.update();
     }
   },
+
+  move_handler: function(event)
+  {
+    var canvas = event.currentTarget;
+    var chart = canvas.chart;
+
+    // if an intersecting data point is grabbed
+    if (canvas.activePoint) {
+      // then get the points on the selectedTrace
+      const points = chart.getElementsAtEventForMode(event, 'nearest', {intersect: false});
+      for (var i = 0; i < points.length; i++) {
+        if (points[i].datasetIndex == canvas.selectedTrace) {
+          var point = points[i];
+          var data = chart.data;
+          
+          var datasetIndex = point.datasetIndex;
+  
+          // convert mouse position to chart x/y axis value 
+          const helpers = Chart.helpers;
+          var position = helpers.getRelativePosition(event, chart);
+ 
+          var chartArea = chart.chartArea;
+          var yAxis = chart.scales.yAxes; // TODO: shouldn't it be chart.options.scales?
+          var yValue = colorPicker.map(position.y, chartArea.bottom, chartArea.top, yAxis.min, yAxis.max);
+          var xAxis = chart.scales.xAxes;
+          var xValue = colorPicker.map(position.x, chartArea.left, chartArea.right, xAxis.min, xAxis.max);
+
+          // update y value of active data point; do not go beyond [0, 1]
+          //var minVal = 0, maxVal = 1;
+          //if (bounds != undefined) {
+          //  minVal = bounds[0];
+          //  maxVal = bounds[1];
+          //}
+          data.datasets[datasetIndex].data[point.index].x = xValue;
+          data.datasets[datasetIndex].data[point.index].y = yValue;
+          //data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(0, yValue), 1);
+          //data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(minVal, yValue), maxVal);
+          chart.update();
+        }
+      }
+
+      // TODO: support any number of data sequences
+      // update 3d plot dynamically; do not update 3d plot if none is present
+      if (canvas.plotId != undefined)  {
+        var seq0 = chart.data.datasets[0].data;
+        var seq1 = chart.data.datasets[1].data;
+        var seq2 = chart.data.datasets[2].data;
+        var title = (chart.canvas.id == 'canvasLMS') ?
+            'Updated spectral locus in LMS cone space' :
+            'Updated spectral locus in RGB space';
+        // TODO: should update chromaticities if the 3d plot shows chromaticities
+        //var plot = document.getElementById(plotId);
+        updateLocus(seq0, seq1, seq2, title, plotId);
+      }
+    }
+  },
 }
 
-function registerClick(canvas, plotId, disableTT) {
+function registerDraw(canvas, plotId, disableTT) {
   canvas.disableTT = disableTT;
-  canvas.plotId = plotId;
-  canvas.count = 0;
-  var trace = {
-    type: 'scatter',
-    labels: ['R', 'G', 'B', 'W'],
-    data: [],
-    radius: 6,
-    backgroundColor: [],
-    borderColor: [],
-  };
-  canvas.chart.data.datasets.push(trace);
-  canvas.primId = canvas.chart.data.datasets.length - 1;
+  canvas.plotId = undefined;
+  canvas.targetTraces = [2];
   canvas.onpointerdown = colorPicker.down_handler;
   canvas.onpointerup = colorPicker.up_handler;
 }
@@ -166,22 +200,32 @@ function plotxyChrm(id, points, x_data) {
   var ctx = window.xyCanvas.getContext("2d");
 
   window.xyChart = new Chart(ctx, {
+    type: 'scatter',
     data: {
       datasets: [
         {
-          type: 'scatter',
           label: 'Spectral Color',
           labels: x_data,
           data: arr2Obj(points),
           showLine: true,
+          // could apply to individual trace if needed
+          //tooltip: {
+          //}
         },
         {
-          type: 'scatter',
           label: 'XYZ Primaries',
-          labels: ['Z', 'Y', 'X', 'Z'],
+          labels: ['z', 'y', 'x', 'z'],
           data: [{x: 0, y: 0}, {x: 0, y: 1}, {x: 1, y: 0}, {x: 0, y: 0}],
           showLine: true,
           pointRadius: 0,
+        },
+        {
+          label: 'sRGB Primaries',
+          labels: ['R', 'G', 'B', 'W'],
+          data: [{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 0.3333, y: 0.3333}],
+          pointBackgroundColor: [redColor, greenColor, blueColor, '#FFFFFF'],
+          borderColor: [redColor, greenColor, blueColor, '#000000'],
+          pointRadius: 6,
         },
       ]
     },
@@ -213,15 +257,23 @@ function plotxyChrm(id, points, x_data) {
           min: 0,
           max: 1,
           position: 'left',
+          title: {
+            display: true,
+            text: 'y',
+          },
         },
         xAxes:{
           min: 0,
           max: 1,
+          title: {
+            display: true,
+            text: 'x',
+          },
         },
       },
       plugins: {
         legend: {
-          display: true,
+          display: false,
         },
         // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
         zoom: {
@@ -247,16 +299,10 @@ function plotxyChrm(id, points, x_data) {
         tooltip: {
           callbacks: {
             label: function(context) {
-              if (context.datasetIndex == 0) {
-                var data = context.dataset.labels[context.dataIndex];
-                return data + ': (' + context.parsed.x.toFixed(3) + ', ' + context.parsed.y.toFixed(3) + ')';
-              } else if (context.datasetIndex == 1) {
-                var data = context.dataset.labels[context.dataIndex];
-                return data + ': (' + context.parsed.x.toFixed(3) + ', ' + context.parsed.y.toFixed(3) + ')';
-              } else if (context.datasetIndex == 2) {
-                var data = context.dataset.labels[context.dataIndex];
-                return data + ': (' + context.parsed.x.toFixed(3) + ', ' + context.parsed.y.toFixed(3) + ')';
-              }
+              if (context.datasetIndex == 1 && context.dataIndex == 3) return;
+
+              var data = context.dataset.labels[context.dataIndex];
+              return data + ': (' + context.parsed.x.toFixed(3) + ', ' + context.parsed.y.toFixed(3) + ')';
             }
           },
         }
@@ -264,6 +310,154 @@ function plotxyChrm(id, points, x_data) {
     }
   });
   window.xyCanvas.chart = window.xyChart;
+}
+
+function plotRGB(plotId, wlen) {
+  var locus = {
+    x: CMFX,
+    y: CMFY,
+    z: CMFZ,
+    text: wlen,
+    type: 'scatter3d',
+    mode: 'lines+markers',
+    marker: {
+      size: 4,
+      opacity: 0.8,
+      color: Array(wlen.length).fill(greyColor),
+    },
+    line: {
+      color: greyColor,
+      width: 2,
+      shape: 'spline',
+    },
+    //hoverinfo: 'skip',
+    hovertemplate: 'X: %{x}' +
+      '<br>Y: %{y}' +
+      '<br>Z: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>',
+    name: 'Spectral locus in XYZ',
+  };
+
+  var w = [1, 1, 1];
+  var o = [0, 0, 0];
+  var r = [window.xyChart.data.datasets[2].data[0].x,
+           window.xyChart.data.datasets[2].data[0].y,
+           (1 - window.xyChart.data.datasets[2].data[0].x - window.xyChart.data.datasets[2].data[0].y)];
+  var g = [window.xyChart.data.datasets[2].data[1].x,
+           window.xyChart.data.datasets[2].data[1].y,
+           (1 - window.xyChart.data.datasets[2].data[1].x - window.xyChart.data.datasets[2].data[1].y)];
+  var b = [window.xyChart.data.datasets[2].data[1].x,
+           window.xyChart.data.datasets[2].data[2].y,
+           (1 - window.xyChart.data.datasets[2].data[2].x - window.xyChart.data.datasets[2].data[2].y)];
+  var rg = math.add(r, g);
+  var rb = math.add(r, b);
+  var gb = math.add(g, b);
+  var rgb = math.add(math.add(r, g), b);
+
+  var scale = math.dotDivide(w, rgb);
+  var allPoints = math.transpose([math.dotMultiply(o, scale), math.dotMultiply(r, scale), math.dotMultiply(g, scale), math.dotMultiply(b, scale), math.dotMultiply(rg, scale), math.dotMultiply(rb, scale), math.dotMultiply(gb, scale), math.dotMultiply(rgb, scale)]);
+
+  var traces = [];
+  // O: 0; R: 1; G: 2: B: 3
+  // RG: 4; RB: 5; GB: 6; RGB: 7
+  var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]]
+  for (var i = 0; i < indices.length; i++) {
+    var start = indices[i][0];
+    var end = indices[i][1];
+    var line = {
+      x: [allPoints[0][start], allPoints[0][end]],
+      y: [allPoints[1][start], allPoints[1][end]],
+      z: [allPoints[2][start], allPoints[2][end]],
+      mode: 'lines+markers',
+      type: 'scatter3d',
+      showlegend: false,
+      line: {
+        width: 2,
+        color: '#000000',
+      },
+      // TODO: customize the tooltip
+      marker: {
+        size: 6,
+        opacity: 1,
+        color: '#000000',
+      },
+      //hoverinfo: 'skip',
+      hovertemplate: 'X: %{x}' +
+        '<br>Y: %{y}' +
+        '<br>Z: %{z}<extra></extra>',
+    };
+    traces.push(line);
+  }
+
+  var data = [locus].concat(traces);
+
+  var layout = {
+    margin: {
+      l: 0,
+      r: 0,
+      b: 0,
+      t: 0
+    },
+    showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 0.9,
+    },
+    //title: 'Spectral locus in RGB color space',
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    scene: {
+      camera: {
+        projection: {
+          type: 'orthographic'
+        }
+      },
+      // https://plotly.com/javascript/3d-axes/
+      aspectmode: 'cube',
+      xaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        //constrain: 'domain',
+        //dtick: 0.2,
+        showspikes: false,
+        title: {
+          text: 'X'
+        }
+      },
+      yaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        //scaleanchor: 'x',
+        //dtick: 0.2,
+        showspikes: false,
+        title: {
+          text: 'Y'
+        }
+      },
+      zaxis: {
+        autorange: true,
+        //range: [0, 1],
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        showspikes: false,
+        title: {
+          text: 'Z'
+        }
+      },
+    }
+  };
+ 
+  var plot = document.getElementById(plotId);
+  Plotly.newPlot(plot, data, layout);
+
+  return plot;
 }
 
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
@@ -286,8 +480,9 @@ d3.csv('ciexyz31.csv', function(err, rows){
 
   var locus = math.transpose([cX, cY, cZ]);
   plotxyChrm('canvas2d', locus, x_data);
+  plotRGB('spaceDiv', wlen);
 
-  registerClick(window.xyCanvas, undefined, true);
+  registerDraw(window.xyCanvas, undefined, false);
 });
 
 
