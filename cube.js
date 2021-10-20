@@ -4,6 +4,8 @@ var blueColor = '#011993';
 var greyColor = '#888888';
 var purpleColor = '#5c32a8';
 var magentaColor = '#fc0377';
+var cyanColor = '#42f5e6';
+var yellowColor = '#f5d442';
 var brightYellowColor = '#fcd303'; 
 var orangeColor = '#DC7B2E';
 var blueGreenColor = '#63BFAB'; 
@@ -13,17 +15,6 @@ var oBlueColor = 'rgba(1, 25, 147, 0.5)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-
-// https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
-function updateLocus(seq1, seq2, seq3, newTitle, plot) {
-  var layout_update = {
-    //title: newTitle,
-  };
-  var data_update = {'x': [seq1], 'y': [seq2], 'z': [seq3]};
-
-  //var plot = document.getElementById(id);
-  Plotly.update(plot, data_update, layout_update, [0]);
-}
 
 function unpack(rows, key, toNum) {
   return rows.map(function(row) {
@@ -387,7 +378,10 @@ function plotRGB(plotId, wlen) {
   // RG: 4; RB: 5; GB: 6; RGB: 7
   var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
   var names = ['O', 'R', 'G', 'B', 'R+G', 'R+B', 'G+B', 'R+G+B'];
-  var hoverSkip = [true, true, true, 'skip', 'skip', 'skip', 'skip', 'skip', 'skip', true, true, true];
+  var hoverInfo = [true, true, true, 'skip', 'skip', 'skip', 'skip', 'skip', 'skip', true, true, true];
+  var colors = ['#000000', redColor, greenColor, blueColor, yellowColor, cyanColor, magentaColor, '#000000'];
+  var modes = Array(3).fill('lines+markers').concat(Array(6).fill('lines')).concat(Array(3).fill('lines+markers'));
+
   for (var i = 0; i < indices.length; i++) {
     var start = indices[i][0];
     var end = indices[i][1];
@@ -396,24 +390,26 @@ function plotRGB(plotId, wlen) {
       y: [allPoints[1][start], allPoints[1][end]],
       z: [allPoints[2][start], allPoints[2][end]],
       text: [names[start], names[end]],
-      mode: 'lines+markers',
+      mode: modes[i],
       type: 'scatter3d',
       showlegend: false,
       line: {
         width: 2,
         color: '#000000',
       },
-      // TODO: customize the tooltip
       marker: {
         size: 6,
         opacity: 1,
-        color: '#000000',
+        color: [colors[start], colors[end]],
       },
-      hoverinfo: hoverSkip[i],
-      hovertemplate: '%{text}<br>X: %{x}' +
-        '<br>Y: %{y}' +
-        '<br>Z: %{z}<extra></extra>',
+      hoverinfo: hoverInfo[i],
     };
+    // hovertemplate overwrites hoverinfo, so add it later
+    if (hoverInfo[i] == true) {
+      line.hovertemplate = '%{text}<br>X: %{x}' +
+        '<br>Y: %{y}' +
+        '<br>Z: %{z}<extra></extra>';
+    }
     traces.push(line);
   }
 
@@ -441,7 +437,7 @@ function plotRGB(plotId, wlen) {
         }
       },
       // https://plotly.com/javascript/3d-axes/
-      //aspectmode: 'cube',
+      aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1],
