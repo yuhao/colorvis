@@ -424,9 +424,9 @@ function plotRGB(plotId, wlen) {
     },
     showlegend: true,
     legend: {
-      x: 1,
-      xanchor: 'right',
-      y: 0.9,
+      x: 0.1,
+      xanchor: 'left',
+      y: 1,
     },
     //title: 'Spectral locus in RGB color space',
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
@@ -505,6 +505,28 @@ function registerResetColor(id) {
       });
 }
 
+function plotHVSGamut(plot) {
+  var len = plot.data[0].x.length;
+
+  var RGBTrace = {
+    x: [0].concat(plot.data[0].x),
+    y: [0].concat(plot.data[0].y),
+    z: [0].concat(plot.data[0].z),
+    i: Array(len).fill(0),
+    j: [...Array(len+1).keys()].slice(1),
+    k: [...Array(len+1).keys()].slice(2).concat([1]),
+    type: 'mesh3d',
+    showlegend: true,
+    visible: 'legendonly',
+    opacity:0.8,
+    color: orangeColor,
+    hoverinfo: 'skip',
+    name: 'HVS gamut in XYZ',
+  };
+
+  Plotly.addTraces(plot, [RGBTrace]);
+}
+
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
 d3.csv('ciexyz31.csv', function(err, rows){
   var stride = 5;
@@ -526,6 +548,8 @@ d3.csv('ciexyz31.csv', function(err, rows){
   var locus = math.transpose([cX, cY, cZ]);
   plotxyChrm('canvas2d', locus, x_data);
   window.spacePlot = plotRGB('spaceDiv', wlen);
+
+  plotHVSGamut(window.spacePlot);
 
   registerPickColor('#pickColor');
   registerResetColor('#resetColor');
