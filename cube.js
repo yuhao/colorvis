@@ -119,16 +119,8 @@ var colorPicker = {
           var xAxis = chart.scales.xAxes;
           var xValue = colorPicker.map(position.x, chartArea.left, chartArea.right, xAxis.min, xAxis.max);
 
-          // update y value of active data point; do not go beyond [0, 1]
-          //var minVal = 0, maxVal = 1;
-          //if (bounds != undefined) {
-          //  minVal = bounds[0];
-          //  maxVal = bounds[1];
-          //}
           data.datasets[datasetIndex].data[point.index].x = xValue;
           data.datasets[datasetIndex].data[point.index].y = yValue;
-          //data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(0, yValue), 1);
-          //data.datasets[datasetIndex].data[point.index] = Math.min(Math.max(minVal, yValue), maxVal);
           chart.update();
         }
       }
@@ -136,30 +128,39 @@ var colorPicker = {
       // TODO: support any number of data sequences
       // update 3d plot dynamically; do not update 3d plot if none is present
       if (canvas.plot != undefined)  {
-        var allPoints = getVertices();
-
-        var xUpdate = [], yUpdate = [], zUpdate = [];
-        var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
-        for (var i = 0; i < indices.length; i++) {
-          var start = indices[i][0];
-          var end = indices[i][1];
-          xUpdate.push([allPoints[0][start], allPoints[0][end]]);
-          yUpdate.push([allPoints[1][start], allPoints[1][end]]);
-          zUpdate.push([allPoints[2][start], allPoints[2][end]]);
-        }
-        var data_update = {'x': xUpdate, 'y': yUpdate, 'z': zUpdate};
-        Plotly.restyle(canvas.plot, data_update, [...Array(13).keys()].slice(1));
+        updateSpacePlot(canvas.plot);
       }
     }
   },
 }
 
-function registerDraw(canvas, plot, disableTT) {
-  canvas.disableTT = disableTT;
-  canvas.plot = plot;
-  canvas.targetTraces = [2];
-  canvas.onpointerdown = colorPicker.down_handler;
-  canvas.onpointerup = colorPicker.up_handler;
+function updateSpacePlot(plot) {
+  var allPoints = getVertices();
+
+  var xUpdate = [], yUpdate = [], zUpdate = [];
+  var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
+  for (var i = 0; i < indices.length; i++) {
+    var start = indices[i][0];
+    var end = indices[i][1];
+    xUpdate.push([allPoints[0][start], allPoints[0][end]]);
+    yUpdate.push([allPoints[1][start], allPoints[1][end]]);
+    zUpdate.push([allPoints[2][start], allPoints[2][end]]);
+  }
+  var data_update = {'x': xUpdate, 'y': yUpdate, 'z': zUpdate};
+  Plotly.restyle(plot, data_update, [...Array(13).keys()].slice(1));
+}
+
+function toggleDraw(toggle, canvas, plot, disableTT) {
+  if (toggle) {
+    canvas.disableTT = disableTT;
+    canvas.plot = plot;
+    canvas.targetTraces = [2];
+    canvas.onpointerdown = colorPicker.down_handler;
+    canvas.onpointerup = colorPicker.up_handler;
+  } else {
+    canvas.onpointerdown = null;
+    canvas.onpointerup = null;
+  }
 }
 
 function registerChartReset(buttonId, plotId, chart, canvas, traces, resetData, fn) {
@@ -171,14 +172,13 @@ function registerChartReset(buttonId, plotId, chart, canvas, traces, resetData, 
       var traceId = traces[i];
       var newData = resetData[i];
       var length = newData[0].length;
-      chart.data.datasets[traceId].data = Array.from(newData[0]);
+      // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+      chart.data.datasets[traceId].data = newData[0].map(a => ({...a}));
       var traceColor = newData[1];
-      chart.data.datasets[traceId].borderColor = Array(length).fill(traceColor);
-      chart.data.datasets[traceId].pointBackgroundColor = Array(length).fill(traceColor);
-      chart.data.datasets[traceId].pointRadius = Array(length).fill(3);
+      chart.data.datasets[traceId].pointBackgroundColor = newData[1];
+      chart.data.datasets[traceId].borderColor = newData[2];
     }
 
-    //registerDrag(canvas, chart, plotId, false, []);
     chart.update();
 
     if (fn != undefined) fn();
@@ -480,6 +480,25 @@ function plotRGB(plotId, wlen) {
   return plot;
 }
 
+function registerPickColor(id) {
+  $(id).on('change', function(evt) {
+    var plot = window.spacePlot;
+    if($(id).is(":checked")) {
+      toggleDraw(true, window.xyCanvas, plot, false);
+    } else {
+      toggleDraw(false, window.xyCanvas);
+    }
+  });
+}
+
+function registerResetColor(id) {
+  registerChartReset(id, undefined, window.xyChart, window.xyCanvas, [2],
+      [[[{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 0.3333, y: 0.3333}], [redColor, greenColor, blueColor, '#FFFFFF'], [redColor, greenColor, blueColor, '#000000']]],
+      function() {
+        updateSpacePlot(window.xyCanvas.plot);
+      });
+}
+
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
 d3.csv('ciexyz31.csv', function(err, rows){
   var stride = 5;
@@ -500,9 +519,10 @@ d3.csv('ciexyz31.csv', function(err, rows){
 
   var locus = math.transpose([cX, cY, cZ]);
   plotxyChrm('canvas2d', locus, x_data);
-  var plot = plotRGB('spaceDiv', wlen);
+  window.spacePlot = plotRGB('spaceDiv', wlen);
 
-  registerDraw(window.xyCanvas, plot, false);
+  registerPickColor('#pickColor');
+  registerResetColor('#resetColor');
 });
 
 

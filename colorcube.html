@@ -81,6 +81,13 @@
         <h3>Step 1: Picking Primaries</h3>
         <div class="col-sm-5">
           <canvas id="canvas2d"></canvas>
+          <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="form-check form-switch mx-4 mt-1">
+              <input class="form-check-input" type="checkbox" role="switch" id="pickColor">
+              <label class="form-check-label" for="pickColor"><b>Pick Colors</b> (3 primaries and the reference white)</label>
+            </div>
+            <button id="resetColor" class="btn btn-primary btn-sm">Reset</button>
+          </div>
         </div>
         <div class="col-sm-7">
           <div id="spaceDiv"></div>
