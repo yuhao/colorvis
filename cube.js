@@ -214,10 +214,12 @@ function plotxyChrm(id, points, x_data) {
           showLine: true,
           pointRadius: 0,
         },
+        // TODO: add the triangle
         {
           label: 'sRGB Primaries',
           labels: ['R', 'G', 'B', 'W'],
-          data: [{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 0.3333, y: 0.3333}],
+          data: [{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 0.3127, y: 0.3290}],
+          //showLine: true,
           pointBackgroundColor: [redColor, greenColor, blueColor, '#FFFFFF'],
           borderColor: [redColor, greenColor, blueColor, '#000000'],
           pointRadius: 6,
@@ -315,13 +317,15 @@ function getVertices() {
   var g = [window.xyChart.data.datasets[2].data[1].x,
            window.xyChart.data.datasets[2].data[1].y,
            (1 - window.xyChart.data.datasets[2].data[1].x - window.xyChart.data.datasets[2].data[1].y)];
-  var b = [window.xyChart.data.datasets[2].data[1].x,
+  var b = [window.xyChart.data.datasets[2].data[2].x,
            window.xyChart.data.datasets[2].data[2].y,
            (1 - window.xyChart.data.datasets[2].data[2].x - window.xyChart.data.datasets[2].data[2].y)];
   var w = [window.xyChart.data.datasets[2].data[3].x,
            window.xyChart.data.datasets[2].data[3].y,
            (1 - window.xyChart.data.datasets[2].data[3].x - window.xyChart.data.datasets[2].data[3].y)];
-  var scaleW = 1/w[1]; // scale so that Y of w is 1.
+
+  // scale so that Y of w is 1.
+  var scaleW = 1/w[1];
   w = math.dotMultiply(scaleW, w);
 
   // scale R, G, B so that the chromaticity of R+G+B is the same as W
@@ -377,10 +381,10 @@ function plotRGB(plotId, wlen) {
   // O: 0; R: 1; G: 2: B: 3
   // RG: 4; RB: 5; GB: 6; RGB: 7
   var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
-  var names = ['O', 'R', 'G', 'B', 'R+G', 'R+B', 'G+B', 'R+G+B'];
+  var names = ['O', 'R', 'G', 'B', 'R+G', 'R+B', 'G+B', 'R+G+B (W)'];
   var hoverInfo = [true, true, true, 'skip', 'skip', 'skip', 'skip', 'skip', 'skip', true, true, true];
   var colors = ['#000000', redColor, greenColor, blueColor, yellowColor, cyanColor, magentaColor, '#000000'];
-  var modes = Array(3).fill('lines+markers').concat(Array(6).fill('lines')).concat(Array(3).fill('lines+markers'));
+  var modes = Array(3).fill('lines+markers+text').concat(Array(6).fill('lines')).concat(Array(3).fill('lines+markers+text'));
 
   for (var i = 0; i < indices.length; i++) {
     var start = indices[i][0];
@@ -440,7 +444,7 @@ function plotRGB(plotId, wlen) {
       aspectmode: 'cube',
       xaxis: {
         autorange: true,
-        //range: [0, 1],
+        //range: [0, 1.5],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
@@ -453,7 +457,7 @@ function plotRGB(plotId, wlen) {
       },
       yaxis: {
         autorange: true,
-        //range: [0, 1],
+        //range: [0, 1.5],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
@@ -466,7 +470,7 @@ function plotRGB(plotId, wlen) {
       },
       zaxis: {
         autorange: true,
-        //range: [0, 1],
+        //range: [0, 2],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
@@ -499,7 +503,7 @@ function registerPickColor(id) {
 
 function registerResetColor(id) {
   registerChartReset(id, undefined, window.xyChart, window.xyCanvas, [2],
-      [[[{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 1/3, y: 1/3}], [redColor, greenColor, blueColor, '#FFFFFF'], [redColor, greenColor, blueColor, '#000000']]],
+      [[[{x: 0.6400, y: 0.3300}, {x: 0.3000, y: 0.6000}, {x: 0.1500, y: 0.0600}, {x: 0.3127, y: 0.3290}], [redColor, greenColor, blueColor, '#FFFFFF'], [redColor, greenColor, blueColor, '#000000']]],
       function() {
         updateSpacePlot(window.xyCanvas.plot);
       });
@@ -521,7 +525,7 @@ function plotHVSGamut(plot) {
     opacity:0.8,
     color: orangeColor,
     hoverinfo: 'skip',
-    name: 'HVS gamut in XYZ',
+    name: 'HVS gamut boundary',
   };
 
   Plotly.addTraces(plot, [RGBTrace]);

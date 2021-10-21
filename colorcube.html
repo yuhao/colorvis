@@ -79,32 +79,85 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Step 1: Picking Primaries and Reference White</h3>
-        <div class="row mt-4">
-          <p>A color space allows us to precisely describe <i>any</i> color using a linear combination of three primary colors. Some colors in a color space require negative amount of the primaries. While that's mathematically and  physically  rigorous, those colors can not be actually produced by an lighting or display device which  uses the chosen primaries. In practice, only colors that are expressed as non-negative combination of the primaries can actually be produced from the chosen primaries. All the colors that can be physically produced in a color space is called the  color gamut of the color space. How does the color gamut of a color space look like? It's a parallelepiped. The axes of a parallelepiped forms a vector space, and any point/color can be  described in that vector space. But a far more intuitive way to specify a color is in a vector space where the basis vectors are orthogonal. That's nothing more than performing a linear transformation that transforms  a parallelepiped to a cube.</p>
-        </div>
-        <div class="col-sm-5">
-          <canvas id="canvas2d"></canvas>
-          <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
-            <div class="form-check form-switch mx-4 mt-1">
-              <input class="form-check-input" type="checkbox" role="switch" id="pickColor">
-              <label class="form-check-label" for="pickColor"><b>Pick Colors</b> (3 primaries and the reference white)</label>
+        <h3>Part 1: The Geometry of a Color Space's Gamut</h3>
+        <p>A color space allows us to precisely describe <i>any</i> color using a linear combination of three primary colors. Some colors in a color space require negative amount of the primaries. While that's mathematically and  physically  rigorous, those colors can not be actually produced by an lighting or display device which  uses the chosen primaries. In practice, only colors that are expressed as non-negative combination of the primaries can actually be produced from the chosen primaries. The totality of all the colors that can be physically produced in a color space is called the color gamut of the color space. Since we are interested in producing colors in practical applications such as a computer display or a lighting system, it is those colors that are within a color space's gamut that we care about.</p>
+        <p>How does the color gamut of a color space look like? It's a parallelepiped. The shape of the parallelepiped is uniquely dictated by four things: the three primaries and the reference white. The chart on the left shows the CIE 1931 xy-chromaticity diagram, which plots the primary colors and the reference white of the sRGB color space (which is D65). The chart on the right shows the parallelepipe-shaped gamut of the sRGB color space in the XYZ color space. For better visualization and also sort of following the <a href="https://en.wikipedia.org/wiki/SRGB">convention</a>, we normalize the Y component of the reference white to be 1.0. The spectral locus is shown as well for reference.</p>
+
+        <div class="row my-4">
+          <div class="col-sm-5">
+            <canvas id="canvas2d"></canvas>
+          </div>
+          <div class="col-sm-7 d-flex align-items-center">
+            <div id="spaceDiv"></div>
+          </div>
+          <div class="row">
+            <div class="col-sm-5">
+              <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="form-check form-switch mx-4 mt-1">
+                  <input class="form-check-input" type="checkbox" role="switch" id="pickColor">
+                  <label class="form-check-label" for="pickColor"><b>Pick Colors</b> (primaries and reference white)</label>
+                </div>
+                <button id="resetColor" class="btn btn-primary btn-sm">Reset</button>
+              </div>
             </div>
-            <button id="resetColor" class="btn btn-primary btn-sm">Reset</button>
+            <div class="col-sm-7">
+              <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="form-check form-switch mt-1">
+                  <input class="form-check-input" type="checkbox" role="switch" id="genCube">
+                  <label class="form-check-label" for="genCube"><b>Transform Parallelepiped to Cube</b></label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col-sm-7">
-          <div id="spaceDiv"></div>
-          <div class="btn-toolbar d-flex justify-content-center mt-4" role="toolbar" aria-label="Toolbar with button groups">
-            <div class="form-check form-switch mx-4 mt-1">
-              <input class="form-check-input" type="checkbox" role="switch" id="genCube">
-              <label class="form-check-label" for="genCube"><b>Generate Cube</b></label>
-            </div>
-          </div>
+
+        <h4>The Importance of Reference White</h4>
+        <p>It's critical to realize the necessity of picking a reference white in determining the color gamut. Picking the three primaries will fix only the direction of $\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, and $\overrightarrow{\mathbf{OB}}$ vectors, while leaving their lengths/norms undecided. There are infinitely many parallelepiped that can be constructed from those three vector directions. Picking the reference white essentially fixes the norms of those three vectors and, by extension, the entire parallelepiped. To convince yourself of that, toggle the "Pick Colors" switch, and then drag the reference white to change it. As you change the reference white, the parallelepiped on the right will change accordingly.</p>
+        <p>As you change the reference white, the directions of $\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, and $\overrightarrow{\mathbf{OB}}$ vectors don't change but their norms do. This indicates that we are not changing the chromaticities of the primaries, but are changing their intensities. Why would the primary intensities change if we change the reference white? Remember how reference white is defined in a color space: it's mixed from one unit of each primary. If we change the reference white, it naturally follows that the power of light in one unit of each primary will have to change to.</p>
+        <p>Here are a few more things you can do to gain a better understanding of the color gamut.</p>
+        <div>
+          <ul>
+            <li>Change a primary; the corresponding vector's <i>direction</i> will change. As a side effect, the primary intensities will change, too, to satisfy the requirement that referecen white is mixed from one unit of each primary.</li>
+            <li>Move the reference white to sit on an edge of the triangle formed by the primaries; the parallelepiped degenerates into a parallelogram, indicating that the color gamut has become 2D. Why? If white sits on the R-G edge, then white can be mixed from just R and G. But white, by definition, should be mixed by one unit of R, G, and B, and so the power of the B primary should be 0. Therefore, the gamut becomes 2D.</li>
+            <li>Move the reference white outside the primary triangle; you will require some negative amount of a primary to match the reference white. This is evident by the negative XYZ values of the primary in the right plot. While mathematically OK, you can't build a real color space like that.</li>
+            <li>If you move the reference white or a primary outside the spectral locus, the corresponding vertex in the right plot will move outside the HVS gamut, which you can reveal by clicking the "HVS gamut boundary" label in the legend.</li>
+          </ul>
+        </div>
+
+        <div class="row">
+          <h4>The Math</h4>
+          <p>Let's now go through the math behind generating the parallelepiped from the chromaticities of the primaries and the reference white. Let's denote the chromaticies of the primaries and the reference white $r, g, b, w$. Without losing generality, the XYZ values of one unit of the reference white is conventionally normalized such that the Y is 1.0. Therefore, the XYZ value of the reference white is $[\frac{w_x}{w_y}, 1, \frac{w_z}{w_y}]$. What we want to calculate is the XYZ values of one unit of each primary such that they add up to match the reference white.</p>
+          <p>How to represent the XYZ values of one unit of the R primary? We know R's chromaticy is $r = [r_x, r_y, r_z]$. We can then denote the XYZ values of one unit of R as $[\alpha r_x, \alpha r_y, \alpha r_z]$, where $\alpha$ represents the intensity of one unit of R and is an unknown to be solved for. Overall, we should have the following system of equation:</p>
+          <p>
+$
+          \begin{bmatrix}
+           r_x & g_x & b_x \\
+           r_y & g_y & b_y \\
+           r_z & g_z & b_z
+          \end{bmatrix} \times
+          \begin{bmatrix}
+           \alpha \\
+           \beta \\
+           \gamma
+          \end{bmatrix} =
+          \begin{bmatrix}
+           \frac{w_x}{w_y}\\
+           1 \\
+           \frac{w_z}{w_y}
+          \end{bmatrix}
+$, where $\alpha, \beta, \gamma$ are unknowns to be solved for.
+          </p>
+          <p>Solving this system of equations will give us the XYZ values of one unit of each primary, which when combined with the XYZ value of the reference white gives us the parallelepiped.</p>
         </div>
       </div>
     </div>
 
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Part 2: From a Parallelepiped to a Cube</h3>
+        <p>The axes of a parallelepiped forms a vector space, and any point/color can be described in that vector space. But a far more intuitive way to specify a color is in a vector space where the basis vectors are orthogonal. That's nothing more than performing a linear transformation that transforms  a parallelepiped to a cube.</p>
+      </div>
+    </div>
 
     <div class="b-example-divider"></div>
   </div>
