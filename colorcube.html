@@ -80,7 +80,7 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Part 1: The Geometry of a Color Space's Gamut</h3>
-        <p>A color space allows us to precisely describe <i>any</i> color using a linear combination of three primary colors. Some colors in a color space require negative amount of the primaries. While that's mathematically and  physically  rigorous, those colors can not be actually produced by an lighting or display device which  uses the chosen primaries. In practice, only colors that are expressed as non-negative combination of the primaries can actually be produced from the chosen primaries. The totality of all the colors that can be physically produced in a color space is called the color gamut of the color space. Since we are interested in producing colors in practical applications such as a computer display or a lighting system, it is those colors that are within a color space's gamut that we care about.</p>
+        <p>A color space allows us to precisely describe <i>any</i> color using a linear combination of three primary colors. Some real colors in a color space require negative amount of the primaries. While mathematically rigorous and physically real, those colors can not be actually produced by a practical system such as a lighting or display device that uses the chosen primaries. In practice, only colors that are expressed as non-negative combination of the primaries can actually be produced from the chosen primaries. The totality of all the colors that can be physically produced in a color space is called the color gamut of the color space. This tutorial is about producing colors in practical systems, and so it is those colors that are within a color space's gamut that we care about.</p>
         <p>How does the color gamut of a color space look like? It's a parallelepiped. The shape of the parallelepiped is uniquely dictated by four things: the three primaries and the reference white. The chart on the left shows the CIE 1931 xy-chromaticity diagram, which plots the primary colors and the reference white of the sRGB color space (which is D65). The chart on the right shows the parallelepipe-shaped gamut of the sRGB color space in the XYZ color space. For better visualization and also sort of following the <a href="https://en.wikipedia.org/wiki/SRGB">convention</a>, we normalize the Y component of the reference white to be 1.0. The spectral locus is shown as well for reference.</p>
 
         <div class="row my-4">
@@ -193,6 +193,14 @@ $, where $\alpha, \beta, \gamma$ are unknowns to be solved for.
         <p>To be more specific, the transformation matrix $T$ for the color space you've built is:</p>
         <p id="mat">${}$</p>
         <p>If you keep the primaries and reference white unchanged in the first chart, $T$ should rougly match the matrix that converts a color <a href="https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB">from CIE XYZ to sRGB</a>.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Part 3: Gamma (Quantization)</h3>
+        <p>A color is represented by three real numbers between 0 and 1 in the color cube we've built. But we can't represent an arbitrary real number on a computer. So we have to encode the RGB values in either a floating point format or a fixed-point format. By far the most common encoding format is using a 8-bit fixed-point representation to encode each primary value, as defined in the sRGB standard. With this, each color is then encoded as three 8-bit values, taking 3 Bytes of computer memory. Converting a number from a continuous domain to a discrete domain is called quantization.</p>
+        <p>Here comes the question, how do we map a real number within 0 and 1 to an integer between 0 and 255? The easiest approach is linear mapping, essentially multiplying any RGB values between 0 and 1 with 255 and rounding the result to, say, the cloest integer. Rounding introduces error, and it's unavoidable. What is the implication of quantization error in real applications? Two colors $[0.000, 0.000, 0.000]$ and $[0.001, 0.000, 0.000]$ will both be mapped to the same 8-bit RGB value $[0, 0, 0]$, and so when the display shows these two colors, they will appear to be exactly the same. Similarly, $[1.000, 0.000, 0.000]$ and $[0.999, 0.000, 0.000]$ will be displayed as having exactly the same color, since both are mapped to the same 8-bit RGB values of $[255, 0, 0]$. The point is that quantization errors translate to perceptual color differences. What we want is to minimize the rounding error from a human perceptual perspective.</p>
       </div>
     </div>
 
