@@ -155,7 +155,19 @@ $, where $\alpha, \beta, \gamma$ are unknowns to be solved for.
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Part 2: From a Parallelepiped to a Cube</h3>
-        <p>The axes of a parallelepiped forms a vector space, and any point/color can be described in that vector space. But a far more intuitive way to specify a color is in a vector space where the basis vectors are orthogonal. That's nothing more than performing a linear transformation that transforms  a parallelepiped to a cube.</p>
+        <p>$\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, $\overrightarrow{\mathbf{OB}}$ are the basis vectors of a vector space, but they are not orthogonal. That's mathematically OK, but perhaps what's more intuitive is to describe a color in a vector space where the basis vectors are orthogonal. That's nothing more than performing a linear transformation that transforms a parallelepiped to a cube. The transformation matrix $T$ should satisfy:</p>
+        <p>$
+          \begin{bmatrix}
+           \alpha r_x & \alpha r_y & \alpha r_z \\
+           \beta g_x  & \beta g_y  & \beta g_z \\
+           \gamma b_x & \gamma b_y & \gamma b_z
+          \end{bmatrix} \times T =
+          \begin{bmatrix}
+           1 & 0 & 0 \\
+           0 & 1 & 0 \\
+           0 & 0 & 1
+          \end{bmatrix}
+        $</p>
       </div>
     </div>
 

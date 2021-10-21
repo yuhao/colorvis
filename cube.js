@@ -595,15 +595,23 @@ function registerGenCube(id) {
 
       genCube(plot);
 
+      // disable picking colors in cube mode
       if(($('#pickColor').is(":checked"))) {
         $('#pickColor').prop('checked', false);
         toggleDraw(false, window.xyCanvas);
       }
       $('#pickColor').prop('disabled', true);
+
+      // hide the HVS gamut
+      var data_update = {'showlegend': false};
+      Plotly.restyle(plot, data_update, [13]);
     } else {
       transMat = math.inv(transMat);
       genPara(plot);
       $('#pickColor').prop('disabled', false);
+
+      var data_update = {'showlegend': true};
+      Plotly.restyle(plot, data_update, [13]);
     }
   });
 }
@@ -630,6 +638,7 @@ d3.csv('ciexyz31.csv', function(err, rows){
   plotxyChrm('canvas2d', locus, x_data);
   window.spacePlot = plotRGB('spaceDiv', wlen);
 
+  // order: locus, 12 lines, hvs gamut
   plotHVSGamut(window.spacePlot);
 
   registerPickColor('#pickColor');
