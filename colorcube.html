@@ -73,12 +73,16 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Introduction</h3>
+        <p>By far the most common way in practical applications to specify color is by using what's called a color cube, where you can specify the R, G, and B value  of color, each within  the range of 0  and 255. What exactly are the colors that can  be represented by such a color cube? How is it related to the color  gamut we've discussed, and how to we construct a color cube?  These  are questions this tutorial explores.</p>
       </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Step 1: Picking Primaries and Reference White</h3>
+        <div class="row mt-4">
+          <p>A color space allows us to precisely describe <i>any</i> color using a linear combination of three primary colors. Some colors in a color space require negative amount of the primaries. While that's mathematically and  physically  rigorous, those colors can not be actually produced by an lighting or display device which  uses the chosen primaries. In practice, only colors that are expressed as non-negative combination of the primaries can actually be produced from the chosen primaries. All the colors that can be physically produced in a color space is called the  color gamut of the color space. How does the color gamut of a color space look like? It's a parallelepiped. The axes of a parallelepiped forms a vector space, and any point/color can be  described in that vector space. But a far more intuitive way to specify a color is in a vector space where the basis vectors are orthogonal. That's nothing more than performing a linear transformation that transforms  a parallelepiped to a cube.</p>
+        </div>
         <div class="col-sm-5">
           <canvas id="canvas2d"></canvas>
           <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
