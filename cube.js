@@ -594,9 +594,16 @@ function registerGenCube(id) {
       transMat = math.inv(prims);
 
       genCube(plot);
+
+      if(($('#pickColor').is(":checked"))) {
+        $('#pickColor').prop('checked', false);
+        toggleDraw(false, window.xyCanvas);
+      }
+      $('#pickColor').prop('disabled', true);
     } else {
       transMat = math.inv(transMat);
       genPara(plot);
+      $('#pickColor').prop('disabled', false);
     }
   });
 }
