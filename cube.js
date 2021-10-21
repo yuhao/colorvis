@@ -15,6 +15,10 @@ var oBlueColor = 'rgba(1, 25, 147, 0.5)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
+var transMatText;
+QUEUE.Push(function () {
+  transMatText = MathJax.Hub.getAllJax('mat');
+});
 
 function unpack(rows, key, toNum) {
   return rows.map(function(row) {
@@ -595,6 +599,14 @@ function registerGenCube(id) {
       transMat = math.inv(prims);
 
       genCube(plot);
+
+      // show the matrix
+      var text = "\\begin{bmatrix}" +
+          transMat[0][0].toFixed(4) + "&" + transMat[1][0].toFixed(4) + "&" +  transMat[2][0].toFixed(4) + "\\\\" +
+          transMat[0][1].toFixed(4) + "&" + transMat[1][1].toFixed(4) + "&" +  transMat[2][1].toFixed(4) + "\\\\" +
+          transMat[0][2].toFixed(4) + "&" + transMat[1][2].toFixed(4) + "&" +  transMat[2][2].toFixed(4) +
+          "\\end{bmatrix}";
+      QUEUE.Push(["Text", transMatText[0], text]);
 
       // disable picking colors in cube mode
       if(($('#pickColor').is(":checked"))) {

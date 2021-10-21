@@ -155,21 +155,44 @@ $, where $\alpha, \beta, \gamma$ are unknowns to be solved for.
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Part 2: From a Parallelepiped to a Cube</h3>
-        <p>$\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, $\overrightarrow{\mathbf{OB}}$ are the basis vectors of a vector space, but they are not orthogonal. That's mathematically OK, but perhaps what's more intuitive is to describe a color in a vector space where the basis vectors are orthogonal. That's as simple as performing a linear transformation that transforms a parallelepiped to a cube. The transformation matrix $T$ should satisfy:</p>
-        <p>$
+        <p>$\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, $\overrightarrow{\mathbf{OB}}$ are the basis vectors of a vector space, but they are not orthogonal. That's mathematically OK, but perhaps what's more intuitive is to describe a color in a vector space where the basis vectors are orthogonal. That's as simple as performing a linear transformation that transforms a parallelepiped to a cube. Click the "Transform Parallelepiped to Cube" button under the right plot. You will see the transformation being applied, and the parallelepiped becomes a unit cube; hover over the cube vertices to convince you of that (barring some numerical imprecision in the calculation).</p>
+        <h4>The Math</h4>
+        <p>How is the transformation calculated? The transformation matrix $T$ should satisfy:</p>
+        <p>$T \times
           \begin{bmatrix}
-           \alpha r_x & \alpha r_y & \alpha r_z \\
-           \beta g_x  & \beta g_y  & \beta g_z \\
-           \gamma b_x & \gamma b_y & \gamma b_z
-          \end{bmatrix} \times T =
+           \alpha r_x & \beta g_x & \gamma b_x \\
+           \alpha r_y & \beta g_y & \gamma b_y \\
+           \alpha r_z & \beta g_z & \gamma b_z
+          \end{bmatrix} =
           \begin{bmatrix}
            1 & 0 & 0 \\
            0 & 1 & 0 \\
            0 & 0 & 1
           \end{bmatrix}
-        $</p>
-        <p>$[\alpha r_x, \alpha r_y, \alpha r_z]$ represents the XYZ values of one unit of R primary, like we've just calculated above. The same notation applies to the other two primaries. This transformation is saying nothing more than that the R, G, and B primaries should be transformed to $[1, 0, 0]$, $[0, 1, 0]$, and $[0, 0, 1]$. The white is now represented by $[1, 1, 1]$, indicating that it's mixed by equal unit of the primaries.</p>
-        <p>Click the "Transform Parallelepiped to Cube" button under the right plot. You will see the transformation being applied, and the parallelepiped becomes a cube; hover over the cube vertices to convince you of that (barring some numerical imprecision in the calculation). The spectral locus gets transformed, too. Another way to look at the spectral locus is if we go through each spectral color and collects its RGB coordinates, we get the Color Matching Functions of this particular RGB color space.</p>
+        $, and so 
+        $T = 
+          \begin{bmatrix}
+           \alpha r_x & \beta g_x & \gamma b_x \\
+           \alpha r_y & \beta g_y & \gamma b_y \\
+           \alpha r_z & \beta g_z & \gamma b_z
+          \end{bmatrix}^{-1} =
+          \begin{bmatrix}
+           \alpha & 0 & 0 \\
+           0 & \beta & 0 \\
+           0 & 0 & \gamma
+          \end{bmatrix}^{-1} \times
+          \begin{bmatrix}
+           r_x & g_x & b_x \\
+           r_y & g_y & b_y \\
+           r_z & g_z & b_z
+          \end{bmatrix}^{-1}
+        $
+        </p>
+        <p>$[\alpha r_x, \alpha r_y, \alpha r_z]^T$ represents the XYZ values of one unit of R primary, like we've just calculated above. The same notation applies to the other two primaries. This transformation is saying nothing more than that the colors of one unit of R, G, and B primaries should be represented as $[1, 0, 0]^T$, $[0, 1, 0]^T$, and $[0, 0, 1]^T$, respectively. The white is now represented by $[1, 1, 1]^T$, indicating that it's mixed by equal unit of the primaries.</p>
+        <p>Applying this transformation $T$ to any color/point in XYZ will generates the corresponding RGB value of that color. What if a color is outside the parallelepiped in the XYZ space? After the transformation is will be outside the RGB cube. The spectral locus gets transformed, too. One way to look at the new spectral locus is that if we go through each spectral color and collects its RGB coordinates, we get the Color Matching Functions of this particular RGB color space. Notice that the no spectral color sits on the axes of the new space, suggesting that the primaries are not spectral colors.</p>
+        <p>To be more specific, the transformation matrix $T$ for the color space you've built is:</p>
+        <p id="mat">${}$</p>
+        <p>If you keep the primaries and reference white unchanged in the first chart, $T$ should rougly match the matrix that converts a color <a href="https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB">from CIE XYZ to sRGB</a>.</p>
       </div>
     </div>
 
