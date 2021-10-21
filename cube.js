@@ -372,7 +372,7 @@ function plotRGB(plotId, wlen) {
       '<br>Y: %{y}' +
       '<br>Z: %{z}' +
       '<br>wavelength: %{text}<extra></extra>',
-    name: 'Spectral locus in XYZ',
+    name: 'Spectral locus',
   };
 
   var allPoints = getVertices();
@@ -564,6 +564,7 @@ function genPara(plot) {
   Plotly.update(plot, data_update, layout_update, [0]);
 }
 
+// TODO: change hovertemplate between XYZ and RGB when switching between para and cube.
 function genCube(plot) {
   var allPoints = getVertices();
   allPoints = math.transpose(math.multiply(math.transpose(allPoints), transMat));

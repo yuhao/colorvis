@@ -155,7 +155,7 @@ $, where $\alpha, \beta, \gamma$ are unknowns to be solved for.
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Part 2: From a Parallelepiped to a Cube</h3>
-        <p>$\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, $\overrightarrow{\mathbf{OB}}$ are the basis vectors of a vector space, but they are not orthogonal. That's mathematically OK, but perhaps what's more intuitive is to describe a color in a vector space where the basis vectors are orthogonal. That's nothing more than performing a linear transformation that transforms a parallelepiped to a cube. The transformation matrix $T$ should satisfy:</p>
+        <p>$\overrightarrow{\mathbf{OR}}$, $\overrightarrow{\mathbf{OG}}$, $\overrightarrow{\mathbf{OB}}$ are the basis vectors of a vector space, but they are not orthogonal. That's mathematically OK, but perhaps what's more intuitive is to describe a color in a vector space where the basis vectors are orthogonal. That's as simple as performing a linear transformation that transforms a parallelepiped to a cube. The transformation matrix $T$ should satisfy:</p>
         <p>$
           \begin{bmatrix}
            \alpha r_x & \alpha r_y & \alpha r_z \\
@@ -168,6 +168,8 @@ $, where $\alpha, \beta, \gamma$ are unknowns to be solved for.
            0 & 0 & 1
           \end{bmatrix}
         $</p>
+        <p>$[\alpha r_x, \alpha r_y, \alpha r_z]$ represents the XYZ values of one unit of R primary, like we've just calculated above. The same notation applies to the other two primaries. This transformation is saying nothing more than that the R, G, and B primaries should be transformed to $[1, 0, 0]$, $[0, 1, 0]$, and $[0, 0, 1]$. The white is now represented by $[1, 1, 1]$, indicating that it's mixed by equal unit of the primaries.</p>
+        <p>Click the "Transform Parallelepiped to Cube" button under the right plot. You will see the transformation being applied, and the parallelepiped becomes a cube; hover over the cube vertices to convince you of that (barring some numerical imprecision in the calculation). The spectral locus gets transformed, too. Another way to look at the spectral locus is if we go through each spectral color and collects its RGB coordinates, we get the Color Matching Functions of this particular RGB color space.</p>
       </div>
     </div>
 
