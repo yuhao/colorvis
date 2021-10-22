@@ -160,7 +160,10 @@ function plotXYZPrims(plot, prims) {
   var XZ = math.add(X, Z);
   var YZ = math.add(Y, Z);
 
-  var points = {
+  var points = [X, Y, Z];
+  var traces = [];
+
+  var span = {
     x: [0, X[0], Y[0], Z[0], XY[0], XZ[0], YZ[0]],
     y: [0, X[1], Y[1], Z[1], XY[1], XZ[1], YZ[1]],
     z: [0, X[2], Y[2], Z[2], XY[2], XZ[2], YZ[2]],
@@ -173,31 +176,67 @@ function plotXYZPrims(plot, prims) {
     //text: wlen,
     type: 'mesh3d',
     opacity: 1,
-    color: [redColor, greenColor, blueColor],
-    //marker: {
-    //  size: 4,
-    //  opacity: 0.8,
-    //  color: Array(wlen.length).fill(greyColor),
-    //},
-    //line: {
-    //  color: greyColor,
-    //  width: 2,
-    //  shape: 'spline',
-    //},
-    //hoverinfo: 'skip',
-    //hovertemplate: 'R: %{x}' +
-    //  '<br>G: %{y}' +
-    //  '<br>B: %{z}' +
-    //  '<br>wavelength: %{text}<extra></extra>',
-    //name: 'Spectral locus',
+    color: redColor,
+    hoverinfo: 'skip',
   };
+  traces.push(span);
 
-  Plotly.addTraces(plot, [points]);
+  var texts = ['Cr', 'Cg', 'Cb'];
+  for (var i = 0; i < 3; i++) {
+    var line = {
+      x: [0, points[i][0]],
+      y: [0, points[i][1]],
+      z: [0, points[i][2]],
+      text: ['O', texts[i]],
+      type: 'scatter3d',
+      showlegend: false,
+      mode: 'lines+markers',
+      marker: {
+        size: 4,
+        opacity: 0.8,
+        color: '#000000',
+      },
+      line: {
+        color: '#000000',
+        width: 2,
+      },
+      //hoverinfo: 'skip',
+      hovertemplate: '%{text}' +
+        '<br>R: %{x}' +
+        '<br>G: %{y}' +
+        '<br>B: %{z}<extra></extra>',
+    }
+
+    traces.push(line);
+  }
+
+  Plotly.addTraces(plot, traces);
+}
+
+function registerRGB2XYZ(id, plot) {
+  $(id).on('click', function(evt) {
+    var XYZ = math.multiply(RGB2XYZMat, [CMFR, CMFG, CMFB]);
+
+    var data_update = {'x': [XYZ[0]], 'y': [XYZ[1]], 'z': [XYZ[2]],
+        'hovertemplate': ['X: %{x}' +
+            '<br>Y: %{y}' +
+            '<br>Z: %{z}' +
+            '<br>wavelength: %{text}<extra></extra>']};
+
+    var layout_update = {
+      'scene.xaxis.title.text': 'R',
+      'scene.yaxis.title.text': 'B',
+      'scene.zaxis.title.text': 'B',
+    };
+
+    Plotly.update(plot, data_update, layout_update, [0]);
+  });
 }
 
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
 var CMFR = [], CMFG = [], CMFB = [];
 var XYZ2RGBMat = [[0.41847, -0.15866, -0.082835], [-0.091169, 0.25243, 0.015708], [0.00092090, -0.0025498, 0.17860]];
+var RGB2XYZMat = math.inv(XYZ2RGBMat);
 
 d3.csv('ciexyz31.csv', function(err, rows){
   var stride = 5;
@@ -227,6 +266,8 @@ d3.csv('ciexyz31.csv', function(err, rows){
 
   window.spacePlot = plotRGB('spaceDiv', wlen);
   plotXYZPrims(window.spacePlot, [X, Y, Z]);
+
+  registerRGB2XYZ('#rgb2xyz', window.spacePlot);
 
   //var locus = math.transpose([cX, cY, cZ]);
   //plotxyChrm('canvas2d', locus, x_data);
