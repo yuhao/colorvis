@@ -478,7 +478,7 @@ function plotPlane(planeId, plot) {
       //mode: 'lines',
       type: 'mesh3d',
       visible: 'legendonly',
-      opacity:0.8,
+      opacity: 0.8,
       color: '#000000',
       //name: 'Primaries',
       hoverinfo: 'skip',
