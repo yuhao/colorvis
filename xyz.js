@@ -103,7 +103,7 @@ function plotRGB(plotId, wlen) {
         }
       },
       // https://plotly.com/javascript/3d-axes/
-      aspectmode: 'cube',
+      //aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1.5],
@@ -136,7 +136,7 @@ function plotRGB(plotId, wlen) {
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        scaleanchor: 'y',
+        scaleanchor: 'x',
         //dtick: 0.1,
         showspikes: false,
         title: {
@@ -181,13 +181,13 @@ function plotXYZPrims(plot, prims) {
   };
   traces.push(span);
 
-  var texts = ['Cr', 'Cg', 'Cb'];
+  //var texts = ['Cr', 'Cg', 'Cb'];
   for (var i = 0; i < 3; i++) {
     var line = {
       x: [0, points[i][0]],
       y: [0, points[i][1]],
       z: [0, points[i][2]],
-      text: ['O', texts[i]],
+      //text: ['O', texts[i]],
       type: 'scatter3d',
       showlegend: false,
       mode: 'lines+markers',
@@ -201,8 +201,7 @@ function plotXYZPrims(plot, prims) {
         width: 2,
       },
       //hoverinfo: 'skip',
-      hovertemplate: '%{text}' +
-        '<br>R: %{x}' +
+      hovertemplate: '<br>R: %{x}' +
         '<br>G: %{y}' +
         '<br>B: %{z}<extra></extra>',
     }
@@ -213,23 +212,58 @@ function plotXYZPrims(plot, prims) {
   Plotly.addTraces(plot, traces);
 }
 
-function registerRGB2XYZ(id, plot) {
-  $(id).on('click', function(evt) {
-    var XYZ = math.multiply(RGB2XYZMat, [CMFR, CMFG, CMFB]);
+function registerRGB2XYZ(id, plot, prims) {
+  $('input[type=radio][name=3dmode]').change(function() {
+    if (this.id == 'showRGB') {
+      var RGB = math.multiply(XYZ2RGBMat, [plot.data[0].x, plot.data[0].y, plot.data[0].z]);
+      var span = math.multiply(XYZ2RGBMat, [plot.data[1].x, plot.data[1].y, plot.data[1].z]);
+      var lines = [];
+      for (var i = 0; i < 3; i++) {
+        var line = math.multiply(XYZ2RGBMat, [plot.data[i+2].x, plot.data[i+2].y, plot.data[i+2].z]);
+        lines.push(line);
+      }
 
-    var data_update = {'x': [XYZ[0]], 'y': [XYZ[1]], 'z': [XYZ[2]],
-        'hovertemplate': ['X: %{x}' +
-            '<br>Y: %{y}' +
-            '<br>Z: %{z}' +
-            '<br>wavelength: %{text}<extra></extra>']};
+      var data_update = {'x': [RGB[0], span[0], lines[0][0], lines[1][0], lines[2][0]],
+                         'y': [RGB[1], span[1], lines[0][1], lines[1][1], lines[2][1]],
+                         'z': [RGB[2], span[2], lines[0][2], lines[1][2], lines[2][2]],
+          'hovertemplate': ['R: %{x}' +
+              '<br>G: %{y}' +
+              '<br>B: %{z}' +
+              '<br>wavelength: %{text}<extra></extra>', '', '', '', '']};
 
-    var layout_update = {
-      'scene.xaxis.title.text': 'R',
-      'scene.yaxis.title.text': 'B',
-      'scene.zaxis.title.text': 'B',
-    };
+      var layout_update = {
+        'scene.xaxis.title.text': 'R',
+        'scene.yaxis.title.text': 'B',
+        'scene.zaxis.title.text': 'B',
+      };
 
-    Plotly.update(plot, data_update, layout_update, [0]);
+      Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
+    } else if (this.id == 'showXYZ') {
+      // or we can just read from CMFX, CMFY, CMFZ
+      var XYZ = math.multiply(RGB2XYZMat, [plot.data[0].x, plot.data[0].y, plot.data[0].z]);
+      var span = math.multiply(RGB2XYZMat, [plot.data[1].x, plot.data[1].y, plot.data[1].z]);
+      var lines = [];
+      for (var i = 0; i < 3; i++) {
+        var line = math.multiply(RGB2XYZMat, [plot.data[i+2].x, plot.data[i+2].y, plot.data[i+2].z]);
+        lines.push(line);
+      }
+
+      var data_update = {'x': [XYZ[0], span[0], lines[0][0], lines[1][0], lines[2][0]],
+                         'y': [XYZ[1], span[1], lines[0][1], lines[1][1], lines[2][1]],
+                         'z': [XYZ[2], span[2], lines[0][2], lines[1][2], lines[2][2]],
+          'hovertemplate': ['X: %{x}' +
+              '<br>Y: %{y}' +
+              '<br>Z: %{z}' +
+              '<br>wavelength: %{text}<extra></extra>', '', '', '', '']};
+
+      var layout_update = {
+        'scene.xaxis.title.text': 'X',
+        'scene.yaxis.title.text': 'Y',
+        'scene.zaxis.title.text': 'Z',
+      };
+
+      Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
+    }
   });
 }
 
@@ -267,7 +301,7 @@ d3.csv('ciexyz31.csv', function(err, rows){
   window.spacePlot = plotRGB('spaceDiv', wlen);
   plotXYZPrims(window.spacePlot, [X, Y, Z]);
 
-  registerRGB2XYZ('#rgb2xyz', window.spacePlot);
+  registerRGB2XYZ('#rgb2xyz', window.spacePlot, [X, Y, Z]);
 
   //var locus = math.transpose([cX, cY, cZ]);
   //plotxyChrm('canvas2d', locus, x_data);

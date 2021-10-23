@@ -83,9 +83,12 @@
         <div class="row my-4">
           <div class="col-sm-7">
             <div id="spaceDiv"></div>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="rgb2xyz">
-              <label class="form-check-label" for="rgb2xyz"><b>RGB2XYZ</b></label>
+            <div class="btn-group d-flex justify-content-center" role="group" aria-label="Basic radio toggle button group">
+              <input type="radio" class="btn-check" name="3dmode" id="showRGB" autocomplete="off" checked>
+              <label class="btn btn-outline-primary btn-sm" for="showRGB">RGB</label>
+
+              <input type="radio" class="btn-check" name="3dmode" id="showXYZ" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="showXYZ">XYZ</label>
             </div>
           </div>
           <div class="col-sm-5">
