@@ -78,10 +78,10 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Part 1: The Geometry of a Color Space's Gamut</h3>
+        <h3>Part 1: XYZ Color Space</h3>
 
         <div class="row my-4">
-          <div class="col-sm-7">
+          <div class="col-sm-6">
             <div id="spaceDiv"></div>
             <div class="btn-group d-flex justify-content-center" role="group" aria-label="Basic radio toggle button group">
               <input type="radio" class="btn-check" name="3dmode" id="showRGB" autocomplete="off" checked>
@@ -91,11 +91,25 @@
               <label class="btn btn-outline-primary btn-sm" for="showXYZ">XYZ</label>
             </div>
           </div>
-          <div class="col-sm-5">
-            <canvas id="canvasChrm"></canvas>
+          <div class="col-sm-6">
+            <div id="canvasChrm"></div>
+            <div class="btn-group d-flex justify-content-center" role="group" aria-label="Basic radio toggle button group">
+              <input type="radio" class="btn-check" name="2dmode" id="showrgb" autocomplete="off" checked>
+              <label class="btn btn-outline-primary btn-sm" for="showrgb">rg</label>
+
+              <input type="radio" class="btn-check" name="2dmode" id="showxyz" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="showxyz">xy</label>
+            </div>
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Part 2: xyY Color Space</h3>
+        <div id="xyYDiv"></div>
       </div>
     </div>
 

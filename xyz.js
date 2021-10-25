@@ -106,12 +106,11 @@ function plotRGB(plotId, wlen) {
       //aspectmode: 'cube',
       xaxis: {
         autorange: true,
-        //range: [0, 1.5],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
-        //constrain: 'domain',
-        //dtick: 0.1,
+        constrain: 'domain',
+        dtick: 0.1,
         showspikes: false,
         title: {
           text: 'R'
@@ -119,7 +118,6 @@ function plotRGB(plotId, wlen) {
       },
       yaxis: {
         autorange: true,
-        //range: [0, 1.5],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
@@ -132,7 +130,6 @@ function plotRGB(plotId, wlen) {
       },
       zaxis: {
         autorange: true,
-        //range: [0, 2],
         zeroline: true,
         zerolinecolor: '#000000',
         zerolinewidth: 5,
@@ -181,13 +178,13 @@ function plotXYZPrims(plot, prims) {
   };
   traces.push(span);
 
-  //var texts = ['Cr', 'Cg', 'Cb'];
+  var texts = ['Cr', 'Cg', 'Cb'];
   for (var i = 0; i < 3; i++) {
     var line = {
       x: [0, points[i][0]],
       y: [0, points[i][1]],
       z: [0, points[i][2]],
-      //text: ['O', texts[i]],
+      text: ['O', texts[i]],
       type: 'scatter3d',
       showlegend: false,
       mode: 'lines+markers',
@@ -201,7 +198,8 @@ function plotXYZPrims(plot, prims) {
         width: 2,
       },
       //hoverinfo: 'skip',
-      hovertemplate: '<br>R: %{x}' +
+      hovertemplate: '%{text}' +
+        '<br>R: %{x}' +
         '<br>G: %{y}' +
         '<br>B: %{z}<extra></extra>',
     }
@@ -212,7 +210,7 @@ function plotXYZPrims(plot, prims) {
   Plotly.addTraces(plot, traces);
 }
 
-function registerRGB2XYZ(id, plot, prims) {
+function registerRGB2XYZ(plot, prims) {
   $('input[type=radio][name=3dmode]').change(function() {
     if (this.id == 'showRGB') {
       var RGB = math.multiply(XYZ2RGBMat, [plot.data[0].x, plot.data[0].y, plot.data[0].z]);
@@ -226,15 +224,18 @@ function registerRGB2XYZ(id, plot, prims) {
       var data_update = {'x': [RGB[0], span[0], lines[0][0], lines[1][0], lines[2][0]],
                          'y': [RGB[1], span[1], lines[0][1], lines[1][1], lines[2][1]],
                          'z': [RGB[2], span[2], lines[0][2], lines[1][2], lines[2][2]],
-          'hovertemplate': ['R: %{x}' +
-              '<br>G: %{y}' +
-              '<br>B: %{z}' +
-              '<br>wavelength: %{text}<extra></extra>', '', '', '', '']};
+          'hovertemplate': ['R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<br>wavelength: %{text}<extra></extra>', '',
+                            '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
+                            '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
+                            '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
+                           ]};
 
       var layout_update = {
         'scene.xaxis.title.text': 'R',
         'scene.yaxis.title.text': 'B',
         'scene.zaxis.title.text': 'B',
+        'scene.yaxis.scaleanchor': 'x',
+        'scene.zaxis.scaleanchor': 'x',
       };
 
       Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
@@ -251,20 +252,234 @@ function registerRGB2XYZ(id, plot, prims) {
       var data_update = {'x': [XYZ[0], span[0], lines[0][0], lines[1][0], lines[2][0]],
                          'y': [XYZ[1], span[1], lines[0][1], lines[1][1], lines[2][1]],
                          'z': [XYZ[2], span[2], lines[0][2], lines[1][2], lines[2][2]],
-          'hovertemplate': ['X: %{x}' +
-              '<br>Y: %{y}' +
-              '<br>Z: %{z}' +
-              '<br>wavelength: %{text}<extra></extra>', '', '', '', '']};
+          'hovertemplate': ['X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<br>wavelength: %{text}<extra></extra>', '',
+                            '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
+                            '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
+                            '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
+                           ]};
 
       var layout_update = {
         'scene.xaxis.title.text': 'X',
         'scene.yaxis.title.text': 'Y',
         'scene.zaxis.title.text': 'Z',
+        'scene.yaxis.scaleanchor': 'x',
+        'scene.zaxis.scaleanchor': 'x',
+        'scene.xaxis.constrain': 'domain',
+        'scene.xaxis.dtick': 0.1,
       };
 
       Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
     }
   });
+}
+
+function plotChrm(plotId, wlen, cR, cG) {
+  var rgTrace = {
+    x: cR,
+    y: cG,
+    text: wlen,
+    mode: 'lines+markers',
+    connectgaps: true,
+    line: {simplify: false},
+  };
+ 
+  var cX = [1.27, -1.74, -0.74, 1.27];
+  var cY = [-0.28, 2.77, 0.14, -0.28];
+
+  var xyPoints = {
+    x: cX,
+    y: cY,
+    mode: 'lines+markers',
+    marker: {
+      size: 8,
+      line: {
+        color: '#000000',
+        width: 1
+      },
+      opacity: 0.8
+    },
+  };
+ 
+  data = [rgTrace, xyPoints];
+ 
+  var layout = {
+    margin: {
+      l: 50,
+      r: 50,
+      b: 50,
+      t: 50
+    },
+    showlegend: true,
+    legend: {
+      x: 1,
+      xanchor: 'right',
+      y: 1,
+    },
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    plot_bgcolor: 'rgba(0, 0, 0, 0)',
+    xaxis: {
+      title: {
+        text: 'r'
+      },
+      constrain: 'domain',
+      dtick: 0.2,
+    },
+    yaxis: {
+      title: {
+        text: 'g'
+      },
+      scaleanchor: 'x',
+      dtick: 0.2,
+    }
+  };
+
+  var plot = document.getElementById(plotId);
+  Plotly.newPlot(plot, data, layout);
+
+  return plot;
+}
+
+function rg2xy(traces) {
+  Plotly.animate('2dDiv', {
+    data: traces,
+    traces: [0, 1],
+    layout: {
+      title: 'Spectral locus in CIE 1931 xy-chromaticity plot',
+      xaxis: {
+        title: {
+          text: 'x'
+        }
+      },
+      yaxis: {
+        title: {
+          text: 'y'
+        }
+      }
+    }
+  }, {
+    transition: {
+      duration: 500,
+      easing: 'cubic-in-out'
+    },
+  }).then(function() {
+    // using frames in plotly has hiccups
+    setTimeout(function() {
+      Plotly.animate('2dDiv', {
+        layout: {
+          xaxis: {range: [0, 1]},
+          yaxis: {range: [0, 1]},
+        }
+      }, {
+        transition: {
+          duration: 500,
+          easing: 'cubic-in-out'
+        },
+      });
+    }, 100);
+  });
+}
+
+
+//function registerrgb2xyz(plot) {
+//  $(id).on('click', function(evt) {
+//    rg2xy(traces);
+//  });
+//}
+
+function plotxyY(plotId, wlen, cX, cY, CMFY) {
+  var locus = {
+    x: cX,
+    y: cY,
+    z: CMFY,
+    text: wlen,
+    type: 'scatter3d',
+    mode: 'lines+markers',
+    marker: {
+      size: 4,
+      opacity: 0.8,
+      color: Array(wlen.length).fill(greyColor),
+    },
+    line: {
+      color: greyColor,
+      width: 2,
+      shape: 'spline',
+    },
+    //hoverinfo: 'skip',
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>',
+    name: 'Spectral locus',
+  };
+
+  var data = [locus];
+
+  var layout = {
+    margin: {
+      l: 0,
+      r: 0,
+      b: 0,
+      t: 0
+    },
+    showlegend: true,
+    legend: {
+      x: 0.1,
+      xanchor: 'left',
+      y: 1,
+    },
+    //title: 'Spectral locus in RGB color space',
+    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+    scene: {
+      camera: {
+        projection: {
+          type: 'orthographic'
+        }
+      },
+      // https://plotly.com/javascript/3d-axes/
+      //aspectmode: 'cube',
+      xaxis: {
+        autorange: true,
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        constrain: 'domain',
+        dtick: 0.1,
+        showspikes: false,
+        title: {
+          text: 'x'
+        }
+      },
+      yaxis: {
+        autorange: true,
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        scaleanchor: 'x',
+        //dtick: 0.1,
+        showspikes: false,
+        title: {
+          text: 'y'
+        }
+      },
+      zaxis: {
+        autorange: true,
+        zeroline: true,
+        zerolinecolor: '#000000',
+        zerolinewidth: 5,
+        scaleanchor: 'x',
+        //dtick: 0.1,
+        showspikes: false,
+        title: {
+          text: 'Y'
+        }
+      },
+    }
+  };
+ 
+  var plot = document.getElementById(plotId);
+  Plotly.newPlot(plot, data, layout);
+
+  return plot;
 }
 
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
@@ -294,18 +509,23 @@ d3.csv('ciexyz31.csv', function(err, rows){
   CMFG = RGB[1];
   CMFB = RGB[2];
 
+  var sumRGB = math.add(math.add(CMFR, CMFG), CMFB);
+  var cR = math.dotDivide(CMFR, sumRGB);
+  var cG = math.dotDivide(CMFG, sumRGB);
+  var cB = math.dotDivide(CMFB, sumRGB);
+
   var X = math.multiply(XYZ2RGBMat, [1, 0, 0]);
   var Y = math.multiply(XYZ2RGBMat, [0, 1, 0]);
   var Z = math.multiply(XYZ2RGBMat, [0, 0, 1]);
 
   window.spacePlot = plotRGB('spaceDiv', wlen);
   plotXYZPrims(window.spacePlot, [X, Y, Z]);
+  registerRGB2XYZ(window.spacePlot, [X, Y, Z]);
 
-  registerRGB2XYZ('#rgb2xyz', window.spacePlot, [X, Y, Z]);
+  window.chrmPlot = plotChrm('canvasChrm', wlen, cR, cG);
+  //registerrgb2xyz(window.chrmPlot);
 
-  //var locus = math.transpose([cX, cY, cZ]);
-  //plotxyChrm('canvas2d', locus, x_data);
-
+  window.xyYPlot = plotxyY('xyYDiv', wlen, cX, cY, CMFY);
 });
 
 
