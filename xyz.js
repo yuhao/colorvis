@@ -86,7 +86,7 @@ function plotRGB(plotId, wlen) {
       l: 0,
       r: 0,
       b: 0,
-      t: 0
+      t: 40
     },
     showlegend: true,
     legend: {
@@ -94,7 +94,7 @@ function plotRGB(plotId, wlen) {
       xanchor: 'left',
       y: 1,
     },
-    //title: 'Spectral locus in RGB color space',
+    title: 'CIE 1931 RGB color space',
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     scene: {
       camera: {
@@ -212,6 +212,7 @@ function plotXYZPrims(plot, prims) {
 
 function registerRGB2XYZ(plot, prims) {
   $('input[type=radio][name=3dmode]').change(function() {
+    // TODO: seems like we need to reset camera after transformation
     if (this.id == 'showRGB') {
       var RGB = math.multiply(XYZ2RGBMat, [plot.data[0].x, plot.data[0].y, plot.data[0].z]);
       var span = math.multiply(XYZ2RGBMat, [plot.data[1].x, plot.data[1].y, plot.data[1].z]);
@@ -236,6 +237,7 @@ function registerRGB2XYZ(plot, prims) {
         'scene.zaxis.title.text': 'B',
         'scene.yaxis.scaleanchor': 'x',
         'scene.zaxis.scaleanchor': 'x',
+        'title': 'CIE 1931 RGB color space',
       };
 
       Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
@@ -266,12 +268,16 @@ function registerRGB2XYZ(plot, prims) {
         'scene.zaxis.scaleanchor': 'x',
         'scene.xaxis.constrain': 'domain',
         'scene.xaxis.dtick': 0.1,
+        'title': 'CIE 1931 XYZ color space',
       };
 
       Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
     }
   });
 }
+
+var chrmX = [1.27, -1.74, -0.74, 1.27];
+var chrmY = [-0.28, 2.77, 0.14, -0.28];
 
 function plotChrm(plotId, wlen, cR, cG) {
   var rgTrace = {
@@ -281,14 +287,12 @@ function plotChrm(plotId, wlen, cR, cG) {
     mode: 'lines+markers',
     connectgaps: true,
     line: {simplify: false},
+    name: 'Spectral locus',
   };
  
-  var cX = [1.27, -1.74, -0.74, 1.27];
-  var cY = [-0.28, 2.77, 0.14, -0.28];
-
   var xyPoints = {
-    x: cX,
-    y: cY,
+    x: chrmX,
+    y: chrmY,
     mode: 'lines+markers',
     marker: {
       size: 8,
@@ -298,6 +302,7 @@ function plotChrm(plotId, wlen, cR, cG) {
       },
       opacity: 0.8
     },
+    name: 'XYZ gamut',
   };
  
   data = [rgTrace, xyPoints];
@@ -309,6 +314,7 @@ function plotChrm(plotId, wlen, cR, cG) {
       b: 50,
       t: 50
     },
+    title: 'CIE 1931 rg-chromaticity plot',
     showlegend: true,
     legend: {
       x: 1,
@@ -339,12 +345,12 @@ function plotChrm(plotId, wlen, cR, cG) {
   return plot;
 }
 
-function rg2xy(traces) {
-  Plotly.animate('2dDiv', {
+function rg2xy(plot, traces, mode) {
+  Plotly.animate(plot, {
     data: traces,
     traces: [0, 1],
     layout: {
-      title: 'Spectral locus in CIE 1931 xy-chromaticity plot',
+      title: 'CIE 1931 '+mode+'-chromaticity plot',
       xaxis: {
         title: {
           text: 'x'
@@ -364,10 +370,10 @@ function rg2xy(traces) {
   }).then(function() {
     // using frames in plotly has hiccups
     setTimeout(function() {
-      Plotly.animate('2dDiv', {
+      Plotly.animate(plot, {
         layout: {
-          xaxis: {range: [0, 1]},
-          yaxis: {range: [0, 1]},
+          xaxis: {range: [Math.min(...traces[0].x, ...traces[1].x, 0)-0.1, Math.max(...traces[0].x, ...traces[1].x, 1)+0.1]},
+          yaxis: {range: [Math.min(...traces[0].y, ...traces[1].y, 0)-0.1, Math.max(...traces[0].y, ...traces[1].y, 1)+0.1]},
         }
       }, {
         transition: {
@@ -375,16 +381,64 @@ function rg2xy(traces) {
           easing: 'cubic-in-out'
         },
       });
-    }, 100);
+    }, 50);
   });
 }
 
 
-//function registerrgb2xyz(plot) {
-//  $(id).on('click', function(evt) {
-//    rg2xy(traces);
-//  });
-//}
+function registerrgb2xyz(plot, cX, cY, cR, cG) {
+  $('input[type=radio][name=2dmode]').change(function() {
+    if (this.id == 'showrg') {
+      rgChrm = {
+        x: cR,
+        y: cG,
+        mode: 'lines+markers',
+        connectgaps: true,
+        line: {simplify: false},
+      };
+ 
+      rgPoints = {
+        x: chrmX,
+        y: chrmY,
+        mode: 'lines+markers',
+        marker: {
+          size: 8,
+          line: {
+            color: '#000000',
+            width: 1
+          },
+          opacity: 0.8
+        },
+      };
+
+      rg2xy(plot, [rgChrm, rgPoints], 'rg');
+    } else {
+      xyChrm = {
+        x: cX,
+        y: cY,
+        mode: 'lines+markers',
+        connectgaps: true,
+        line: {simplify: false},
+      };
+ 
+      xyPoints = {
+        x: [1, 0, 0, 1],
+        y: [0, 1, 0, 0],
+        mode: 'lines+markers',
+        marker: {
+          size: 8,
+          line: {
+            color: '#000000',
+            width: 1
+          },
+          opacity: 0.8
+        },
+      };
+
+      rg2xy(plot, [xyChrm, xyPoints], 'xy');
+    }
+  });
+}
 
 function plotxyY(plotId, wlen, cX, cY, CMFY) {
   var locus = {
@@ -522,8 +576,8 @@ d3.csv('ciexyz31.csv', function(err, rows){
   plotXYZPrims(window.spacePlot, [X, Y, Z]);
   registerRGB2XYZ(window.spacePlot, [X, Y, Z]);
 
-  window.chrmPlot = plotChrm('canvasChrm', wlen, cR, cG);
-  //registerrgb2xyz(window.chrmPlot);
+  window.chrmPlot = plotChrm('chrmDiv', wlen, cR, cG);
+  registerrgb2xyz(window.chrmPlot, cX, cY, cR, cG);
 
   window.xyYPlot = plotxyY('xyYDiv', wlen, cX, cY, CMFY);
 });
