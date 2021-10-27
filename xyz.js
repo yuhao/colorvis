@@ -64,7 +64,7 @@ function plotRGB(plotId, wlen) {
     marker: {
       size: 4,
       opacity: 0.8,
-      color: Array(wlen.length).fill(greyColor),
+      color: greyColor,
     },
     line: {
       color: greyColor,

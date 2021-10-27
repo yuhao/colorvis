@@ -78,7 +78,8 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Part 1: XYZ Color Space</h3>
+        <h3>Part 1: The Intuition of the XYZ Color Space</h3>
+        <p>We will show what the transformation does and leave the derivation of the transformation to the next part. The left plot shows the spectral locus in the CIE 1931 RGB color space. Spin around the plot and hover the locus you will see that some spectral lights require negative amount of primaries. One goal of the XYZ space is that all spectral colors should have positive primary amounts. In other words, the spectral locus should reside in the all-positive octant of the XYZ space. One way to reason about this is to draw three vectors originating from the origin in the RGB spaces; these vectors, after transformation, will become the basis vectors. The spectral locus should be completely enclosed by the three vectors. Toggle the "show enclosing vectors" to reveal it.</p>
 
         <div class="row my-4">
           <div class="col-sm-6">
@@ -101,6 +102,11 @@
               <label class="btn btn-outline-primary btn-sm" for="showxy">xy-chromaticity</label>
             </div>
           </div>
+        </div>
+
+        <div class="row my-4">
+        <p>Now toggle the "XYZ" button. You will see the locus in the XYZ space, i.e., after applying the transformation to the RGB space. The three vectors are now the unit basis vectors in the XYZ space, and the spectral locus is completely in the all-positive octant.</p>
+        <p>The RGB to XYZ transformation also means there is a corresponding rg-chromaticity to xy-chromaticity transformation, which we visualize in the plot on the right. Toggle the "xy-chromaticity" button to see the transformation. While RGB-to-XYZ is a linear transformation, rg-to-xy is not. This is because RGB-to-rgb is not a linear transformation.</p>
         </div>
 
       </div>
