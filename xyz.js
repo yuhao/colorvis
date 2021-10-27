@@ -175,6 +175,7 @@ function plotXYZPrims(plot, prims) {
     opacity: 1,
     color: redColor,
     hoverinfo: 'skip',
+    visible: 'legendonly',
   };
   traces.push(span);
 
@@ -187,6 +188,7 @@ function plotXYZPrims(plot, prims) {
       text: ['O', texts[i]],
       type: 'scatter3d',
       showlegend: false,
+      visible: 'legendonly',
       mode: 'lines+markers',
       marker: {
         size: 4,
@@ -542,6 +544,19 @@ function plotxyY(plotId, wlen, cX, cY, CMFY) {
   return plot;
 }
 
+function registerShowBounds(id, plot) {
+  $(id).on('change', function(evt) {
+    var traces = [1, 2, 3, 4];
+    if($(id).is(":checked")) {
+      var data_update = {'visible': true};
+      Plotly.restyle(plot, data_update, traces);
+    } else {
+      var data_update = {'visible': 'legendonly'};
+      Plotly.restyle(plot, data_update, traces);
+    }
+  });
+}
+
 var CMFX = [], CMFY = [], CMFZ = [], cX = [], cY = [], cZ = [];
 var CMFR = [], CMFG = [], CMFB = [];
 var XYZ2RGBMat = [[0.41847, -0.15866, -0.082835], [-0.091169, 0.25243, 0.015708], [0.00092090, -0.0025498, 0.17860]];
@@ -581,6 +596,7 @@ d3.csv('ciexyz31.csv', function(err, rows){
   window.spacePlot = plotRGB('spaceDiv', wlen);
   plotXYZPrims(window.spacePlot, [X, Y, Z]);
   registerRGB2XYZ(window.spacePlot, [X, Y, Z]);
+  registerShowBounds('#showBounds', window.spacePlot);
 
   window.chrmPlot = plotChrm('chrmDiv', wlen, cR, cG);
   registerrgb2xyz(window.chrmPlot, cX, cY, cR, cG);
