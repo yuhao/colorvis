@@ -78,10 +78,11 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Part 1: The Intuition of the XYZ Color Space</h3>
-        <p>We will show what the transformation does and leave the derivation of the transformation to the next part. The left plot shows the spectral locus in the CIE 1931 RGB color space. Spin around the plot and hover the locus you will see that some spectral lights require negative amount of primaries. One goal of the XYZ space is that all spectral colors should have positive primary amounts. In other words, the spectral locus should reside in the all-positive octant of the XYZ space. One way to reason about this is to draw three vectors originating from the origin in the RGB spaces; these vectors, after transformation, will become the basis vectors. The spectral locus should be completely enclosed by the three vectors. Toggle the "show enclosing vectors" to reveal it.</p>
+        <h3>Part 1: The Intuition</h3>
+        <p>We will show what the transformation does and leave the derivation of the transformation to the next part. The left plot shows the spectral locus in the CIE 1931 RGB color space. Spin around the plot and hover the locus you will see that some spectral lights require negative amount of primaries. One goal of the XYZ space is that all spectral colors should have positive primary amounts. In other words, the spectral locus should reside in the all-positive octant of the XYZ space.</p>
+        <p>One way to reason about the RGB to XYZ transformation is to choose three vectors originating from the origin in the RGB space ($\overrightarrow{\mathbf{OC_r}}$, $\overrightarrow{\mathbf{OC_g}}$, and $\overrightarrow{\mathbf{OC_b}}$); these vectors should be chosen in such a way that they, after transformation, become the basis vectors in the XYZ space. In the RGB space, the spectral locus should be completely enclosed by the planes formed by the three vectors. Toggle the "Show Bounds" button to reveal the vectors and the bound.</p>
 
-        <div class="row my-4">
+        <div class="row mt-1 mb-4">
           <div class="col-sm-6">
             <div id="spaceDiv"></div>
             <div class="btn-group-sm d-flex justify-content-center" role="group" aria-label="Basic radio toggle button group">
@@ -109,18 +110,22 @@
           </div>
         </div>
 
-        <div class="row my-4">
-        <p>Now toggle the "XYZ" button. You will see the locus in the XYZ space, i.e., after applying the transformation to the RGB space. The three vectors are now the unit basis vectors in the XYZ space, and the spectral locus is completely in the all-positive octant.</p>
-        <p>The RGB to XYZ transformation also means there is a corresponding rg-chromaticity to xy-chromaticity transformation, which we visualize in the plot on the right. Toggle the "xy-chromaticity" button to see the transformation. While RGB-to-XYZ is a linear transformation, rg-to-xy is not. This is because RGB-to-rgb is not a linear transformation.</p>
-        </div>
+        <p>Now click the "XYZ" button. You will see the transformed locus in the XYZ space. The three vectors are now the unit basis vectors in the XYZ space, and the spectral locus is completely within the all-positive octant in the XYZ space.</p>
+        <p>Along with the RGB to XYZ transformation, there is also a corresponding rg to xy chromaticity transformation, which we visualize in the plot on the right. Toggle the "xy-chromaticity" button to see the transformation. The chromaticity gamut of the XYZ space is the triangle, which completely encloses the spectral locus. The HVS gamut (in chromaticity) is the area under the spectral locus. Note, however, while RGB-to-XYZ is a linear transformation, rg-to-xy transformation is not. This is because RGB-to-rgb is not a linear transformation, as we discussed in <a href="chromaticity.html">the chromaticity tutorial</a>.</p>
+
+      <div class="row">
+        <h4>The xyY Color Space</h4>
+        <div id="xyYDiv"></div>
+        <p>Sometimes you will also see the notion of "xyY" space. From the an xyz triplet, we can't uniquely go back to a point in the XYZ space. Essentially, the chromaticity diagram loses the intensity information of a color. The xyY space retains the color intensity information, because the Y component, by construction, encodes the luminance information (of spectral colors of equal power).</p>
+        <p>The plot above shows the spectral locus in the xyY space. The xy coordinates of a point shows the chromaticity of the color, and the Y coordinate shows the relatively luminance. In one figure, we get both the chromaticity information and the intensity information.</p>
+      </div>
 
       </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>Part 2: xyY Color Space</h3>
-        <div id="xyYDiv"></div>
+        <h3>Part 2: The Math</h3>
       </div>
     </div>
 

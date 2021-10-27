@@ -173,7 +173,7 @@ function plotXYZPrims(plot, prims) {
     //text: wlen,
     type: 'mesh3d',
     opacity: 1,
-    color: redColor,
+    color: orangeColor,
     hoverinfo: 'skip',
     visible: 'legendonly',
   };
@@ -186,10 +186,14 @@ function plotXYZPrims(plot, prims) {
       y: [0, points[i][1]],
       z: [0, points[i][2]],
       text: ['O', texts[i]],
+      textfont: {
+        family: 'Helvetica Neue',
+        size: 16,
+      },
       type: 'scatter3d',
       showlegend: false,
       visible: 'legendonly',
-      mode: 'lines+markers',
+      mode: 'lines+markers+text',
       marker: {
         size: 4,
         opacity: 0.8,
