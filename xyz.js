@@ -233,11 +233,14 @@ function registerRGB2XYZ(plot, prims) {
 
       var layout_update = {
         'scene.xaxis.title.text': 'R',
-        'scene.yaxis.title.text': 'B',
+        'scene.yaxis.title.text': 'G',
         'scene.zaxis.title.text': 'B',
-        'scene.yaxis.scaleanchor': 'x',
-        'scene.zaxis.scaleanchor': 'x',
+        //'scene.yaxis.scaleanchor': 'x',
+        //'scene.zaxis.scaleanchor': 'x',
         'title': 'CIE 1931 RGB color space',
+        'scene.camera.center': {x: 0, y: 0, z: 0},
+        'scene.camera.eye': {x:1.25, y:1.25, z:1.25},
+        'scene.camera.up': {x: 0, y: 0, z: 1},
       };
 
       Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
@@ -264,11 +267,14 @@ function registerRGB2XYZ(plot, prims) {
         'scene.xaxis.title.text': 'X',
         'scene.yaxis.title.text': 'Y',
         'scene.zaxis.title.text': 'Z',
-        'scene.yaxis.scaleanchor': 'x',
-        'scene.zaxis.scaleanchor': 'x',
-        'scene.xaxis.constrain': 'domain',
-        'scene.xaxis.dtick': 0.1,
+        //'scene.yaxis.scaleanchor': 'x',
+        //'scene.zaxis.scaleanchor': 'x',
+        //'scene.xaxis.constrain': 'domain',
+        //'scene.xaxis.dtick': 0.1,
         'title': 'CIE 1931 XYZ color space',
+        'scene.camera.center': {x: 0, y: 0, z: 0},
+        'scene.camera.eye': {x:1.25, y:1.25, z:1.25},
+        'scene.camera.up': {x: 0, y: 0, z: 1},
       };
 
       Plotly.update(plot, data_update, layout_update, [0, 1, 2, 3, 4]);
