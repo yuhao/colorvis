@@ -80,7 +80,7 @@
       <div class="row">
         <h3>Part 1: The Intuition</h3>
         <p>We will show what the transformation does and leave the derivation of the transformation to the next part. The left plot shows the spectral locus in the CIE 1931 RGB color space. Spin around the plot and hover the locus you will see that some spectral lights require negative amount of primaries. One goal of the XYZ space is that all spectral colors should have positive primary amounts. In other words, the spectral locus should reside in the all-positive octant of the XYZ space.</p>
-        <p>One way to reason about the RGB to XYZ transformation is to choose three vectors originating from the origin in the RGB space ($\overrightarrow{\mathbf{OC_r}}$, $\overrightarrow{\mathbf{OC_g}}$, and $\overrightarrow{\mathbf{OC_b}}$); these vectors should be chosen in such a way that they, after transformation, become the basis vectors in the XYZ space. In the RGB space, the spectral locus should be completely enclosed by the planes formed by the three vectors. Toggle the "Show Bounds" button to reveal the vectors and the bound.</p>
+        <p>One way to reason about the RGB to XYZ transformation is to choose three vectors originating from the origin in the RGB space ($\overrightarrow{\mathbf{ON_r}}$, $\overrightarrow{\mathbf{ON_g}}$, and $\overrightarrow{\mathbf{ON_b}}$); these vectors should be chosen in such a way that they, after transformation, become the basis vectors in the XYZ space. In the RGB space, the spectral locus should be completely enclosed by the planes formed by the three vectors. Toggle the "Show Bounds" button to reveal the vectors and the bound.</p>
 
         <div class="row mt-1 mb-4">
           <div class="col-sm-6">
@@ -111,7 +111,7 @@
         </div>
 
         <p>Now click the "XYZ" button. You will see the transformed locus in the XYZ space. The three vectors are now the unit basis vectors in the XYZ space, and the spectral locus is completely within the all-positive octant in the XYZ space.</p>
-        <p>Along with the RGB to XYZ transformation, there is also a corresponding rg to xy chromaticity transformation, which we visualize in the plot on the right. Toggle the "xy-chromaticity" button to see the transformation. The chromaticity gamut of the XYZ space is the triangle, which completely encloses the spectral locus. The HVS gamut (in chromaticity) is the area under the spectral locus. Note, however, while RGB-to-XYZ is a linear transformation, rg-to-xy transformation is not. This is because RGB-to-rgb is not a linear transformation, as we discussed in <a href="chromaticity.html">the chromaticity tutorial</a>.</p>
+        <p>$N_r, N_g, N_b$ in RGB space are mapped to the $C_r, C_g, C_b$ points in the rg-chromaticity diagram. Along with the RGB to XYZ transformation, there is also a corresponding rg to xy chromaticity transformation on $C_r, C_g, C_b$, which we visualize in the plot on the right. Toggle the "xy-chromaticity" button to see the transformation. The chromaticity gamut of the XYZ space is the triangle, which completely encloses the spectral locus. The HVS gamut (in chromaticity) is the area under the spectral locus. Note, however, while RGB-to-XYZ is a linear transformation, rg-to-xy transformation is not. This is because RGB-to-rgb is not linear, as discussed in <a href="chromaticity.html">the chromaticity tutorial</a>.</p>
 
       <div class="row">
         <h4>The xyY Color Space</h4>

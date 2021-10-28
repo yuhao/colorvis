@@ -175,7 +175,7 @@ function plotXYZPrims(plot, prims) {
   };
   traces.push(span);
 
-  var texts = ['Cr', 'Cg', 'Cb'];
+  var texts = ['Nr', 'Ng', 'Nb'];
   for (var i = 0; i < 3; i++) {
     var line = {
       x: [0, points[i][0]],
@@ -199,11 +199,11 @@ function plotXYZPrims(plot, prims) {
         color: '#000000',
         width: 2,
       },
-      //hoverinfo: 'skip',
-      hovertemplate: '%{text}' +
-        '<br>R: %{x}' +
-        '<br>G: %{y}' +
-        '<br>B: %{z}<extra></extra>',
+      hoverinfo: 'skip',
+      //hovertemplate: '%{text}' +
+      //  '<br>R: %{x}' +
+      //  '<br>G: %{y}' +
+      //  '<br>B: %{z}<extra></extra>',
     }
 
     traces.push(line);
@@ -227,11 +227,11 @@ function registerRGB2XYZ(plot, prims) {
       var data_update = {'x': [RGB[0], span[0], lines[0][0], lines[1][0], lines[2][0]],
                          'y': [RGB[1], span[1], lines[0][1], lines[1][1], lines[2][1]],
                          'z': [RGB[2], span[2], lines[0][2], lines[1][2], lines[2][2]],
-          'hovertemplate': ['R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<br>wavelength: %{text}<extra></extra>', '',
-                            '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
-                            '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
-                            '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
-                           ]};
+          //'hovertemplate': ['R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<br>wavelength: %{text}<extra></extra>', '',
+          //                  '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
+          //                  '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',
+          //                  '%{text}<br>R: %{x}'+'<br>G: %{y}'+'<br>B: %{z}'+'<extra></extra>',]
+                           };
 
       var layout_update = {
         'scene.xaxis.title.text': 'R',
@@ -259,11 +259,11 @@ function registerRGB2XYZ(plot, prims) {
       var data_update = {'x': [XYZ[0], span[0], lines[0][0], lines[1][0], lines[2][0]],
                          'y': [XYZ[1], span[1], lines[0][1], lines[1][1], lines[2][1]],
                          'z': [XYZ[2], span[2], lines[0][2], lines[1][2], lines[2][2]],
-          'hovertemplate': ['X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<br>wavelength: %{text}<extra></extra>', '',
-                            '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
-                            '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
-                            '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
-                           ]};
+          //'hovertemplate': ['X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<br>wavelength: %{text}<extra></extra>', '',
+          //                  '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
+          //                  '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',
+          //                  '%{text}<br>X: %{x}'+'<br>Y: %{y}'+'<br>Z: %{z}'+'<extra></extra>',]
+                           };
 
       var layout_update = {
         'scene.xaxis.title.text': 'X',
