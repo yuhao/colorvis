@@ -296,6 +296,9 @@ function plotChrm(plotId, wlen, cR, cG) {
     connectgaps: true,
     line: {simplify: false},
     name: 'Spectral locus',
+    hovertemplate: '%{x}' +
+      '<br>%{y}' +
+      '<br>wavelength: %{text}<extra></extra>',
   };
  
   var xyPoints = {
@@ -304,6 +307,10 @@ function plotChrm(plotId, wlen, cR, cG) {
     mode: 'lines+markers+text',
     text: ['Cr', 'Cg', 'Cb'],
     textposition: 'bottom left',
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 16,
+    },
     marker: {
       size: 8,
       line: {
@@ -313,6 +320,8 @@ function plotChrm(plotId, wlen, cR, cG) {
       opacity: 0.8
     },
     name: 'XYZ gamut',
+    hovertemplate: '%{x}' +
+      '<br>%{y}<extra></extra>',
   };
  
   data = [rgTrace, xyPoints];
@@ -382,8 +391,8 @@ function rg2xy(plot, traces, mode) {
     setTimeout(function() {
       Plotly.animate(plot, {
         layout: {
-          xaxis: {range: [Math.min(...traces[0].x, ...traces[1].x, 0)-0.1, Math.max(...traces[0].x, ...traces[1].x, 1)+0.1]},
-          yaxis: {range: [Math.min(...traces[0].y, ...traces[1].y, 0)-0.1, Math.max(...traces[0].y, ...traces[1].y, 1)+0.1]},
+          xaxis: {range: [Math.min(...traces[0].x, ...traces[1].x, 0)-(mode == 'rg' ? 0.3 : 0.1), Math.max(...traces[0].x, ...traces[1].x, 1)+0.1]},
+          yaxis: {range: [Math.min(...traces[0].y, ...traces[1].y, 0)-(mode == 'rg' ? 0.3 : 0.1), Math.max(...traces[0].y, ...traces[1].y, 1)+0.1]},
         }
       }, {
         transition: {
@@ -410,7 +419,13 @@ function registerrgb2xyz(plot, cX, cY, cR, cG) {
       rgPoints = {
         x: chrmX,
         y: chrmY,
-        mode: 'lines+markers',
+        mode: 'lines+markers+text',
+        text: ['Cr', 'Cg', 'Cb'],
+        textposition: 'bottom left',
+        textfont: {
+          family: 'Helvetica Neue',
+          size: 16,
+        },
         marker: {
           size: 8,
           line: {
