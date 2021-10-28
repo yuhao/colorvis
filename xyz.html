@@ -73,6 +73,8 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Introduction</h3>
+        <p>In previous tutorials we have been using various RGB color spaces. You even get to construct one yourself. One slight issue with RGB color spaces is that there are many of them, each of which depends on what you mean by R, G, and B primaries (and of course the reference white). In addition, as discussed in the <a href="chromaticity.html">chromaticity tutorial</a>, there inevitable are going to be colors that can be "produced" only using negative amount of the primaries, no matter what the RGB primaries you choose. While that's mathematically and physically rigorous, it's not quite intuitive. So CIE in 1931 wanted to standardize a color space that 1) can be used as a "common language" (without having to laboriously specify what the primaries are every time you say RGB space) and that 2) all human visible colors are produced by mixing non-negative amount of the primaries. That color space is called the CIE 1931 XYZ color space, sometimes referred to simply as the XYZ color space.</p>
+        <p>This tutorial explores the intuition behind the XYZ color space, and how it is constructed from the CIE 1931 RGB color space. Before we get started, you might be wondering isn't the LMS cone space a color space that satisfies the two conditions above? It's standard, since it's tied to inherent human color perception (insofar as the "Standard Observers" are concerned). It's also a color space where all colors are expressed using positive amounts of the primaries (cone responses). That's true, but the LMS cone sensitivies were not available back in 1931. It was not until later were the cone sensitivies <a href="https://www.jstor.org/stable/35874?seq=1#metadata_info_tab_contents">experimentally measured</a>.</p>
       </div>
     </div>
 
@@ -112,13 +114,6 @@
 
         <p>Now click the "XYZ" button. You will see the transformed locus in the XYZ space. The three vectors are now the unit basis vectors in the XYZ space, and the spectral locus is completely within the all-positive octant in the XYZ space.</p>
         <p>$N_r, N_g, N_b$ in RGB space are mapped to the $C_r, C_g, C_b$ points in the rg-chromaticity diagram. Along with the RGB to XYZ transformation, there is also a corresponding rg to xy chromaticity transformation on $C_r, C_g, C_b$, which we visualize in the plot on the right. Toggle the "xy-chromaticity" button to see the transformation. The chromaticity gamut of the XYZ space is the triangle, which completely encloses the spectral locus. The HVS gamut (in chromaticity) is the area under the spectral locus. Note, however, while RGB-to-XYZ is a linear transformation, rg-to-xy transformation is not. This is because RGB-to-rgb is not linear, as discussed in <a href="chromaticity.html">the chromaticity tutorial</a>.</p>
-
-      <div class="row">
-        <h4>The xyY Color Space</h4>
-        <div id="xyYDiv"></div>
-        <p>Sometimes you will also see the notion of "xyY" space. From the an xyz triplet, we can't uniquely go back to a point in the XYZ space. Essentially, the chromaticity diagram loses the intensity information of a color. The xyY space retains the color intensity information, because the Y component, by construction, encodes the luminance information (of spectral colors of equal power).</p>
-        <p>The plot above shows the spectral locus in the xyY space. The xy coordinates of a point shows the chromaticity of the color, and the Y coordinate shows the relatively luminance. In one figure, we get both the chromaticity information and the intensity information.</p>
-      </div>
 
       </div>
     </div>
@@ -323,7 +318,22 @@
         <p>Now given the Equations $\ref{a}$, $\ref{b}$, and $\ref{c}$, we can finally solve for the four unknowns.</p>
         <p>Sometimes you will see that the $\overline{\mathbf{C_r C_b}}$ line is called the alychne, or the line of zero luminance. Here is the intuition. All the points along the $\overline{\mathbf{C_r C_b}}$ line will be transformed to sit on the $X$-axis in the xy-chromaticity diagram. What that means is that their y values are 0. y is proportional to Y, which is the same as the luminous efficiency function (as required by CIE). So points on the $\overline{\mathbf{C_r C_b}}$ line have zero luminance.</p>
         <p>Another way to understand why the choices of $C_r$ and $C_b$ are not arbitrary. This is because the second row of the matrix $T$ is already calculated from the fact that the Y CMF must match the luminous efficiency function. As a result, we know that $[1.0000, 4.5907, 0.0601] \times [\mathbf{C_r}^T, \mathbf{C_b}^T] = [0, 0]$. That is, both points must sit on the $1.0000r + 4.5907g + 0.0601b = 0$ line.</p>
+      </div>
     </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Part 3: The xyY Color Space</h3>
+        <p>Sometimes you will also see the notion of "xyY" space. That's nothing more than plotting a color using its xy chromaticity values and the Y value. Recall that from an xyz triplet of a color we can't uniquely reconstruct its XYZ value, since xyz contains just the ratio, but not the intensity information. Having the Y value helps recovers the intensity. Can we use xyX or xyZ? Yes, but the nice thing about Y is that Y, by construction, is the luminance of a light (under 1 unit radiance). In one figure, we get both the chromaticity information and the intensity information. It's convenient that way.</p>
+
+        <div class="row">
+          <div id="xyYDiv"></div>
+        </div>
+      </div>
+    </div>
+
+
+
 
     <div class="b-example-divider"></div>
   </div>
