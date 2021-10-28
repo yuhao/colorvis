@@ -1,57 +1,102 @@
-<html>
-<head>
-  <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
-  <script src="https://d3js.org/d3.v3.min.js"></script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-  <link rel="stylesheet" href="style.css">
-</head>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>Tutorials on Color Science</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/headers/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
 
 
-<body>
-  <div class="flex-container">
-    <div class="flex-child">
-      <div class="wrapper">
-        <canvas id="canvasLMS"></canvas>
-      </div>
-      <button id="resetChartLMS">Chart reset</button>
-      <button id="resetZoomLMS">Reset zoom</button>
-    </div>
-    <div class="flex-child">
-      <div id="lmsDiv"></div>
-      <button onclick="javascript:test();">Test</button>
-    </div>
-  </div>
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
 
-  <div class="flex-container">
-    <div class="flex-child">
-      <div class="wrapper">
-        <canvas id="canvasCMF"></canvas>
-      </div>
-      <button id="resetChartRGB">Chart reset</button>
-      <button id="resetZoomRGB">Reset zoom</button>
-    </div>
-    <div class="flex-child">
-      <div class="container">
-        <div id="rgbDiv"></div>
-      </div>
-      <div><button id="RGB2rgb">rgb</button></div>
-      <div><button id="rgb2RGB">RGB</button></div>
-      <div><button id="showChrmLine">Show lines</button> (Show gamut lines)</div>
-      <!--<div><button id="genGamut">Generate gamut</button> (in RGB space)</div>-->
-      <div><input type="checkbox" id="addXYZChrm" disabled>Add CIE XYZ primaries</button> (to CIE 1931 RGB chromaticities plot)</div>
-      <div><button id="RGB2XYZ">XYZ</button> (will show original CIE 1931 RGB CMF data in XYZ)</div>
-    </div>
-  </div>
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
 
+    
+    <!-- Custom styles for this template -->
+    <link href="headers.css" rel="stylesheet">
+
+    <!-- JavaScript -->
+    <script src='https://cdn.plot.ly/plotly-2.4.2.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <script src='hull.js'></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.js"></script>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [ ['$$','$$'], ['\[','\]'] ]
+          }
+        });
+        MathJax.Hub.Register.StartupHook("End",function () {
+          console.log("Mathjax loaded");
+          console.log(typeof MathJax);
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, "TFS"]);
+        });
+    </script>
+  </head>
+  <body>
+
+<main>
   <div class="container">
-    <div id="2dDiv"></div>
-  </div>
-  <button id="rg2xy">rg to xy</button>
-  <button id="xy2rg">reset to rg</button>
+    <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
+      <a href="." class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+        <h2>Interactive Tutorials on Color Science Basics</h2>
+      </a>
+    </header>
 
-  <script src="draw.js"></script>
-</body>
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Introduction</h3>
+        <p>This is a set of interactive tutorials in the form of Web apps that help understand basic concepts in color science. These tutorials are originally developed for the <a href="https://www.cs.rochester.edu/courses/572/fall2021/">Mobile Visual Computing</a> course taught at University of Rochester by <a href="http://yuhaozhu.com/">Yuhao Zhu</a>. The idea of developing interactive tutorials was inspired by a <a href="https://graphics.stanford.edu/courses/cs178/applets/">similar endeavor</a> undetaken by Marc Levoy and his students, but we use modern Web technologies and focus specifically on color science.</p>
+        <p>In many tutorials, some texts initially appear blank, indicating that their contents depend on the actions of the user, e.g., picking the primary lights. The visualization tools are designed with flexibility in mind. You, as a user, are invited to deviate away from the course of the tutorial to explore the unknowns.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Building a Color Space From Cone Fundamentals <a href="cone2cmf.html" style="text-decoration: none">&#8594;</a></h3>
+        <p>Explore the linear transformation between a color space and the cone fundamentals.</p>
+        <h3>Chromaticity, Gamut, and Imaginary Colors <a href="chromaticity.html" style="text-decoration: none">&#8594;</a></h3>
+        <p>Decouple the inherent attribute and the intensity from color. Understand the visible color gamut and imaginary colors.</p>
+        <h3>Building a Color Cube <a href="colorcube.html" style="text-decoration: none">&#8594;</a></h3>
+        <p>Building a RGB color cube. Explore its geometry and how it relates to the gamut of a color space.</p>
+        <h3>Explore Camera Color Space and Color Correction <a href="camcolor.html" style="text-decoration: none">&#8594;</a></h3>
+        <p>Explore the color perception of cameras and understand how camera captured colors are calibrated.</p>
+      </div>
+    </div>
+
+    <div class="b-example-divider"></div>
+  </div>
+
+
+</main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+  </body>
 </html>
