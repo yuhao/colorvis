@@ -321,7 +321,8 @@
         $
         </p>
         <p>Now given the Equations $\ref{a}$, $\ref{b}$, and $\ref{c}$, we can finally solve for the four unknowns.</p>
-      </div>
+        <p>Sometimes you will see that the $\overline{\mathbf{C_r C_b}}$ line is called the alychne, or the line of zero luminance. Here is the intuition. All the points along the $\overline{\mathbf{C_r C_b}}$ line will be transformed to sit on the $X$-axis in the xy-chromaticity diagram. What that means is that their y values are 0. y is proportional to Y, which is the same as the luminous efficiency function (as required by CIE). So points on the $\overline{\mathbf{C_r C_b}}$ line have zero luminance.</p>
+        <p>Another way to understand why the choices of $C_r$ and $C_b$ are not arbitrary. This is because the second row of the matrix $T$ is already calculated from the fact that the Y CMF must match the luminous efficiency function. As a result, we know that $[1.0000, 4.5907, 0.0601] \times [\mathbf{C_r}^T, \mathbf{C_b}^T] = [0, 0]$. That is, both points must sit on the $1.0000r + 4.5907g + 0.0601b = 0$ line.</p>
     </div>
 
     <div class="b-example-divider"></div>
