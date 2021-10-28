@@ -127,7 +127,31 @@
       <div class="row">
         <h3>Part 2: The Math</h3>
         <p>The actual process of deriving the transformation is a bit messy. Fairman et al. has a <a href="https://silo.tips/download/how-the-cie-1931-color-matching-functions-were-derived-from-wright-guild-data">detailed paper</a> (<a href="https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291520-6378%28199808%2923%3A4%3C259%3A%3AAID-COL18%3E3.0.CO%3B2-7">erratum</a>) describing the intricacies of the derivation with many interesting historical notes that are definitely worth reading. We will simplify a few minor details and present the main steps in deriving the transformation matrix.</p>
-        <p>The goal is to obtain a transformation $T$ that converts every $RGB$ triplet to an $XYZ$ triplet. The transformation when applied to spectral lights will result in the following system of equations.</p>
+        <p>The goal is to obtain a transformation $T$ that converts every $RGB$ triplet to an $XYZ$ triplet by:</p> 
+        <p>
+        $
+        \begin{bmatrix}
+        X \\
+        Y \\
+        Z 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        T_{00} & T_{01} & T_{02} \\
+        T_{10} & T_{11} & T_{12} \\
+        T_{20} & T_{21} & T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        R \\
+        G \\
+        B 
+        \end{bmatrix},
+        $
+        </p>
+        <p>There are nine unknowns in matrix $T$. We will need to somehow come up with nine equations to solve for them. Of course, technically nothing prevents us from writing an arbitrary matrix and use it as the transformation matrix. However, CIE 1931 imposed various requirements that will lead to a unique transformation matrix. We will dissect the requirements step by step.</p>
+       
+        <h4>Step 1: From 9 Unknowns to 6 Unknowns</h4>
+
+        <p>The transformation matrix, when applied to spectral lights, essentially transforms the RGB Color Matching Functions (CMFs) to the corresponding XYZ CMFs:</p>
         <p>
         $
         \begin{bmatrix}
@@ -147,11 +171,12 @@
         \end{bmatrix},
         $
         </p>
-        <p>You will see that this transformation essentially transforms the RGB CMFs to the XYZ CMFs. There are nine unknowns in matrix $T$. We will need to somehow come up with nine equations to solve for them. The nine equations are obtained through various requirements that we impose on the transformation. We will dissect the requirements step by step.</p>
-        <h4>Step 1: From 9 Unknowns to 6 Unknowns</h4>
-        <p>The first requirement is that the transformed Y values should exactly match the <a href="https://en.wikipedia.org/wiki/Luminous_efficiency_function">photopic luminous efficiency function</a> $V(\lambda)$ as defined in the CIE 1924 standard. That is:</p>
+        <p>CIE 1931 required that the Y CMF should exactly match the <a href="https://en.wikipedia.org/wiki/Luminous_efficiency_function">photopic luminous efficiency function</a> $V(\lambda)$ as defined in the CIE 1924 standard, which documents $V(\lambda)$ wavelength by wavelength. That is:</p>
         <p>
         $
+        \begin{bmatrix}
+        V_{380} & \cdots & V_{500} & \cdots & V_{780}
+        \end{bmatrix} =
         \begin{bmatrix}
         Y_{380} & \cdots & Y_{500} & \cdots & Y_{780}
         \end{bmatrix} =
@@ -165,9 +190,9 @@
         \end{bmatrix},
         $
         </p>
-        <p>Why did CIE 1931 have this requirement? It's merely out of convenience. This is an over-determined system, with 3 unknowns but many more equations. We could estimate a best-fit. But does a best-fit exist? In theory, the transformation here is exact. Since the RGB CMFs are a linear transformation away from the LMS cone fundamentals as discussed in this tutorial, and the luminous efficiency function is, in theory, a linear transformation of the LMS cone fundamentals too. So in theory there will be an exact transformation. In fact, the CIE 1931 RGB CMFs are derived from the CIE 1924 CIE luminous efficiency function (see <a href="http://yuhaozhu.com/blog/cmf.html">discussion here</a>), so $[T_{10}, T_{11}, T_{12}]$ is exactly calculated; $T_{10} = 1.0000, T_{11} = 4.5907, T_{12} = 0.0601]$.</p>
+        <p>This is an over-determined system, with 3 unknowns but many more equations. So generally we would have to estimate a best-fit. But in this case, there actually is a perfect fit, at least theoretically. In theory, the RGB CMFs are a linear transformation away from the LMS cone fundamentals as discussed in <a href="cone2cmf.html">this tutorial</a>, and the luminous efficiency function is, in theory, <a href="http://www.cvrl.org/database/text/lum/CIE2008v10.htm">also a linear transformation</a> from the LMS cone fundamentals. In fact, the CIE 1931 RGB CMFs, by construction, are linearly transformed from the CIE 1924 CIE luminous efficiency function (see <a href="http://yuhaozhu.com/blog/cmf.html">discussion here</a>). So $[T_{10}, T_{11}, T_{12}]$ is exactly calculated: $T_{10} = 1.0000, T_{11} = 4.5907, T_{12} = 0.0601]$.</p>
         <h4>Step 2: From 6 Unknowns to 4 Unknowns</h4>
-        <p>CIE 1931 also required that the reference white of the XYZ space should be the same as that in the CIE 1931 RGB space (the reference white happens to be Equal-Energy White, but that's irrelevant here). As a result, $[1, 1, 1]$ in the RGB space should be mapped to $[K, K, K]$ in the XYZ space, where $K$ is a constant, indicating that white is represented by equal amount of the XYZ primaries. What this means is that the sums of each row in matrix $T$ should be same, and we know the sum of the second row, because the three elements in the second row are calculated in the previous step already. That is:</p>
+        <p>CIE 1931 required that the reference white in the XYZ space should be the same as that in the CIE 1931 RGB space (the exact reference white used is irrelavent, but it happens to be Equal-Energy White). As a result, $[1, 1, 1]$ in the RGB space should be mapped to $[K, K, K]$ in the XYZ space, where $K$ is a constant, indicating that white is represented by equal amount of the XYZ primaries. What this means is that the sums of each row in matrix $T$ should be same, and we know the sum of the second row, because the three elements in the second row are calculated in the previous step already. That is:</p>
         <p>$T_{00} + T_{01} + T_{02} = T_{20} + T_{21} + T_{22} = 1.0000 + 4.5907 + 0.0601 = 5.6508$.</p>
         <p>This allows us to reduce the matrix to just 4 unknowns:</p>
         <p>
@@ -177,8 +202,125 @@
         5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
         \end{bmatrix}
         </p>
-        <h4>Step 3: Solving the 4 Unknowns</h4>
-        <p>CIE 1931 also required that, in the chromaticity diagram, the HVS gamut fills the triangle formed by the XYZ primaries as much as possible. This is equivalent to picking a triangle in the rg-chromaticity diagram that just circumscribes the spectral locus. There are many such triangles, and the exact choice is somewhat arbitrary, but in the end, $C_r$ is chosen to be $[1.27, -0.28, 0.01]$, $C_g$ is chosen to be $[-1.74, 2.77, -0.03]$, and $Cb$ is chosen to be $[-0.74, 0.14, 1.60]$. Therefore, we have:</p>
+        <h4>Step 3: Solving For the 4 Unknowns</h4>
+        <p>CIE 1931 also required that, in the chromaticity diagram, the HVS gamut fills the triangle formed by the XYZ primaries as much as possible (as a by-product, this ensures the XYZ CMFs are non-negative on all wavelengths). This is equivalent to picking a triangle (with the vertices $C_r, C_g, C_b$) in the rg-chromaticity diagram so that the triangle just circumscribes the spectral locus. This triangle will be transformed to be the $[1, 0], [0, 0], [0, 1]$ triangle in the xy-chromaticity diagram. There are many such triangles, and the exact choice is somewhat arbitrary. In the end the choices are: $C_r = [1.2749, -0.2777, 0.0028]$, $C_g = [-1.7400, 2.7677, -0.0277]$, and $C_b = [-0.7430, 0.1408, 1.6022]$. In realty, the choice of $C_r$ and $C_b$ are not arbitrary, the reason of which will become clear soon. But overrall, the choice of the triangle had quite a bit of flexbility, and the XYZ space could have been quite different if a different triangle had been chosen.</p>
+        <p>Using the $C_g$ coordinates, we have:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        5.6508 - T_{01} - T_{02} && T_{01} && T_{02} \\
+        1.0000 && 4.5907 && 0.0601 \\
+        5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        -1.7400k \\
+        2.7677k \\
+        -0.027k 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        0 \\
+        C \\
+        0 
+        \end{bmatrix}
+        $
+        </p>
+        <p>where $k$ is a constant that converts a $rgb$ chromaticity to a $RGB$ triplet (remember, we want to derive a RGB-to-XYZ matrix, not a rgb-to-xyz matrix), and $C$ is a non-zero constant indicating that $C_g$ will be converted to a $XYZ$ triplet where only the $Y$ value is non-zero (the actual value of $C$ is related to $k$ and is not important here).</p>
+        <p>We know $k$ can't be zero, since $C$ is definitely not zero. Therefore, we have:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        5.6508 - T_{01} - T_{02} && T_{01} && T_{02} \\
+        5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        -1.7400 \\
+        2.7677 \\
+        -0.027 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        0 \\
+        0 
+        \end{bmatrix}
+        \label{a}\tag{1}
+        $
+        </p>
+        <p>Similarly, using the $C_b$ coordinates we have:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        5.6508 - T_{01} - T_{02} && T_{01} && T_{02} \\
+        1.0000 && 4.5907 && 0.0601 \\
+        5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        -0.7430k \\
+        0.1408k \\
+        1.6022k 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        0 \\
+        0 \\
+        C 
+        \end{bmatrix}
+        $, where $k$ and $C$ are again constants, but their values are not the same as in the $C_g$ case.
+        </p>
+        <p>Here you can see that the choice of $C_b$ can't be arbitrary, because we must satify $[1.0000, 4.5907, 0.0601] \times [−0.7430, 0.1408, 1.6022]^T = 0$</p>
+        <p>We can't really say anything about $T_{21}$ and $T_{22}$, because we don't know what $C$ is, but we definitely can make use of the first row leveraging that $k$ must be non-zero:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        5.6508 - T_{01} - T_{02} && T_{01} && T_{02}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        -0.7430 \\
+        0.1408 \\
+        1.6022 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        0 
+        \end{bmatrix}
+        \label{b}\tag{2}
+        $
+        </p>
+        <p>Now let's use the $C_r$ coordinates:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        5.6508 - T_{01} - T_{02} && T_{01} && T_{02} \\
+        1.0000 && 4.5907 && 0.0601 \\
+        5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        1.2749k \\
+        -0.2777k \\
+        0.0028k 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        C \\
+        0 \\
+        0 
+        \end{bmatrix}
+        $.
+        </p>
+        <p>Again you can see that the choice of $C_r$ can't be arbitrary, as it must hold that $[1.0000, 4.5907, 0.0601] \times [1.2749, -0.2777, 0.0028]^T = 0$</p>
+        <p>We can't use the first row, as $C$ is unknown, but we can use the last row:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        1.2749 \\
+        -0.2777 \\
+        0.0028 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        0 
+        \end{bmatrix}
+        \label{c}\tag{3}
+        $
+        </p>
+        <p>Now given the Equations $\ref{a}$, $\ref{b}$, and $\ref{c}$, we can finally solve for the four unknowns.</p>
       </div>
     </div>
 

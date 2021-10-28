@@ -164,13 +164,9 @@ function plotXYZPrims(plot, prims) {
     x: [0, X[0], Y[0], Z[0], XY[0], XZ[0], YZ[0]],
     y: [0, X[1], Y[1], Z[1], XY[1], XZ[1], YZ[1]],
     z: [0, X[2], Y[2], Z[2], XY[2], XZ[2], YZ[2]],
-    //i: [0, 1, 0, 2, 0, 1],
-    //j: [1, 2, 2, 3, 1, 3],
-    //k: [2, 4, 3, 6, 3, 5],
     i: [0, 0, 0],
     j: [1, 2, 1],
     k: [2, 3, 3],
-    //text: wlen,
     type: 'mesh3d',
     opacity: 1,
     color: orangeColor,
@@ -288,8 +284,8 @@ function registerRGB2XYZ(plot, prims) {
   });
 }
 
-var chrmX = [1.27, -1.74, -0.74, 1.27];
-var chrmY = [-0.28, 2.77, 0.14, -0.28];
+var chrmX = [1.2749, -1.7400, -0.7430, 1.2749];
+var chrmY = [-0.2777, 2.7677, 0.1408, -0.2777];
 
 function plotChrm(plotId, wlen, cR, cG) {
   var rgTrace = {
@@ -305,7 +301,9 @@ function plotChrm(plotId, wlen, cR, cG) {
   var xyPoints = {
     x: chrmX,
     y: chrmY,
-    mode: 'lines+markers',
+    mode: 'lines+markers+text',
+    text: ['Cr', 'Cg', 'Cb'],
+    textposition: 'bottom left',
     marker: {
       size: 8,
       line: {
