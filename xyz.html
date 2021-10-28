@@ -126,6 +126,59 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Part 2: The Math</h3>
+        <p>The actual process of deriving the transformation is a bit messy. Fairman et al. has a <a href="https://silo.tips/download/how-the-cie-1931-color-matching-functions-were-derived-from-wright-guild-data">detailed paper</a> (<a href="https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291520-6378%28199808%2923%3A4%3C259%3A%3AAID-COL18%3E3.0.CO%3B2-7">erratum</a>) describing the intricacies of the derivation with many interesting historical notes that are definitely worth reading. We will simplify a few minor details and present the main steps in deriving the transformation matrix.</p>
+        <p>The goal is to obtain a transformation $T$ that converts every $RGB$ triplet to an $XYZ$ triplet. The transformation when applied to spectral lights will result in the following system of equations.</p>
+        <p>
+        $
+        \begin{bmatrix}
+        X_{380} & \cdots & X_{500} & \cdots & X_{780} \\
+        Y_{380} & \cdots & Y_{500} & \cdots & Y_{780} \\
+        Z_{380} & \cdots & Z_{500} & \cdots & Z_{780} 
+        \end{bmatrix} =
+        \begin{bmatrix}
+        T_{00} & T_{01} & T_{02} \\
+        T_{10} & T_{11} & T_{12} \\
+        T_{20} & T_{21} & T_{22}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        R_{380} & \cdots & R_{500} & \cdots & R_{780} \\
+        G_{380} & \cdots & G_{500} & \cdots & G_{780} \\
+        B_{380} & \cdots & B_{500} & \cdots & B_{780} 
+        \end{bmatrix},
+        $
+        </p>
+        <p>You will see that this transformation essentially transforms the RGB CMFs to the XYZ CMFs. There are nine unknowns in matrix $T$. We will need to somehow come up with nine equations to solve for them. The nine equations are obtained through various requirements that we impose on the transformation. We will dissect the requirements step by step.</p>
+        <h4>Step 1: From 9 Unknowns to 6 Unknowns</h4>
+        <p>The first requirement is that the transformed Y values should exactly match the <a href="https://en.wikipedia.org/wiki/Luminous_efficiency_function">photopic luminous efficiency function</a> $V(\lambda)$ as defined in the CIE 1924 standard. That is:</p>
+        <p>
+        $
+        \begin{bmatrix}
+        Y_{380} & \cdots & Y_{500} & \cdots & Y_{780}
+        \end{bmatrix} =
+        \begin{bmatrix}
+        T_{10} & T_{11} & T_{12}
+        \end{bmatrix} \times
+        \begin{bmatrix}
+        R_{380} & \cdots & R_{500} & \cdots & R_{780} \\
+        G_{380} & \cdots & G_{500} & \cdots & G_{780} \\
+        B_{380} & \cdots & B_{500} & \cdots & B_{780} 
+        \end{bmatrix},
+        $
+        </p>
+        <p>Why did CIE 1931 have this requirement? It's merely out of convenience. This is an over-determined system, with 3 unknowns but many more equations. We could estimate a best-fit. But does a best-fit exist? In theory, the transformation here is exact. Since the RGB CMFs are a linear transformation away from the LMS cone fundamentals as discussed in this tutorial, and the luminous efficiency function is, in theory, a linear transformation of the LMS cone fundamentals too. So in theory there will be an exact transformation. In fact, the CIE 1931 RGB CMFs are derived from the CIE 1924 CIE luminous efficiency function (see <a href="http://yuhaozhu.com/blog/cmf.html">discussion here</a>), so $[T_{10}, T_{11}, T_{12}]$ is exactly calculated; $T_{10} = 1.0000, T_{11} = 4.5907, T_{12} = 0.0601]$.</p>
+        <h4>Step 2: From 6 Unknowns to 4 Unknowns</h4>
+        <p>CIE 1931 also required that the reference white of the XYZ space should be the same as that in the CIE 1931 RGB space (the reference white happens to be Equal-Energy White, but that's irrelevant here). As a result, $[1, 1, 1]$ in the RGB space should be mapped to $[K, K, K]$ in the XYZ space, where $K$ is a constant, indicating that white is represented by equal amount of the XYZ primaries. What this means is that the sums of each row in matrix $T$ should be same, and we know the sum of the second row, because the three elements in the second row are calculated in the previous step already. That is:</p>
+        <p>$T_{00} + T_{01} + T_{02} = T_{20} + T_{21} + T_{22} = 1.0000 + 4.5907 + 0.0601 = 5.6508$.</p>
+        <p>This allows us to reduce the matrix to just 4 unknowns:</p>
+        <p>
+        \begin{bmatrix}
+        5.6508 - T_{01} - T_{02} && T_{01} && T_{02} \\
+        1.0000 && 4.5907 && 0.0601 \\
+        5.6508 - T_{21} - T_{22} && T_{21} && T_{22}
+        \end{bmatrix}
+        </p>
+        <h4>Step 3: Solving the 4 Unknowns</h4>
+        <p>CIE 1931 also required that, in the chromaticity diagram, the HVS gamut fills the triangle formed by the XYZ primaries as much as possible. This is equivalent to picking a triangle in the rg-chromaticity diagram that just circumscribes the spectral locus. There are many such triangles, and the exact choice is somewhat arbitrary, but in the end, $C_r$ is chosen to be $[1.27, -0.28, 0.01]$, $C_g$ is chosen to be $[-1.74, 2.77, -0.03]$, and $Cb$ is chosen to be $[-0.74, 0.14, 1.60]$. Therefore, we have:</p>
       </div>
     </div>
 
