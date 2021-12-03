@@ -965,7 +965,7 @@ d3.csv('ciesi.csv', function(err, rows){
 
 function registerChooseCase(id, genLinSys, calcMat, camSel) {
   $(id).on('click', function(evt) {
-    $(camSel).val('iPhone 12 Pro Max').trigger('change');
+    $(camSel).val('iPhone12ProMAX').trigger('change');
     $(genLinSys).trigger('click');
     $(calcMat).trigger('click');
   });
