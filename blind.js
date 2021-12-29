@@ -56,9 +56,9 @@ d3.csv('hpe_5.csv', function(err, rows){
   var wM = dConeM.reduce((a, b) => a+b, 0);
   var wS = dConeS.reduce((a, b) => a+b, 0);
 
-  var a475 = [dConeL[(475-firstW)/stride], dConeM[(475-firstW)/stride], dConeS[(475-firstW)/stride]]
-  var a575 = [dConeL[(575-firstW)/stride], dConeM[(575-firstW)/stride], dConeS[(575-firstW)/stride]]
-  var aWhite = [1, 1, 1]
+  var a475 = [dConeL[(475-firstW)/stride]*1.7, dConeM[(475-firstW)/stride]*1.7, dConeS[(475-firstW)/stride]*1.7]
+  var a575 = [dConeL[(575-firstW)/stride]*1.7, dConeM[(575-firstW)/stride]*1.7, dConeS[(575-firstW)/stride]*1.7]
+  var aWhite = [1.7, 1.7, 1.7]
 
   var plane1 = {
     x: [0, a475[0], aWhite[0]],
