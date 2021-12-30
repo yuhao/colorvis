@@ -58,14 +58,44 @@ d3.csv('hpe_5.csv', function(err, rows){
   var wM = dConeM.reduce((a, b) => a+b, 0);
   var wS = dConeS.reduce((a, b) => a+b, 0);
 
-  var a475 = [dConeL[(475-firstW)/stride]*1.8, dConeM[(475-firstW)/stride]*1.8, dConeS[(475-firstW)/stride]*1.8];
-  var a575 = [dConeL[(575-firstW)/stride]*1.8, dConeM[(575-firstW)/stride]*1.8, dConeS[(575-firstW)/stride]*1.8];
+  var a475 = [dConeL[(475-firstW)/stride], dConeM[(475-firstW)/stride], dConeS[(475-firstW)/stride]];
+  var a575 = [dConeL[(575-firstW)/stride], dConeM[(575-firstW)/stride], dConeS[(575-firstW)/stride]];
   var aWhite = math.multiply([wL, wM, wS], 0.1); // this is EEW
-  aOrig = math.multiply(aWhite, -0.2);
+  var aOrig = [0, 0, 0];
   var normal1 = math.cross(a475, aWhite);
   var normal2 = math.cross(aWhite, a575);
 
+  // anchor annotations
+  var anchor = {
+    x: [aOrig[0], a475[0], a575[0], aWhite[0]],
+    y: [aOrig[1], a475[1], a575[1], aWhite[1]],
+    z: [aOrig[2], a475[2], a575[2], aWhite[2]],
+    text: ['O', '475 nm', '575 nm', 'EEW'],
+    textposition: 'bottom',
+    mode: 'markers+text',
+    type: 'scatter3d',
+    showlegend: false,
+    //visible: 'legendonly',
+    marker: {
+      color: '#000000',
+      size: 6,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 15,
+    },
+    hovertemplate: 'L: %{x}' +
+      '<br>M: %{y}' +
+      '<br>S: %{z}<extra></extra>',
+    hoverinfo: 'skip',
+  };
+
   // this is to make sure when projecting to the ms-plane the triangles are square
+  aOrig = math.multiply(aWhite, -0.2);
+  a475 = math.multiply(a475, 1.8);
+  a575 = math.multiply(a575, 1.8);
   a475[1] = aOrig[1];
   a475[2] = aWhite[2];
   a475[0] = -((normal1[1] * a475[1] + normal1[2] * a475[2]) / normal1[0]);
@@ -126,33 +156,6 @@ d3.csv('hpe_5.csv', function(err, rows){
       '<br>wavelength: %{text}<extra></extra>' ,
     type: 'scatter3d',
     name: 'Spectral locus',
-  };
-
-  // anchor annotations
-  var anchor = {
-    x: [aOrig[0], a475[0], a575[0], aWhite[0]],
-    y: [aOrig[1], a475[1], a575[1], aWhite[1]],
-    z: [aOrig[2], a475[2], a575[2], aWhite[2]],
-    text: ['O', '475 nm', '575 nm', 'EEW'],
-    textposition: 'left',
-    mode: 'markers+text',
-    type: 'scatter3d',
-    showlegend: false,
-    //visible: 'legendonly',
-    marker: {
-      color: '#000000',
-      size: 6,
-      symbol: 'circle',
-      //opacity: 1,
-    },
-    textfont: {
-      family: 'Helvetica Neue',
-      size: 15,
-    },
-    hovertemplate: 'Origin<br>L: %{x}' +
-      '<br>M: %{y}' +
-      '<br>S: %{z}<extra></extra>',
-    hoverinfo: 'skip',
   };
 
   // projected locus
