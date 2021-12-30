@@ -128,6 +128,33 @@ d3.csv('hpe_5.csv', function(err, rows){
     name: 'Spectral locus',
   };
 
+  // anchor annotations
+  var anchor = {
+    x: [aOrig[0], a475[0], a575[0], aWhite[0]],
+    y: [aOrig[1], a475[1], a575[1], aWhite[1]],
+    z: [aOrig[2], a475[2], a575[2], aWhite[2]],
+    text: ['O', '475 nm', '575 nm', 'EEW'],
+    textposition: 'left',
+    mode: 'markers+text',
+    type: 'scatter3d',
+    showlegend: false,
+    //visible: 'legendonly',
+    marker: {
+      color: '#000000',
+      size: 6,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 15,
+    },
+    hovertemplate: 'Origin<br>L: %{x}' +
+      '<br>M: %{y}' +
+      '<br>S: %{z}<extra></extra>',
+    hoverinfo: 'skip',
+  };
+
   // projected locus
   function project(normal, m, s) {
     return - (normal[1] * m + normal[2] * dConeS[i]) / normal[0];
@@ -219,7 +246,7 @@ d3.csv('hpe_5.csv', function(err, rows){
     traces.push(line);
   }
 
-  var data = [trace, newTrace, plane1, plane2].concat(traces);
+  var data = [trace, newTrace, plane1, plane2, anchor].concat(traces);
  
   var layout = {
     height: 800,
@@ -319,10 +346,10 @@ function showsRGB(id, plot) {
 
   if($(id).is(":checked")) {
     var data_update = {'visible': true};
-    Plotly.restyle(plot, data_update, [...Array(numWaves+4).keys()].slice(4));
+    Plotly.restyle(plot, data_update, [...Array(numWaves+5).keys()].slice(5));
   } else {
     var data_update = {'visible': 'legendonly'};
-    Plotly.restyle(plot, data_update, [...Array(numWaves+4).keys()].slice(4));
+    Plotly.restyle(plot, data_update, [...Array(numWaves+5).keys()].slice(5));
   }
 }
 
