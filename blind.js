@@ -32,14 +32,16 @@ function unpack(rows, key, toNum) {
 }
 
 function range(start, end, stride) {
-  return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride)
+  return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride);
 }
 
-var colMat = [[0,1.082189751,-0.09295193697], [0,0.9892162074,0.0008488072668], [0,-0.00690805202,1.000542994]]
-var hpe_xyz2lms = [[0.40,0.71,-0.08], [-0.23,1.17,0.05], [0.00,0.00,0.92]]
-var sRGB_xyz = [[0.6400, 0.3300, 0.0300], [0.3000, 0.6000, 0.1000], [0.1500, 0.0600, 0.7900]]
+var hpe_xyz2lms = [[0.3897,0.689,-0.0787], [-0.2298,1.1834,0.0464], [0,0,1]];
+var hpe_xyz2lms_d65 = [[0.40,0.71,-0.08], [-0.23,1.17,0.05], [0.00,0.00,0.92]]; // D65 adapted
+// this is XYZ of sRGB primaries (not xyz)
+var sRGB_xyz = [[0.4123151515,0.21,0.01932727273], [0.3576,0.72,0.1192], [0.1805,0.07,0.9506333333]];
 var sRGB_lms = math.transpose(math.multiply(hpe_xyz2lms, math.transpose(sRGB_xyz)))
 
+// read hpe_d65_5.csv for d65-adapted hpe lms, and then use hpe_xyz2lms_d65 matrix
 d3.csv('hpe_5.csv', function(err, rows){
   var stride = 5;
 
@@ -58,14 +60,23 @@ d3.csv('hpe_5.csv', function(err, rows){
 
   var a475 = [dConeL[(475-firstW)/stride]*1.8, dConeM[(475-firstW)/stride]*1.8, dConeS[(475-firstW)/stride]*1.8];
   var a575 = [dConeL[(575-firstW)/stride]*1.8, dConeM[(575-firstW)/stride]*1.8, dConeS[(575-firstW)/stride]*1.8];
-  var aWhite = math.multiply([wL, wM, wS], 0.1);
-  a475 = math.subtract(a475, math.multiply(math.subtract(aWhite, a475), 0.2));
-  a575 = math.add(a575, math.multiply(math.subtract(a575, [0, 0, 0]), 0.3));
+  var aWhite = math.multiply([wL, wM, wS], 0.1); // this is EEW
+  aOrig = math.multiply(aWhite, -0.2);
+  var normal1 = math.cross(a475, aWhite);
+  var normal2 = math.cross(aWhite, a575);
+
+  // this is to make sure when projecting to the ms-plane the triangles are square
+  a475[1] = aOrig[1];
+  a475[2] = aWhite[2];
+  a475[0] = -((normal1[1] * a475[1] + normal1[2] * a475[2]) / normal1[0]);
+  a575[1] = aWhite[1];
+  a575[2] = aOrig[2];
+  a575[0] = -((normal2[1] * a575[1] + normal2[2] * a575[2]) / normal2[0]);
 
   var plane1 = {
-    x: [0, a475[0], aWhite[0]],
-    y: [0, a475[1], aWhite[1]],
-    z: [0, a475[2], aWhite[2]],
+    x: [aOrig[0], a475[0], aWhite[0]],
+    y: [aOrig[1], a475[1], aWhite[1]],
+    z: [aOrig[2], a475[2], aWhite[2]],
     i: [0],
     j: [1],
     k: [2],
@@ -77,9 +88,9 @@ d3.csv('hpe_5.csv', function(err, rows){
   };
 
   var plane2 = {
-    x: [0, a575[0], aWhite[0]],
-    y: [0, a575[1], aWhite[1]],
-    z: [0, a575[2], aWhite[2]],
+    x: [aOrig[0], a575[0], aWhite[0]],
+    y: [aOrig[1], a575[1], aWhite[1]],
+    z: [aOrig[2], a575[2], aWhite[2]],
     i: [0],
     j: [1],
     k: [2],
@@ -118,9 +129,6 @@ d3.csv('hpe_5.csv', function(err, rows){
   };
 
   // projected locus
-  var normal1 = math.cross(a475, aWhite);
-  var normal2 = math.cross(aWhite, a575);
-
   function project(normal, m, s) {
     return - (normal[1] * m + normal[2] * dConeS[i]) / normal[0];
   };
