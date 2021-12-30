@@ -64,7 +64,7 @@
   <div class="container">
     <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
       <a href="." class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-        <h2>Tutorial 1: Building a Color Space From Cone Fundamentals</h2>
+        <h2>Tutorial 6: Understanding Color Blindness</h2>
       </a>
     </header>
 
@@ -76,10 +76,28 @@
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>HPE LMS</h3>
+        <h3>The Intuition</h3>
       </div>
       <div class="row">
-        <div id="lmsDiv"></div>
+        <div class="col-sm-4 d-flex align-self-center">
+          <div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="showPlanes">
+              <label class="form-check-label" for="showPlanes"><b>Show Projection Plane</b></label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="showProjLocus">
+              <label class="form-check-label" for="showProjLocus"><b>Show Locus for Protanopes</b></label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="showsRGB">
+              <label class="form-check-label" for="showsRGB"><b>Show sRGB Gamut</b></label>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-8">
+          <div id="lmsDiv"></div>
+        </div>
       </div>
     </div>
 

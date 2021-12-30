@@ -56,9 +56,11 @@ d3.csv('hpe_5.csv', function(err, rows){
   var wM = dConeM.reduce((a, b) => a+b, 0);
   var wS = dConeS.reduce((a, b) => a+b, 0);
 
-  var a475 = [dConeL[(475-firstW)/stride]*1.7, dConeM[(475-firstW)/stride]*1.7, dConeS[(475-firstW)/stride]*1.7]
-  var a575 = [dConeL[(575-firstW)/stride]*1.7, dConeM[(575-firstW)/stride]*1.7, dConeS[(575-firstW)/stride]*1.7]
-  var aWhite = [1.7, 1.7, 1.7]
+  var a475 = [dConeL[(475-firstW)/stride]*1.8, dConeM[(475-firstW)/stride]*1.8, dConeS[(475-firstW)/stride]*1.8];
+  var a575 = [dConeL[(575-firstW)/stride]*1.8, dConeM[(575-firstW)/stride]*1.8, dConeS[(575-firstW)/stride]*1.8];
+  var aWhite = math.multiply([wL, wM, wS], 0.1);
+  a475 = math.subtract(a475, math.multiply(math.subtract(aWhite, a475), 0.2));
+  a575 = math.add(a575, math.multiply(math.subtract(a575, [0, 0, 0]), 0.3));
 
   var plane1 = {
     x: [0, a475[0], aWhite[0]],
@@ -71,7 +73,7 @@ d3.csv('hpe_5.csv', function(err, rows){
     opacity: 0.3,
     color: orangeColor,
     hoverinfo: 'skip',
-    //visible: 'legendonly',
+    visible: 'legendonly',
   };
 
   var plane2 = {
@@ -85,7 +87,7 @@ d3.csv('hpe_5.csv', function(err, rows){
     opacity: 0.3,
     color: purpleColor,
     hoverinfo: 'skip',
-    //visible: 'legendonly',
+    visible: 'legendonly',
   };
 
   // the spectral locus
@@ -115,6 +117,55 @@ d3.csv('hpe_5.csv', function(err, rows){
     name: 'Spectral locus',
   };
 
+  // projected locus
+  var normal1 = math.cross(a475, aWhite);
+  var normal2 = math.cross(aWhite, a575);
+
+  function project(normal, m, s) {
+    return - (normal[1] * m + normal[2] * dConeS[i]) / normal[0];
+  };
+
+  var projConeL = [];
+  for (var i = 0; i < dConeL.length; i++) {
+    var l = dConeL[i];
+    var m = dConeM[i];
+    var s = dConeS[i];
+
+    var normal;
+    if ((m == 0) || (s/m < aWhite[2]/aWhite[1]))
+      normal = normal2;
+    else normal = normal1;
+    var lPrime = project(normal, m, s);
+    projConeL.push(lPrime);
+  }
+
+  lmsLocusMarkerColors = Array(wlen.length).fill('#000000');
+  var newTrace = {
+    x: projConeL,
+    y: dConeM,
+    z: dConeS,
+    text: wlen,
+    mode: 'lines+markers',
+    marker: {
+      size: 6,
+      opacity: 0.8,
+      color: lmsLocusMarkerColors,
+    },
+    line: {
+      color: '#000000',
+      width: 2
+    },
+    visible: 'legendonly',
+    // https://plotly.com/python/hover-text-and-formatting/#customizing-hover-text-with-a-hovertemplate
+    // <extra> tag to suppress trace name
+    hovertemplate: 'L: %{x}' +
+      '<br>M: %{y}' +
+      '<br>S: %{z}' +
+      '<br>wavelength: %{text}<extra></extra>' ,
+    type: 'scatter3d',
+    name: 'Protaonpia spectral locus',
+  };
+
   // the sRGB gamut
   var traces = [];
   // O: 0; R: 1; G: 2: B: 3
@@ -139,6 +190,7 @@ d3.csv('hpe_5.csv', function(err, rows){
       mode: modes[i],
       type: 'scatter3d',
       showlegend: false,
+      visible: 'legendonly',
       line: {
         width: 2,
         color: '#000000',
@@ -159,7 +211,7 @@ d3.csv('hpe_5.csv', function(err, rows){
     traces.push(line);
   }
 
-  var data = [trace, plane1, plane2].concat(traces);
+  var data = [trace, newTrace, plane1, plane2].concat(traces);
  
   var layout = {
     height: 800,
@@ -226,7 +278,61 @@ d3.csv('hpe_5.csv', function(err, rows){
     }
   };
 
-  Plotly.newPlot('lmsDiv', data, layout);
+  var locusPlot = document.getElementById('lmsDiv');
+  Plotly.newPlot(locusPlot, data, layout);
 
+  registerPlanes('#showPlanes', locusPlot);
+  registerProjLocus('#showProjLocus', locusPlot);
+  registersRGB('#showsRGB', locusPlot);
 });
+
+function showPlanes(id, plot) {
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [2, 3]);
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [2, 3]);
+  }
+}
+
+function showProjLocus(id, plot) {
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [1]);
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [1]);
+  }
+}
+
+function showsRGB(id, plot) {
+  var numWaves = plot.data[0].x.length;
+
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [...Array(numWaves+4).keys()].slice(4));
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [...Array(numWaves+4).keys()].slice(4));
+  }
+}
+
+function registerPlanes(id, plot) {
+  $(id).on('change', function(evt) {
+    showPlanes(id, plot);
+  });
+}
+
+function registerProjLocus(id, plot) {
+  $(id).on('change', function(evt) {
+    showProjLocus(id, plot);
+  });
+}
+
+function registersRGB(id, plot) {
+  $(id).on('change', function(evt) {
+    showsRGB(id, plot);
+  });
+}
 
