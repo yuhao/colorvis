@@ -167,17 +167,21 @@
         <div>Use the browse button to upload an image and click Simulate. Below the simulated image, you can view a plot of
           the colors in LMS space and where they get mapped after the simulation.</div>
     
-        <div class="col col-lg-6 col-md-6">
+        <!--<div class="col col-lg-6 col-md-6">-->
+        <div class="col-sm-5 d-flex align-self-center">
           <div class="controls">
-          <canvas id="canvas" class="canvas"></canvas>
-          <div class="gap-below">
-            <input class="col" type="file" id="fileinput" />
-            <button class="col btn btn-primary" id="simulate">Simulate</button>
-          </div>
-          <canvas id="canvasafter" class="canvas"></canvas>
+            <canvas id="canvas" class="canvas"></canvas>
+            <!--<div class="gap-below">-->
+              <input class="btn" type="file" id="fileinput" />
+              <button class="btn btn-sm btn-primary" id="simulate">Simulate</button>
+            <!--</div>-->
+            <canvas id="canvasafter" class="canvas"></canvas>
           </div>
         </div>
-        <div id="visualize-simulation" class="col col-lg-6 col-md-6"></div>
+        <div class="col-sm-7">
+          <!--<div id="visualize-simulation" class="col col-lg-6 col-md-6"></div>-->
+          <div id="visualize-simulation"></div>
+        </div>
       </div>
     </div>
 
