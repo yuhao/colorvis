@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Hugo 0.88.1">
-    <title>CMF From Cone Fundamentals</title>
+    <title>Understanding Color Blindness</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/headers/">
 
@@ -71,16 +71,39 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Introduction</h3>
+        <p>In this tutorial we will explore color deficiency or color blindness. How does a color-blind person see color? How do we predict/simulate the color perception of a color-blind person? Understanding the mechanisms of color deficiency would allow you to appreciate daltonization, techniques that help regain some of the color perception for a color blind person.</p>
+        <p>In some sense predicting/synthesizing the view of the world as it appears to a deficient color vision is a philosophical issue: can we ever be sure of another’s (color) sensation? Naturally, there are many competing theories to color blindness. They vary in the assumptions they make about the mechanisms behind color-blind vision. This tutorial is based on the theory described in the classic paper by <a href="http://vision.psychol.cam.ac.uk/jdmollon/papers/Dichromat_simulation.pdf">Brettel et al. (1997)</a>.</p>
       </div>
     </div>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
-        <h3>The Intuition</h3>
+        <h3>What is Color Blindness?</h3>
+        <p>Color blindness is a hereditary condition. Around 1 in 12 males are affected by color blindness while 1 in 200 females are affected by color blindness. The reason more males are impacted is because color blindness occurs when there is a defect in the X chromosome. Since males have one X chromosome compared to two in females, males are more susceptible to X chromosome defection. It’s almost like females have built-in Dual Modular Redundancy for color perception!</p>
+        <p>A person who has all three types of cones working normally is referred to as a trichromat. A person who has two types of cones working is referred to as a dichromat. The most rare of them all is a monochromat who has one type of cone working. Dichromatic vision is further classified into three types: protanopia, where L cones are missing, deuteranopia, where M cones are missing, and tritanopia, where S cones are missing.</p>
+        <p>In addition to dichromatic vision (protanopia, deuteranopia, and tritanopia) where one cone type is completely missing, there is also <i>anomalous trichromatic</i> vision, again of three different kinds (called protanomaly, deuteranomaly, and tritanomaly), where the corresponding cone cells, instead of being absent, are mutated to peak at a different wavelength from that in the normal cone cells. Anomalous trichromats are sometimes called “color weak” instead of color blind.</p>
+        <p>In this tutorial, we will focus on dichromatic vision and use protanopia as a running example, but the same principles apply to the other kinds of color blindness.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>The Principles</h3>
+        <p>Normal color perception is 3D in that each color can be represented by a point in a 3D space. The plot below plots the spectral locus in the LMS space. We know that the colors that a color-blind person can see are a subset of the colors that people with normal vision can see. So the question is, where do those colors lie in the LMS space?</p>
+        <h4>Building the Intuition</h4>
+        <p>You might be thinking that if one type of cone cells is missing, the perceivable colors should then lie on a 2D plane. And you would be right. Extensive research has shown that colors that a dichromat can see lie on a 2D plane, as opposed to in a 3D space in a normal trichromatic vision. Geometrically, you can think of this as projecting a point $[L, M, S]$, a color that a trichromat can see, onto a plane $\mathbf{P}$; the projected point $[L', M', S']$ on the plane $\mathbf{P}$ represents the actual color that a dichromat would see.</p>
+        <p>Two questions remain. First, where is the plane $\mathbf{P}$? Naturally, this plane would depend on the exact kind of dichromacy a color-blind person has. Second, how is a color (3D point) mapped to the 2D plane $\mathbf{P}$?</p>
+        <p>Answering the questions depends on the assumption made about color blindness. A widely accepted assumption is that a color $C$ $[L, M, S]$ will be perceived as the color $C'$ $[L', M, S]$ by a protanope. Note that the M and S cone responses do not change, and only the L cone response changes. This assumption is not unreasonable: since a protanope misses the L cones, the M and S cone responses should not change. Intuitively, this is moving the color $C$ along the L-axis in the LMS space.</p>
+        <p>Since the M and S coordinates do not change, this mapping is essentially an <a href="https://en.wikipedia.org/wiki/Orthographic_projection">orthographic projection</a> of the point $C$ $[L, M, S]$ toward the MS-plane and intersecting the projection with the plane $\mathbf{P}$. The intercept on $\mathbf{P}$ is $C'$. Note that if $L'$ was 0, $\mathbf{P}$ would exactly be the MS-plane, but as we will see later, $L'$ is not 0, and so the MS-plane and $\mathbf{P}$ are not the same. Equivalently, you can also think of this as an <a href="https://en.wikipedia.org/wiki/Oblique_projection">oblique projection</a> of the point $C$ onto $\mathbf{P}$, and the projected point is $C'$.</p>
+        <p>This assumption about dichromacy has two important implications. First, all the colors along the $\overline{CC'}$ line will be perceived as the same color by a protanope, since all those colors will eventually be mapped to the same point $C'$. In general, all the colors on a line parallel to the L-axis will be perceived as the same color. Such a line is sometimes called a confusion line. Second, the color $C'$, which lies on the plane $\mathbf{P}$, is perceived as the same between a trichromat and a protanope, because projecting $C'$ to $\mathbf{P}$ yields $C'$ itself. Colors like $C'$ are called <i>isochromes</i>. In general, any color that is on the plane $\mathbf{P}$ is an isochrome.</p>
+        <p>The second point above is critical; it allows us to derive the plane $\mathbf{P}$. A plane is uniquely described by 3 points. If we can find 3 isochromes, we can construct the plane! This is easier said than done, because we can never be certain of another person's color sensation. Imagine we have a normal trichromat and a protanope look at a color; even if they have the same color sensation, how would they communicate with each other about it? Note that this is a different task from asking a dichromat whether two colors appear the same, for which we could simply use two colors from a confusion line.</p>
       </div>
       <div class="row">
         <div class="col-sm-3 d-flex align-self-center">
           <div>
+            <div>
+              <p>Note: the particular LMS cone sensitivities used here are the Hunt-Pointer-Estevez cone sensitivities, where the cone sensitivities are normalized such that they produce an equal LMS value for EEW.</p>
+            </div>
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="showPlanes">
               <label class="form-check-label" for="showPlanes"><b>Show Projection Plane</b></label>
@@ -98,6 +121,27 @@
         <div class="col-sm-9">
           <div id="lmsDiv"></div>
         </div>
+      </div>
+      <div class="row">
+        <p>Remarkably, there is an exceedingly rare color-blindness called <i>unilateral dichromacy</i>, where a person’s one eye is dichromatic and the other eye is trichromatic. These people have two kinds of eyes but one brain. Color matching between the two eyes by a unilateral dichromat would allow us to identify isochromes, assuming of course that the dichromatic eye and the trichromatic eye are similar to those of a "normal" dichromatic and trichromatic eye, respectively.</p>
+        <p>Such studies show that monochromatic lights at 475 nm and 575 nm are isochromes for protanopes and deuteranopes, and for tritanopes isochromes are found at 485 nm and 660 nm. It is also found that equal-energy white (EEW) appears to be the same between dichromats and trichromats. We now have our three isochromes for protanopes (475 nm, 575 nm, and EEW) and can construct the projection plane.</p>
+        <h4>See the Projection</h4>
+        <p>We've done the math for you. Toggle the "Show Projection Plane" switch in the plot above. You will see the projection plane. Then toggle the "Show Locus for Protanopes"; you will see that spectral colors are now projected to the plane. Spin the plot and hover your mouse over the spectral colors. Pay attention to the LMS values of the projected colors. Find the corresponding original colors; you can see that the M and S responses are the same, but the L responses are different.</p>
+        <p>Hawk-eyed readers might notice that the plane $\mathbf{P}$ we plot above is actually two half-planes sharing one side. The different colors is a giveaway. But these two half-planes are almost parallel such that they look like one single plane. <button class="btn btn-secondary btn-xs" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample1" aria-expanded="false" aria-controls="collapseExample">Why?</button></p>
+        <div class="collapse" id="collapseExample1">
+          <div class="card card-body">
+            <p>To understand why Brettel et al. constructed two planes, consider this question: should $[0, 0, 0]$ in LMS, the color where there is no light, appear pitch dark for both a dichromat and a trichromat? The answer should be yes. That is, $[0, 0, 0]$ (let’s call it $O$) is also an isochrome. So we have 4 points. These 4 points don’t exactly lie on the same plane, and we have to use two half-planes to capture all 4 points; each plane will be anchored by 3 of the 4 isochromes.</p>
+            <p>The first half-plane is anchored by $O$, 475 nm, and EEW. The second half-plane is anchored by $O$, 575 nm, and EEW. That is, the two half-planes share the same side of $\overline{O~EEW}$. We won’t show it here, but if you do the math you’ll see that the two planes are almost parallel to each other. Their normals are $[1, -1.16, 0.12]$ and $[1, -1.12, 0.09]$, respectively.</p>
+            <p>Having $O$ as an isochrome is important because it ensures that luminance doesn’t affect whether a color is an isochrome or not. If a color $C$ is an isochrome, i.e., lying on the projection plane $\mathbf{P}$, it’s guaranteed that any color on the line $\overline{OC}$ lies on plane $\mathbf{P}$ too. That is, any color on the $\overline{OC}$ line is an isochrome. What do colors on the $\overline{OC}$ line have in common? They have the same chromaticity but differ in luminance.</p>
+          </div>
+        </div>
+        <p>While it's not shown here, one particularly interesting thing is that confusion lines all converge to the same point in the chromaticity diagram, as experimentally confirmed by many studies. The exact convergence point depends on the particular kind of dichromacy. See a visualization <a href="http://www.daltonize.org/2010/05/there-is-not-just-one-color-blindness.html">here</a>. This is because the confusion lines are parallel to each other in the XYZ/LMS space, and the projection from XYZ to xy is a perspective projection, which converges parallel lines. Some color-blindness simulations, such as the one done by <a href="https://www-users.cse.umn.edu/~gmeyer/papers/meyer-greenberg-cga-1988.pdf">Meyer and Greenberg (1988)</a>, perform the simulation leveraging the convergence point. Interestingly, the Meyer and Greenberg paper also leverages the convergence points of different dichromacy to derive the LMS cone sensitivities from the XYZ color matching functions.</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Take an Eye Test</h3>
       </div>
     </div>
 

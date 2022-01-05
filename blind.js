@@ -58,10 +58,13 @@ d3.csv('hpe_5.csv', function(err, rows){
   var wM = dConeM.reduce((a, b) => a+b, 0);
   var wS = dConeS.reduce((a, b) => a+b, 0);
 
+  var aOrig = [0, 0, 0];
   var a475 = [dConeL[(475-firstW)/stride], dConeM[(475-firstW)/stride], dConeS[(475-firstW)/stride]];
   var a575 = [dConeL[(575-firstW)/stride], dConeM[(575-firstW)/stride], dConeS[(575-firstW)/stride]];
   var aWhite = math.multiply([wL, wM, wS], 0.1); // this is EEW
-  var aOrig = [0, 0, 0];
+  //var a475 = sRGB_lms[2];
+  //var a575 = math.add(sRGB_lms[0], sRGB_lms[1]);
+  //var aWhite = math.multiply(math.add(math.add(sRGB_lms[0], sRGB_lms[1]), sRGB_lms[2]), 1.8);
   var normal1 = math.cross(a475, aWhite);
   var normal2 = math.cross(aWhite, a575);
 
