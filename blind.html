@@ -28,6 +28,30 @@
           font-size: 3.5rem;
         }
       }
+
+      .canvas {
+        height: 300px !important;
+        width: 300px !important;
+        margin-bottom: 30px;
+      }
+
+      .gap-below {
+          margin-bottom: 20px;
+      }
+
+      .center-items {
+          text-align: center;
+      }
+
+      canvas {
+          margin-left:20px;
+      }
+
+      .gap-below-responsive {
+        @media screen and (max-width:768px) {
+            margin-bottom:10px;
+        }
+      }
     </style>
 
     
@@ -142,6 +166,26 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Take an Eye Test</h3>
+    
+        <div>
+          In this section, we will put the theory into practise. The Ishihara test is a color perception test to detect
+          red-green deficiency. You might have seen the image below on the internet. It was named after its designer,
+          Shinobu Ishihara, a professor at the University of Tokyo, who first published his tests in 1917. The test consists
+          of identifying the number in the image. For someone with protanopia, they would not be able to distinguish the red
+          from the surrounding greens.
+        </div>
+        <div>Use the browse button to upload an image and click Simulate. Below the simulated image, you can view a plot of
+          the colors in LMS space and where they get mapped after the simulation.</div>
+    
+        <div class="center-items">
+          <canvas id="canvas" class="canvas"></canvas>
+          <canvas id="canvasafter" class="canvas"></canvas>
+        </div>
+        <div class="gap-below mx-auto">
+          <input class="col col-md-6 gap-below-responsive" type="file" id="fileinput" />
+          <button class="col col-md-2 btn btn-primary" id="simulate">Simulate</button>
+        </div>
+        <div id="visualize-simulation" class="col-lg-11 col-md-11 col-10 col-centered gap-below center-items"></div>
       </div>
     </div>
 
@@ -154,5 +198,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
     <script src="blind.js"></script>
+    <script src="simulate.js"></script>
   </body>
 </html>
