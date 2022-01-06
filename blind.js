@@ -245,9 +245,9 @@ d3.csv('hpe_5.csv', function(err, rows){
     };
     // hovertemplate overwrites hoverinfo, so add it later
     if (hoverInfo[i] == true) {
-      line.hovertemplate = '%{text}<br>X: %{x}' +
-        '<br>Y: %{y}' +
-        '<br>Z: %{z}<extra></extra>';
+      line.hovertemplate = '%{text}<br>L: %{x}' +
+        '<br>M: %{y}' +
+        '<br>S: %{z}<extra></extra>';
     }
     traces.push(line);
   }

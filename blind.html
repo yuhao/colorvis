@@ -30,7 +30,10 @@
       }
 
       .canvas {
-        width: 100% !important;
+        display: block;
+        width: 80% !important;
+        margin-left: auto;
+        margin-right: auto;
       }
     </style>
 
@@ -147,25 +150,22 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Take an Eye Test</h3>
-        <p>In this section, we will put the theory into practise. The Ishihara test is a color perception test to detect
-          red-green deficiency. You might have seen the image below on the internet. It was named after its designer,
-          Shinobu Ishihara, a professor at the University of Tokyo, who first published his tests in 1917. The test consists
-          of identifying the number in the image. For someone with protanopia, they would not be able to distinguish the red
-          from the surrounding greens.</p>
-        <p>Use the browse button to upload an image and click Simulate. Below the simulated image, you can view a plot of
-          the colors in LMS space and where they get mapped after the simulation.</p>
+        <p>We can now put the theory into practice by simulating the classic <a href="https://en.wikipedia.org/wiki/Ishihara_test">Ishihara test</a>, which is a color perception test to detect red-green color deficiency. You might have seen the image below on the internet. It was named after its designer, <a href="https://en.wikipedia.org/wiki/Shinobu_Ishihara">Shinobu Ishihara</a>, who first published his tests in 1917. The test consists of identifying the number in a set of purposefully designed <a href="http://www.dfisica.ubi.pt/~hgil/p.v.2/Ishihara/Ishihara.24.Plate.TEST.Book.pdf">plates</a>. The image below is one of the plates; the number 2 would not be distinguishable by protanopes.</p>
+        <p>Click the "Simulate" button to show how this image would be perceived by a protanope based on the projection described before. If you are a trichromat, the number 2 would disappear, mimicking the color perception of a protanope when looking at the original image. You can also perform this simulation on your own image from your local disk. The plot on the right shows the LMS values of image pixels before and after the projection.</p>
       </div>
     
       <div class="row">
         <div class="col-sm-5 d-flex align-self-center">
             <div class="row">
+            </div>
+            <div class="row">
               <div class="col-sm-10 mx-2">
                 <canvas id="canvas" class="canvas"></canvas>
-                <div class="btn-toolbar my-2" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-toolbar my-2 ms-2" role="toolbar" aria-label="Toolbar with button groups">
                   <div class="btn-group me-2" role="group" aria-label="First group">
                     <input class="form-control form-control-sm" type="file" id="fileinput">
                   </div>
-                  <div class="input-group">
+                  <div class="btn-group">
                     <button class="btn btn-sm btn-primary" id="simulate">Simulate</button>
                   </div>
                 </div>
@@ -177,6 +177,12 @@
           <div id="visualize-simulation"></div>
         </div>
       </div>
+
+      <div class="row">
+        <p>You might have noticed that the background white after simulation becomes pink-ish. That's because sRGB white, after protanopic projection, would be outside the gamut. You can visually convince yourself of this by toggling the “sRGB gamut” switch in the plot above, and see that when projecting the gamut to the plane, some colors will be outside the gamut, meaning that some colors that protanopes can see won’t be precisely represented in the sRGB color space.</p>
+        <p>To deal with that, we simply clamp the values to the $[0, 255]$ range, essentially performing a gamut mapping using the Absolute Colorimetric <a href="https://creativepro.com/out-of-gamut-realizing-good-intentions-with-rendering-intents/">rendering intent</a>. In order to better display a protanopia-simulated image on a sRGB display, some color-blindness simulations choose display primaries and white to be isochromes. For instance, <a href="http://vision.psychol.cam.ac.uk/jdmollon/papers/colourmaps.pdf">Vienot et al. (1999)</a> use the display black (K), blue (B), and white (W) of a display gamut as isochromes to derive the projection plane, which is the diagonal plane formed by KBW, which is also guaranteed to pass through the yellow point of the gamut. While the actual simulated colors are slightly distorted in theory compared to using isochromes that are experimentally derived, the advantage of this approach is that more colors in the gamut, after projection, can still be in the gamut and thus displable (see the paragraph before the Conclusion section in that paper).</p>
+      </div>
+    
     </div>
 
   <div class="b-example-divider"></div>
