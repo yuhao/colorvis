@@ -30,17 +30,7 @@
       }
 
       .canvas {
-        height: 300px !important;
-        width: 300px !important;
-        margin-bottom: 30px;
-      }
-
-      canvas {
-          margin-left:20px;
-      }
-
-      .gap-below {
-        margin-bottom: 20px;
+        width: 100% !important;
       }
     </style>
 
@@ -112,6 +102,7 @@
         <p>This assumption about dichromacy has two important implications. First, all the colors along the $\overline{CC'}$ line will be perceived as the same color by a protanope, since all those colors will eventually be mapped to the same point $C'$. In general, all the colors on a line parallel to the L-axis will be perceived as the same color. Such a line is sometimes called a confusion line. Second, the color $C'$, which lies on the plane $\mathbf{P}$, is perceived as the same between a trichromat and a protanope, because projecting $C'$ to $\mathbf{P}$ yields $C'$ itself. Colors like $C'$ are called <i>isochromes</i>. In general, any color that is on the plane $\mathbf{P}$ is an isochrome.</p>
         <p>The second point above is critical; it allows us to derive the plane $\mathbf{P}$. A plane is uniquely described by 3 points. If we can find 3 isochromes, we can construct the plane! This is easier said than done, because we can never be certain of another person's color sensation. Imagine we have a normal trichromat and a protanope look at a color; even if they have the same color sensation, how would they communicate with each other about it? Note that this is a different task from asking a dichromat whether two colors appear the same, for which we could simply use two colors from a confusion line.</p>
       </div>
+
       <div class="row">
         <div class="col-sm-3 d-flex align-self-center">
           <div>
@@ -156,30 +147,33 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>Take an Eye Test</h3>
-    
-        <div>
-          In this section, we will put the theory into practise. The Ishihara test is a color perception test to detect
+        <p>In this section, we will put the theory into practise. The Ishihara test is a color perception test to detect
           red-green deficiency. You might have seen the image below on the internet. It was named after its designer,
           Shinobu Ishihara, a professor at the University of Tokyo, who first published his tests in 1917. The test consists
           of identifying the number in the image. For someone with protanopia, they would not be able to distinguish the red
-          from the surrounding greens.
-        </div>
-        <div>Use the browse button to upload an image and click Simulate. Below the simulated image, you can view a plot of
-          the colors in LMS space and where they get mapped after the simulation.</div>
+          from the surrounding greens.</p>
+        <p>Use the browse button to upload an image and click Simulate. Below the simulated image, you can view a plot of
+          the colors in LMS space and where they get mapped after the simulation.</p>
+      </div>
     
-        <!--<div class="col col-lg-6 col-md-6">-->
+      <div class="row">
         <div class="col-sm-5 d-flex align-self-center">
-          <div class="controls">
-            <canvas id="canvas" class="canvas"></canvas>
-            <!--<div class="gap-below">-->
-              <input class="btn" type="file" id="fileinput" />
-              <button class="btn btn-sm btn-primary" id="simulate">Simulate</button>
-            <!--</div>-->
-            <canvas id="canvasafter" class="canvas"></canvas>
-          </div>
+            <div class="row">
+              <div class="col-sm-10 mx-2">
+                <canvas id="canvas" class="canvas"></canvas>
+                <div class="btn-toolbar my-2" role="toolbar" aria-label="Toolbar with button groups">
+                  <div class="btn-group me-2" role="group" aria-label="First group">
+                    <input class="form-control form-control-sm" type="file" id="fileinput">
+                  </div>
+                  <div class="input-group">
+                    <button class="btn btn-sm btn-primary" id="simulate">Simulate</button>
+                  </div>
+                </div>
+                <canvas id="canvasafter" class="canvas"></canvas>
+              </div>
+            </div>
         </div>
         <div class="col-sm-7">
-          <!--<div id="visualize-simulation" class="col col-lg-6 col-md-6"></div>-->
           <div id="visualize-simulation"></div>
         </div>
       </div>
