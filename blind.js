@@ -348,14 +348,14 @@ function showProjLocus(id, plot) {
 }
 
 function showsRGB(id, plot) {
-  var numWaves = plot.data[0].x.length;
+  var numWaves = plot.data.length;
 
   if($(id).is(":checked")) {
     var data_update = {'visible': true};
-    Plotly.restyle(plot, data_update, [...Array(numWaves+5).keys()].slice(5));
+    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(5));
   } else {
     var data_update = {'visible': 'legendonly'};
-    Plotly.restyle(plot, data_update, [...Array(numWaves+5).keys()].slice(5));
+    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(5));
   }
 }
 
