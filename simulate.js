@@ -10,15 +10,20 @@ const DISPLAY_POINTS = 3000;
 
 const img = new Image;
 
-// D65 adapted LMS values
+// D65 adapted LMS values for EEW, 475, and 575
 //const white = [1.027,0.9847,0.9182];
 //const invariant1 = [0.05235866, 0.14667038, 0.95667258];
 //const invariant2 = [0.9847601, 0.87614013, 0.00165276];
 
-// LMS values without D65 adaptation
+// LMS values without D65 adaptation for EEW, 475, and 575
 const white = [1,1,1];
 const invariant1 = [0.05096024, 0.14894042, 1.0419];
 const invariant2 = [0.95889119, 0.88976138, 0.0018];
+
+// LMS values for sRGB white, blue, and yellow
+//const white = [0.973659844844989, 1.0155316503050922, 1.08916060603];
+//const invariant1 = [0.04375600666929, 0.08546848666512, 0.9506333333];
+//const invariant2 = [0.929903838175699, 0.9300631636399721, 0.13852727273];
 
 if (img.src === '') {
     img.src = 'ishihara.jpg'
