@@ -340,15 +340,177 @@ function registerPlotLocus(buttonId, lmsChart, primChart) {
   });
 }
 
-// TODO: the RGB and chrm gamut isn't correct.
-// mesh3d traces don't have legends. add a dummy trace?
-function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
+// The canonical way of drawing the boundary. See: http://www.brucelindbloom.com/index.html?LabGamutDisplayHelp.html
+function drawGamutPointsContBand(plot, vis) {
+  var len = plot.data[1].x.length;
+  var inGamut = [[], [], [], []];
+
+  function arrayRotate(arr, reverse) {
+    if (reverse) arr.unshift(arr.pop());
+    else arr.push(arr.shift());
+    return arr;
+  }
+
+  for (var width = 1; width <= len; width++) {
+    var spd = Array(len).fill(0);
+    // TODO: cycling through a discontinuous wave
+    //spd.fill(0.3, 0, width-3);
+    //spd.fill(0.3, width-2, width-1);
+
+    spd.fill(0.3, 0, width);
+    for (var i = 1; i <= len; i++) {
+      inGamut[0].push(math.dot(sCMFR, spd));
+      inGamut[1].push(math.dot(sCMFG, spd));
+      inGamut[2].push(math.dot(sCMFB, spd));
+      var waves = [];
+      for (var j = 0; j < wlen.length; j++) {
+        if (spd[j] != 0) waves.push(wlen[j]);
+      }
+      inGamut[3].push(waves);
+      arrayRotate(spd, true);
+    }
+  }
+
+  var trace = {
+    x: inGamut[0],
+    y: inGamut[1],
+    z: inGamut[2],
+    text: inGamut[3],
+    mode: 'lines+markers',
+    type: 'scatter3d',
+    showlegend: false,
+    visible: vis,
+    marker: {
+      color: '#222222',
+      size: 3,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 15,
+    },
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>spd: %{text}<extra></extra>',
+    //hoverinfo: 'skip',
+  };
+
+  return trace;
+}
+
+// Exhaust SPDs (at the granularity defined by |step|); energy is allowed to be only 0 or 1.
+function drawGamutPoints(plot, vis) {
+  var len = plot.data[1].x.length;
+  var step = 6;
+  var vLen = Math.floor(len/step);
+  var inGamut = [[], [], [], []];
+
+  var combs = combinations([...Array(vLen).keys()]);
+  for (var c = 0; c < combs.length; c++) {
+    var spd = Array(len).fill(0);
+    for (var w = 0; w < combs[c].length; w++) {
+      spd.fill(0.1, combs[c][w] * step, (combs[c][w] + 1) * step);
+    }
+    inGamut[0].push(math.dot(sCMFR, spd));
+    inGamut[1].push(math.dot(sCMFG, spd));
+    inGamut[2].push(math.dot(sCMFB, spd));
+    inGamut[3].push(combs[c].join());
+  }
+
+  var trace = {
+    x: inGamut[0],
+    y: inGamut[1],
+    z: inGamut[2],
+    text: inGamut[3],
+    mode: 'markers',
+    type: 'scatter3d',
+    showlegend: false,
+    visible: vis,
+    marker: {
+      color: '#222222',
+      size: 3,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 15,
+    },
+    hovertemplate: 'R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}' +
+      '<br>spd: %{text}<extra></extra>',
+    //hoverinfo: 'skip',
+  };
+
+  return trace;
+}
+
+// For all the grid points, decide whether they are in gamut by finding if there exists a corresponding physical light
+function drawGamutPointsGrid(plot, vis) {
+  // TODO: can do memorization here
+  var xMin = Math.min(...plot.data[0].x.map(el => parseFloat(el)));
+  var xMax = Math.max(...plot.data[0].x.map(el => parseFloat(el)));
+  var yMin = Math.min(...plot.data[0].y.map(el => parseFloat(el)));
+  var yMax = Math.max(...plot.data[0].y.map(el => parseFloat(el)));
+  var zMin = Math.min(...plot.data[0].z.map(el => parseFloat(el)));
+  var zMax = Math.max(...plot.data[0].z.map(el => parseFloat(el)));
+  var step = 4;
+
+  var inGamut = [[], [], []];
+
+  for (var i = 0; i <= step; i++) {
+    for (var j = 0; j <= step; j++) {
+      for (var k = 0; k <= step; k++) {
+        var x = xMin + i/step*(xMax-xMin);
+        var y = yMin + j/step*(yMax-yMin);
+        var z = zMin + k/step*(zMax-zMin);
+
+        var solution = solveLP(x, y, z);
+
+        if(!Number.isNaN(solution)) {
+          inGamut[0].push(x);
+          inGamut[1].push(y);
+          inGamut[2].push(z);
+        }
+      }
+    }
+  }
+
+  var trace = {
+    x: inGamut[0],
+    y: inGamut[1],
+    z: inGamut[2],
+    mode: 'markers',
+    type: 'scatter3d',
+    showlegend: false,
+    visible: vis,
+    marker: {
+      color: '#222222',
+      size: 6,
+      symbol: 'circle',
+      //opacity: 1,
+    },
+    textfont: {
+      family: 'Helvetica Neue',
+      size: 15,
+    },
+    hovertemplate: 'Origin<br>R: %{x}' +
+      '<br>G: %{y}' +
+      '<br>B: %{z}<extra></extra>',
+    //hoverinfo: 'skip',
+  };
+
+  return trace;
+}
+
+// Just the boundary
+function drawGamutBoundary(plot, vis) {
   var len = plot.data[1].x.length;
 
-  var RGBTrace = {
-    //x: [0].concat(hullPoints[0]),
-    //y: [0].concat(hullPoints[1]),
-    //z: [0].concat(hullPoints[2]),
+  var trace = {
     x: [0].concat(plot.data[0].x),
     y: [0].concat(plot.data[0].y),
     z: [0].concat(plot.data[0].z),
@@ -356,16 +518,29 @@ function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
     j: [...Array(len+1).keys()].slice(1),
     k: [...Array(len+1).keys()].slice(2).concat([1]),
     type: 'mesh3d',
-    visible: visiblityRGB,
+    visible: vis,
     opacity:0.8,
     color: orangeColor,
     hoverinfo: 'skip',
     name: 'HVS gamut in RGB',
   };
 
+  return trace;
+}
+
+// mesh3d traces don't have legends. add a dummy trace?
+function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
+  var traces = [];
+
+  traces.push(drawGamutPointsContBand(plot, visiblityRGB));
+  //traces.push(drawGamutPoints(plot, visiblityRGB));
+  //traces.push(drawGamutPointsGrid(plot, visiblityRGB));
+  //traces.push(drawGamutBoundary(plot, visiblityRGB));
+
   var points = math.transpose([plot.data[1].x, plot.data[1].y, plot.data[1].z]);
   var hullPoints = math.transpose(hull(points, Infinity));
 
+  var len = plot.data[1].x.length;
   len = hullPoints[0].length; 
   var midx = math.mean(hullPoints[0]);
   var midy = math.mean(hullPoints[1]);
@@ -384,8 +559,9 @@ function plotHVSGamut(plot, visiblityRGB, visiblityrgb) {
     hoverinfo: 'skip',
     name: 'HVS gamut in rgb',
   };
+  traces.push(chrmTrace);
 
-  Plotly.addTraces(plot, [RGBTrace, chrmTrace]);
+  Plotly.addTraces(plot, traces);
 }
 
 function plotOrigin(plot) {
@@ -1888,10 +2064,11 @@ function plotLMSPrims() {
   chart.update();
 }
 
+var wlen;
 d3.csv('linss2_10e_5_ext.csv').then(function(rows){
   var stride = 5;
 
-  var wlen = unpack(rows, 'wavelength');
+  wlen = unpack(rows, 'wavelength');
   var firstW = wlen[0];
   var lastW = wlen[wlen.length - 1];
 
@@ -1926,7 +2103,7 @@ d3.csv('linss2_10e_5_ext.csv').then(function(rows){
   registerProjChrm('#projChrm');
 
   // Step 2 (the locus plots are plotted in |registerPlotLocus|)
-  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin, r+g+b=0 plane
+  // order: RGB locus, rgb locus, hvs gamut in RGB, hvs gamut in chrm, r+g+b=0 plane, origin, r+g+b=1 plane
   registerShowChrm2('#showChrm2');
   registerPickColors();
   registerShowHVS(1, '#showhvs', true);
