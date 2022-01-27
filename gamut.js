@@ -37,7 +37,9 @@ function genSeq(len) {
   for (var width = 1; width <= len; width++) {
     var inGamut = [[], [], [], []];
     var spd = Array(len).fill(0);
-    spd.fill(1, 0, width);
+    var val = $('input[type=radio][name=mode]:checked').val();
+    var fillVal = (val == "epe") ? 1 : 1/width;
+    spd.fill(fillVal, 0, width);
     //if (width<3) continue;
     //spd.fill(1, 0, width-3);
     //spd.fill(1, width-2, width+1);
@@ -62,9 +64,14 @@ function genSeq(len) {
 
 // The canonical way of drawing the boundary. See: http://www.brucelindbloom.com/index.html?LabGamutDisplayHelp.html
 function drawGamutPointsContBand(plot, cPlot, vis) {
-  var len = plot.data[0].x.length;
+  var numPoints = plot.data[0].x.length;
+  var numSeqs = plot.data.length;
+  if (numSeqs > 1) {
+    Plotly.deleteTraces(plot, [...Array(numSeqs).keys()].slice(1));
+    Plotly.deleteTraces(cPlot, [...Array(numSeqs).keys()].slice(1));
+  }
 
-  var allSeqs = genSeq(len);
+  var allSeqs = genSeq(numPoints);
 
   var i = 0;
   var tid = setInterval(function(){
@@ -92,9 +99,9 @@ function drawGamutPointsContBand(plot, cPlot, vis) {
         width: 2,
         shape: 'spline',
       },
-      hovertemplate: 'R: %{x}' +
-        '<br>G: %{y}' +
-        '<br>B: %{z}<extra></extra>',
+      hovertemplate: spaceTexts[space][0]+': %{x}<br>' +
+        spaceTexts[space][1]+': %{y}<br>' +
+        spaceTexts[space][2]+': %{z}<extra></extra>',
     });
 
     var chrmSeq = getChrm(seq[0], seq[1], seq[2]);
@@ -116,16 +123,17 @@ function drawGamutPointsContBand(plot, cPlot, vis) {
         width: 1,
         shape: 'spline',
       },
-      hovertemplate: 'x: %{x}' +
-        '<br>y: %{y}<extra></extra>',
+      hovertemplate: spaceTexts[space][3]+': %{x}<br>' +
+        spaceTexts[space][4]+': %{y}<extra></extra>',
     });
 
     i++;
-    //if (i == allSeqs.length) {
-    if (i == 50) {
+    if (i == allSeqs.length) {
+    //if (i == 10) {
       Plotly.restyle(plot, data_update, [plot.data.length-1]);
       Plotly.restyle(cPlot, data_update_chrm, [cPlot.data.length-1]);
       clearTimeout(tid);
+      $('#start').prop('disabled', false);
     }
   }, 200);
 }
@@ -157,10 +165,10 @@ function plotInRGB() {
       shape: 'spline',
     },
     //hoverinfo: 'skip',
-    hovertemplate: 'L: %{x}' +
-      '<br>M: %{y}' +
-      '<br>S: %{z}' +
-      '<br>wavelength: %{text}<extra></extra>',
+    hovertemplate: spaceTexts[space][0]+': %{x}<br>' +
+      spaceTexts[space][1]+': %{y}<br>' +
+      spaceTexts[space][2]+': %{z}<br>' +
+      'wavelength: %{text}<extra></extra>',
     type: 'scatter3d',
     showlegend: false,
   };
@@ -180,7 +188,7 @@ function plotInRGB() {
       xanchor: 'right',
       y: 0.9,
     },
-    title: 'Spectral locus in XYZ',
+    title: spaceTexts[space][5],
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     scene: {
       camera: {
@@ -194,18 +202,18 @@ function plotInRGB() {
         },
       },
       // https://plotly.com/javascript/3d-axes/
-      //aspectmode: 'cube',
+      aspectmode: 'cube',
       xaxis: {
         autorange: true,
         //range: [0, 1],
         zeroline: true,
         zerolinecolor: '#000000',
-        zerolinewidth: 5,
+        zerolinewidth: 2,
         //constrain: 'domain',
         //dtick: 0.2,
         showspikes: false,
         title: {
-          text: 'X'
+          text: spaceTexts[space][0]
         }
       },
       yaxis: {
@@ -213,12 +221,12 @@ function plotInRGB() {
         //range: [0, 1],
         zeroline: true,
         zerolinecolor: '#000000',
-        zerolinewidth: 5,
+        zerolinewidth: 2,
         //scaleanchor: 'x',
         //dtick: 0.2,
         showspikes: false,
         title: {
-          text: 'Y'
+          text: spaceTexts[space][1]
         }
       },
       zaxis: {
@@ -226,10 +234,10 @@ function plotInRGB() {
         //range: [0, 1],
         zeroline: true,
         zerolinecolor: '#000000',
-        zerolinewidth: 5,
+        zerolinewidth: 2,
         showspikes: false,
         title: {
-          text: 'Z'
+          text: spaceTexts[space][2]
         }
       },
     }
@@ -260,9 +268,9 @@ function plotInChrm() {
       width: 1,
       shape: 'spline',
     },
-    hovertemplate: 'x: %{x}' +
-      '<br>y: %{y}' +
-      '<br>spd: %{text}<extra></extra>',
+    hovertemplate: spaceTexts[space][3]+': %{x}<br>' +
+      spaceTexts[space][4]+': %{y}<br>' +
+      'wavelength: %{text}<extra></extra>',
   };
 
   var data = [trace];
@@ -270,33 +278,36 @@ function plotInChrm() {
   var layout = {
     height: 500,
     margin: {
-      l: 0,
-      r: 0,
+      l: 50,
+      r: 50,
       b: 50,
       t: 50
     },
     showlegend: false,
-    title: 'xy-chromaticity Diagram',
+    title: spaceTexts[space][6],
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     plot_bgcolor: 'rgba(0, 0, 0, 0)',
     xaxis: {
-      range: [0, 0.8],
+      //autorange: true,
+      range: [Math.min(...cR)-0.1, Math.max(...cR)+0.1],
       title: {
-        text: 'x',
+        text: spaceTexts[space][3],
       },
-      // https://community.plotly.com/t/get-mouses-position-on-click/4145/3
-      constrain: 'domain',
-      dtick: 0.2,
-      zerolinewidth: 3,
+      constrain: 'range',
+      //dtick: 0.2,
+      tickwidth: 4,
+      zerolinewidth: 1,
     },
     yaxis: {
-      range: [0, 0.9],
+      //autorange: true,
+      range: [Math.min(...cG)-0.1, Math.max(...cG)+0.1],
       title: {
-        text: 'y',
+        text: spaceTexts[space][4],
       },
       scaleanchor: 'x',
-      dtick: 0.2,
-      zerolinewidth: 3,
+      //dtick: 0.1,
+      tickwidth: 4,
+      zerolinewidth: 1,
     }
   };
 
@@ -311,7 +322,7 @@ function plotInChrm() {
 function plotStimulus(x_data) {
   var trace = {
     x: x_data,
-    y: Array(x_data.length).fill(1),
+    y: Array(x_data.length).fill(0),
     type: 'lines',
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     plot_bgcolor: 'rgba(0, 0, 0, 0)',
@@ -328,13 +339,13 @@ function plotStimulus(x_data) {
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     plot_bgcolor: 'rgba(0, 0, 0, 0)',
     yaxis: {
-      range: [0, 1],
+      //range: [0, 1],
+      rangemode: 'nonnegative',
       title: {
-        text: 'y'
+        text: 'watt/nm'
       },
-      // https://community.plotly.com/t/get-mouses-position-on-click/4145/3
       constrain: 'domain',
-      dtick: 0.2,
+      //dtick: 0.2,
     },
   };
 
@@ -346,35 +357,82 @@ function plotStimulus(x_data) {
   return plot;
 }
 
-var prevCurve = -1;
-var prevPoint = -1;
-//d3.csv('linss2_10e_5_ext.csv').then(function(rows){
-//d3.csv('cie1931rgbcmf.csv').then(function(rows){
-d3.csv('ciexyz31.csv').then(function(rows){
-  var stride = 5;
+function genSelectBox(values, id, preset) {
+  var select = document.getElementById(id);
 
-  wlen = unpack(rows, 'wavelength');
-  var firstW = wlen[0];
-  var lastW = wlen[wlen.length - 1];
-  var x_data = range(firstW, lastW, stride);
-  sCMFR = unpack(rows, 'x');
-  sCMFG = unpack(rows, 'y');
-  sCMFB = unpack(rows, 'z');
+  for (const val of values)
+  {
+    var option = document.createElement("option");
+    option.value = val;
+    option.text = val;
+    select.appendChild(option);
+  }
 
-  var res = getChrm(sCMFR, sCMFG, sCMFB);
-  cR = res[0];
-  cG = res[1];
-  cB = res[2];
+  if (preset) select.value = preset;
+}
 
-  var plot = plotInRGB();
-  var cPlot = plotInChrm();
-  var sPlot = plotStimulus(x_data);
+function highlight(eventdata) {
+  var point = eventdata.points[0];
+  var curveNum = point.curveNumber;
+  var pointNum = point.pointNumber;
+
+  // update sPlot
+  var waves = cPlot.data[curveNum].text[pointNum];
+  var spd = Array(wlen.length).fill(0);
+  for (var i = 0; i < waves.length; i++) {
+    var wave = waves[i];
+    spd[(wave-firstW)/stride] = 1/waves.length;
+  }
+  var data_update = {'y': [spd]};
+  Plotly.restyle(sPlot, data_update, [0]);
+
+  // highlight locus
+  if (prevCurve == curveNum) {
+    // just highlight the clicked point
+    var colors = Array(wlen.length).fill(brightYellowColor);
+    colors[pointNum] = redColor;
+    data_update = {'marker.color': [colors],
+                   'opacity': 1,
+                   'line.color': brightYellowColor,
+                  };
+    Plotly.restyle(plot, data_update, [curveNum]);
+    Plotly.restyle(cPlot, data_update, [curveNum]);
+  } else {
+    if (prevCurve == -1) {
+      // hasn't clicked before
+      var data_update = {'marker.color': greyColor,
+                         'opacity': 0.3,
+                         'line.color': greyColor,
+                        };
+      Plotly.restyle(plot, data_update);
+      Plotly.restyle(cPlot, data_update);
+    }
+
+    // highlight the clicked curve and point
+    var colors = Array(wlen.length).fill(brightYellowColor);
+    colors[pointNum] = redColor;
+    data_update = {'marker.color': [colors, Array(wlen.length).fill(greyColor)],
+                   'opacity': [1, 0.3],
+                   'line.color': [brightYellowColor, greyColor],
+                  };
+    Plotly.restyle(plot, data_update, [curveNum, prevCurve]); // prevCurve can be -1 here, but restyle can deal with that
+    Plotly.restyle(cPlot, data_update, [curveNum, prevCurve]);
+  }
+
+  prevCurve = curveNum;
+  prevPoint = pointNum;
+}
+
+function regEvts() {
+  if (!start) start = 1;
+  else return;
 
   $('#start').on('click', function(evt) {
+    $('#start').prop('disabled', true);
     drawGamutPointsContBand(plot, cPlot, true);
   });
 
-  $('#reset').on('click', function(evt) {
+  $('#clear').on('click', function(evt) {
     var data_update = {'marker.color': greyColor,
                        'opacity': 0.8,
                        'line.color': greyColor,
@@ -387,67 +445,58 @@ d3.csv('ciexyz31.csv').then(function(rows){
     Plotly.restyle(sPlot, data_update, [0]);
   });
 
-  function findPrevHit(plot) {
-    for (var i = 0; i < plot.data.length; i++) {
-      if (plot.data[i].marker.color == brightYellowColor) return i;
-    }
-
-    return -1;
-  }
-
-  cPlot.on('plotly_click', function (eventdata){
-    var point = eventdata.points[0];
-    var curveNum = point.curveNumber;
-    var pointNum = point.pointNumber;
-
-    // update sPlot
-    var waves = cPlot.data[curveNum].text[pointNum];
-    var spd = Array(wlen.length).fill(0);
-    for (var i = 0; i < waves.length; i++) {
-      var wave = waves[i];
-      spd[(wave-firstW)/stride] = 1;
-    }
-    var data_update = {'y': [spd]};
-    Plotly.restyle(sPlot, data_update, [0]);
-
-    // highlight locus
-    if (prevCurve == curveNum) {
-      // just highlight the clicked point
-      var colors = Array(wlen.length).fill(brightYellowColor);
-      colors[pointNum] = redColor;
-      data_update = {'marker.color': [colors],
-                     'opacity': 1,
-                     'line.color': brightYellowColor,
-                    };
-      Plotly.restyle(plot, data_update, [curveNum]);
-      Plotly.restyle(cPlot, data_update, [curveNum]);
+  $('#space').on('change', function(evt) {
+    var val = this.value;
+    if (val == "LMS") {
+      space = "lms";
+      d3.csv('linss2_10e_5_ext.csv').then(init);
+    } else if (val == "CIE 1931 XYZ") {
+      space = "xyz";
+      d3.csv('ciexyz31.csv').then(init);
     } else {
-      if (prevCurve == -1) {
-        // hasn't clicked before
-        var data_update = {'marker.color': greyColor,
-                           'opacity': 0.3,
-                           'line.color': greyColor,
-                          };
-        Plotly.restyle(plot, data_update);
-        Plotly.restyle(cPlot, data_update);
-      }
-
-      // highlight the clicked curve and point
-      var colors = Array(wlen.length).fill(brightYellowColor);
-      colors[pointNum] = redColor;
-      data_update = {'marker.color': [colors, Array(wlen.length).fill(greyColor)],
-                     'opacity': [1, 0.3],
-                     'line.color': [brightYellowColor, greyColor],
-                    };
-      Plotly.restyle(plot, data_update, [curveNum, prevCurve]); // prevCurve can be -1 here, but restyle can deal with that
-      Plotly.restyle(cPlot, data_update, [curveNum, prevCurve]);
+      space = "rgb";
+      d3.csv('cie1931rgbcmf.csv').then(init);
     }
-
-    prevCurve = curveNum;
-    prevPoint = pointNum;
   });
-});
+}
 
+var start = 0;
+var spaceTexts = {'xyz': ['X', 'Y', 'Z', 'x', 'y', 'XYZ Space', 'xy-Chromaticity Diagram'],
+                  'lms': ['L', 'M', 'S', 'l', 'm', 'LMS Space', 'lm-Chromaticity Diagram'],
+                  'rgb': ['R', 'G', 'B', 'r', 'g', 'RGB Space', 'rg-Chromaticity Diagram']
+                 };
+space = "xyz";
+function init(rows) {
+  stride = 5;
+  var keys = Object.keys(rows[0]);
+
+  wlen = unpack(rows, 'wavelength');
+  firstW = wlen[0];
+  lastW = wlen[wlen.length - 1];
+  x_data = range(firstW, lastW, stride);
+  sCMFR = unpack(rows, keys[1]);
+  sCMFG = unpack(rows, keys[2]);
+  sCMFB = unpack(rows, keys[3]);
+
+  var res = getChrm(sCMFR, sCMFG, sCMFB);
+  cR = res[0];
+  cG = res[1];
+  cB = res[2];
+
+  plot = plotInRGB();
+  cPlot = plotInChrm();
+  sPlot = plotStimulus(x_data);
+
+  prevCurve = -1;
+  prevPoint = -1;
+  cPlot.on('plotly_click', highlight);
+
+  regEvts();
+  $('#start').prop('disabled', false);
+}
+
+genSelectBox(["LMS", "CIE 1931 XYZ", "CIE 1931RGB"], "space", "CIE 1931 XYZ");
+d3.csv('ciexyz31.csv').then(init);
 
 
 
