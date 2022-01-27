@@ -65,12 +65,24 @@
   <div class="container">
     <header class="d-flex flex-wrap justify-content-center pt-3 mb-4 border-bottom">
       <a href="." class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-        <h2>Human Visual Gamut Formation</h2>
+        <h2>Human Visual Gamut Boundary</h2>
       </a>
     </header>
 
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
+        <h3>Introduction</h3>
+        <p>In theory the gamut of human visual system (HVS) has no boundary, as one could arbitrarily increase the light power and the gamut extends to infinity. But we could sample the space to provide an intuitive visualization of the gamut. The right place to reason about this is the chromaticity diagram, in which the HVS gamut does have a boundary. In theory, all we have to do is to cover the entirety of the gamut in the chromaticity diagram &#8212; for each point there we it convert to a corresponding color in the absolute space (e.g., XYZ/RGB) and eventually we will have found all the colors in the HVS gamut there. But of course we can't cover the entire chromaticity gamut either since that's a continuous area (albeit bounded); we have to sample the gamut there.</p>
+        <p>So the first order of business is: how do we sample the chromaticity gamut? We could randomly sample the spectrum and come up with arbitrary stimuli, but because of metamerisms we might end up with a bunch of stimuli that correspond to the same point in the gamut. So we need an organized strategy to cover the chromaticity gamut.</a>
+        <p>The canonical way is to use equal-peak-energy stimuli, which are essentially waves with a continuous band with the same peak energy. For instance, assuming we sample the visible spectrum by 5, these stimulis would be 10000, 01000, ..., 00001 (for bandwidth of 1), 11000, 01100, ..., 10001 (for bandwidth of 2), ..., and 11111 (for bandwidth of 5). Note that there are at most two transitions (0&#8594;1 or 1&#8594;0) in an entire stimulus. Essentially we create square pulses with different width and rotate the pulses. See a more detailed example by Bruce Lindbloom <a href="http://www.brucelindbloom.com/index.html?LabGamutDisplayHelp.html">here</a> and how these stimuli can be <a href="https://stackoverflow.com/questions/48390558/how-is-the-visible-gamut-bounded">generated</a> in <a href="https://github.com/colour-science/colour">Colour</a>.</p>
+        <p>This sampling strategy can guarantee that we never sample metamers. That is, no two stimuli will end up at the same point in the chromaticity gamut. While a formal proof is left for you to work on, intuitively, this is because we are iteratively creating linear combinations of a convex hull in a fixed pattern (the spectral locus in xy-chromaticity diagram is convex). As you will see in the visualization later, this method starts from the spectral locus and iteratively shrink the locus.</p>
+        <p>Another way would be to use equal-total-energy, rather than equal-peak-energy, stimuli, where the <i>total</i> energy across the visible spectrum is the same across stimuli. Again, assuming we sample the visible spectrum by 5 and if the bandwidth is 3, those stimuli would be 30000, 21000, 11100, etc., with also at most 2 transitions (for the same reason). From the visualization, can you tell what changes, and what does not change, when you switch from equal-peak-energy to equal-peak-energy?</p>
+      </div>
+    </div>
+
+    <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
+      <div class="row">
+        <h3>Visualization</h3>
         <div class="col-sm-6 mb-1">
           <div id="locusDiv"></div>
         </div>
@@ -84,17 +96,30 @@
           <div id="stimulusDiv"></div>
         </div>
 
-        <div class="col-sm-6 mt-1 d-flex justify-content-center align-self-center">
-          <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-            <input type="radio" class="btn-check" name="mode" id="epe" value="epe" autocomplete="off" checked>
-            <label class="btn btn-outline-primary btn-sm" for="epe">Equal Peak Energy</label>
+        <div class="col-sm-6 mt-1 justify-content-center align-self-center">
+          <div class="row">
+            <div class="col-sm-12 mt-1 d-flex">
+              <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="mode" id="epe" value="epe" autocomplete="off" checked>
+                <label class="btn btn-outline-primary btn-sm" for="epe">Equal Peak Energy</label>
 
-            <input type="radio" class="btn-check" name="mode" id="ete" value="ete" autocomplete="off">
-            <label class="btn btn-outline-primary btn-sm" for="ete">Equal Total Energy</label>
+                <input type="radio" class="btn-check" name="mode" id="ete" value="ete" autocomplete="off">
+                <label class="btn btn-outline-primary btn-sm" for="ete">Equal Total Energy</label>
+              </div>
+              <select id="space" style="width: 150px" class="form-select form-select-sm mx-1"></select>
+              <button id="start" class="btn btn-primary btn-sm mx-1">Start</button>
+              <button id="clear" class="btn btn-primary btn-sm mx-1">Clear</button>
+            </div>
           </div>
-          <select id="space" style="width: 150px" class="form-select form-select-sm mx-1"></select>
-          <button id="start" class="btn btn-primary btn-sm mx-1">Start</button>
-          <button id="clear" class="btn btn-primary btn-sm mx-1">Clear</button>
+
+          <div class="row">
+            <div class="col-sm-12 mt-2 d-flex">
+              <div>
+                <p>Pick a stimuli mode and click "Start". You will see that the HVS gamut is being built step by step, and the gamut in the chromacitity diagram is sampled accordingly. Once the gamut is generated, you can hover and click any point in the chromaticity diagram, which will highlight a curve. The SPD of the particular stimulus you click will show up on the bottom right.</p>
+                <p>Try clicking different points on the same highlighted curve and pay attention to their SPDs. You will see that all the points on the same curve have the same bandwidth but are shifted. Click a different curve, and you will see that points on different curves have different bandwidths.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
