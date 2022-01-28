@@ -63,7 +63,7 @@ function genSeq(len) {
 }
 
 // The canonical way of drawing the boundary. See: http://www.brucelindbloom.com/index.html?LabGamutDisplayHelp.html
-function drawGamutPointsContBand(plot, cPlot, vis) {
+function drawGamutPoints(plot, cPlot, vis) {
   var numPoints = plot.data[0].x.length;
   var numSeqs = plot.data.length;
   if (numSeqs > 1) {
@@ -74,15 +74,21 @@ function drawGamutPointsContBand(plot, cPlot, vis) {
   var allSeqs = genSeq(numPoints);
 
   var i = 0;
+  var dist = Array(numPoints).fill(1);
   var tid = setInterval(function(){
     var seq = allSeqs[i];
+    var val = $('input[type=radio][name=mode]:checked').val();
+    if (val == "edist") {
+      dist = math.sqrt(math.add(math.add(math.dotMultiply(seq[0], seq[0]),
+          math.dotMultiply(seq[1], seq[1])), math.dotMultiply(seq[2], seq[2])));
+    }
 
     var data_update = {'marker.color': greyColor, 'line.color': greyColor};
     Plotly.restyle(plot, data_update, [plot.data.length-1]);
     Plotly.addTraces(plot, {
-      x: seq[0],
-      y: seq[1],
-      z: seq[2],
+      x: math.dotDivide(seq[0], dist),
+      y: math.dotDivide(seq[1], dist),
+      z: math.dotDivide(seq[2], dist),
       text: seq[3],
       mode: 'lines+markers',
       type: 'scatter3d',
@@ -429,7 +435,7 @@ function regEvts() {
 
   $('#start').on('click', function(evt) {
     $('#start').prop('disabled', true);
-    drawGamutPointsContBand(plot, cPlot, true);
+    drawGamutPoints(plot, cPlot, true);
   });
 
   $('#clear').on('click', function(evt) {
