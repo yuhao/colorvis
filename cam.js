@@ -13,13 +13,14 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-var ccMatText, equText, equText2;
+var ccMatText, equText, equText2, camText;
 
 QUEUE.Push(function () {
   ccMatText = MathJax.Hub.getAllJax('ccMatText');
   equText = MathJax.Hub.getAllJax('equText');
   equText2 = MathJax.Hub.getAllJax('equText2');
   equText3 = MathJax.Hub.getAllJax('equText3');
+  camText = MathJax.Hub.getAllJax('camText');
 });
 
 
@@ -1039,6 +1040,7 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
     QUEUE.Push(["Text", ccMatText[2], $('#whiteSel').val()]);
 
     QUEUE.Push(["Text", equText3[2], $('#whiteSel').val()]);
+    QUEUE.Push(["Text", camText[0], $('#camSel').val()]);
 
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
@@ -1297,7 +1299,7 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       color: '#000000',
       width: 2,
     },
-    name: 'Convex Hull of Camera RGB Gamut',
+    name: 'Convex Hull of Spectral Locus in Camera',
   };
 
   var data = [xyTrace, cxyTrace, pxyTrace, cpxyTrace, srgbTrace, camGamutTrace, hullTrace];
