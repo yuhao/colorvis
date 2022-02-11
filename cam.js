@@ -13,14 +13,15 @@ var oBlueColor = 'rgba(1, 25, 147, 0.3)';
 
 // https://docs.mathjax.org/en/v2.1-latest/typeset.html
 var QUEUE = MathJax.Hub.queue; // shorthand for the queue
-var ccMatText, equText, equText2, camText;
+var ccMatText, equText, equText2, camText1, camText2;
 
 QUEUE.Push(function () {
   ccMatText = MathJax.Hub.getAllJax('ccMatText');
   equText = MathJax.Hub.getAllJax('equText');
   equText2 = MathJax.Hub.getAllJax('equText2');
   equText3 = MathJax.Hub.getAllJax('equText3');
-  camText = MathJax.Hub.getAllJax('camText');
+  camText1 = MathJax.Hub.getAllJax('camText1');
+  camText2 = MathJax.Hub.getAllJax('camText2');
 });
 
 
@@ -1040,7 +1041,9 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
     QUEUE.Push(["Text", ccMatText[2], $('#whiteSel').val()]);
 
     QUEUE.Push(["Text", equText3[2], $('#whiteSel').val()]);
-    QUEUE.Push(["Text", camText[0], $('#camSel').val()]);
+
+    QUEUE.Push(["Text", camText1[0], $('#camSel').val()]);
+    QUEUE.Push(["Text", camText2[0], $('#camSel').val()]);
 
     if (calculated) {
       var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
