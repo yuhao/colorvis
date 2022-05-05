@@ -34,6 +34,25 @@ function range(start, end, stride) {
 var rgb2dkl = [[0.14376143, 0.16556473, 0.00228754], [-0.21244303, -0.7142423, -0.06559153], [ 0.2125915, 0.71517139, 0.07219711]];
 var dkl2rgb = math.inv(rgb2dkl);
 
+function componentToHex(c) {
+  var hex = c.toString(16);
+  return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(c) {
+  return "#" + componentToHex(c[0]) + componentToHex(c[1]) + componentToHex(c[2]);
+}
+
+function RGB2sRGB(color) {
+  var out = [];
+  for(var i = 0; i < 3; i++) {
+    if (color[i] <= 0.0031308) out[i] = parseInt((12.92 * color[i] * 255).toFixed());
+    else out[i] = parseInt(((1.055 * Math.pow(color[i], 1/2.4) - 0.055) * 255).toFixed());
+  }
+
+  return rgbToHex(out);
+}
+
 function getVertices() {
   var o = [0, 0, 0];
   var r = math.multiply(rgb2dkl, math.transpose([1, 0, 0]));
@@ -259,6 +278,11 @@ function plotRGB(plotId) {
       marker: {
         size: 1,
         opacity: 1,
+        color: RGB2sRGB([tr[i], tg[i], tb[i]]),
+      },
+      line: {
+        width: 1,
+        color: RGB2sRGB([tr[i], tg[i], tb[i]]),
       },
       //color:'rgb(300,100,200)',
       showlegend: false,
@@ -272,9 +296,6 @@ function plotRGB(plotId) {
   }
 
   var data = traces;
-  //var data = [ellipsoid];
-  //var data = traces.concat([ellipsoid]);
-  //var data = traces.concat([points]);
 
   var layout = {
     height: 600,
@@ -349,16 +370,6 @@ function plotRGB(plotId) {
   return plot;
 }
 
-//var a = 6.36363972e-04;
-//var b = 5.94582369e-05;
-//var c = 8.37127813e-05;
-
-//var a = 0.00719133;
-//var b = 0.00024922;
-//var c = 0.00034638;
-
-//var d0 = 0.03100912, k0 = -0.09396279, l0 = 0.09475283;
-
 var PI = Math.PI;
 var NS = 20;
 
@@ -366,6 +377,9 @@ var NS = 20;
 
 var eD = [], eK = [], eL = [];
 d3.csv('data.csv', function(err, rows){
+  tr = unpack(rows, 'rr');
+  tg = unpack(rows, 'gg');
+  tb = unpack(rows, 'bb');
   dd = unpack(rows, 'd');
   kk = unpack(rows, 'k');
   ll = unpack(rows, 'l');
