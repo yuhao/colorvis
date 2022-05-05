@@ -285,7 +285,8 @@ function plotRGB(plotId) {
         color: RGB2sRGB([tr[i], tg[i], tb[i]]),
       },
       //color:'rgb(300,100,200)',
-      showlegend: false,
+      showlegend: true,
+      name: '[' + tr[i].toString() + ', ' + tg[i].toString() + ', ' + tb[i].toString() + ']',
       opacity:0.8,
       hovertemplate: 'R: %{x}' +
         '<br>G: %{y}' +
