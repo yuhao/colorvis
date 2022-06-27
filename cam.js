@@ -245,7 +245,8 @@ function formatRGB(rgb) {
 
 var ccPatchNames;
 
-d3.csv('ccspec.csv', function(err, rows){
+//d3.csv('ccspec.csv', function(err, rows){
+d3.csv('skinspec.csv', function(err, rows){
   var stride = 10;
 
   var wlen = unpack(rows, 'Wavelength');
@@ -1011,12 +1012,19 @@ var ccMat;
 function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
   var calculated = false;
   $(buttonId).on('click', function(evt) {
-    var RGBMat = [patchPlot.data[0].x, patchPlot.data[0].y, patchPlot.data[0].z];
-    var XYZMat = [patchPlot.data[1].x, patchPlot.data[1].y, patchPlot.data[1].z];
+    // control how many data points do we use to calibrate T
+    var start = 0;
+    var end = patchPlot.data[0].x.length;
+    var RGBMat = [patchPlot.data[0].x.slice(start, end), patchPlot.data[0].y.slice(start, end), patchPlot.data[0].z.slice(start, end)];
+    var XYZMat = [patchPlot.data[1].x.slice(start, end), patchPlot.data[1].y.slice(start, end), patchPlot.data[1].z.slice(start, end)];
 
     var M = math.multiply(math.multiply(XYZMat, math.transpose(RGBMat)),
                           math.inv(math.multiply(RGBMat, math.transpose(RGBMat))));
     ccMat = M;
+
+    // no matter how to calculate T, always apply T to all the patches
+    var RGBMat = [patchPlot.data[0].x, patchPlot.data[0].y, patchPlot.data[0].z];
+    var XYZMat = [patchPlot.data[1].x, patchPlot.data[1].y, patchPlot.data[1].z];
 
     var cXYZMat = math.multiply(M, RGBMat);
 
@@ -1392,7 +1400,12 @@ function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
       var idx = i * 6 + j;
       var gtVal = [XYZMat[0][idx], XYZMat[1][idx], XYZMat[2][idx]];
       var newVal = [cXYZMat[0][idx], cXYZMat[1][idx], cXYZMat[2][idx]];
-      row.push(Math.sqrt(Math.pow((newVal[0] - gtVal[0]), 2) + Math.pow((newVal[1] - gtVal[1]), 2) + Math.pow((newVal[2] - gtVal[2]), 2)));
+
+      //row.push(Math.sqrt(Math.pow((newVal[0] - gtVal[0]), 2) + Math.pow((newVal[1] - gtVal[1]), 2) + Math.pow((newVal[2] - gtVal[2]), 2)));
+      let color1 = new Color("xyz-d65", gtVal);
+      let color2 = new Color("xyz-d65", newVal);
+      row.push(color1.deltaE76(color2));
+
       tRow.push(window.ccPatchNames[idx]);
     }
     zValues.push(row);
