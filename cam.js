@@ -24,6 +24,32 @@ QUEUE.Push(function () {
   camText2 = MathJax.Hub.getAllJax('camText2');
 });
 
+// no gamut mapping here
+function xyz_to_srgb (xyz) {
+  var xsm = [
+    [3.2406255, -1.537208, -0.4986286],
+    [-0.9689307, 1.8757561, 0.0415175],
+    [0.0557101, -0.2040211, 1.0569959]
+  ];
+
+  var rLinear = xyz.x * xsm[0][0] + xyz.y * xsm[0][1] + xyz.z * xsm[0][2];
+  var gLinear = xyz.x * xsm[1][0] + xyz.y * xsm[1][1] + xyz.z * xsm[1][2];
+  var bLinear = xyz.x * xsm[2][0] + xyz.y * xsm[2][1] + xyz.z * xsm[2][2];
+
+  var transfer = function (c) {
+    if(c <= 0.0031308) {
+      return 12.92 * c;
+    } else {
+      return 1.055 * Math.pow(c, 1/2.4) - 0.055;
+    }
+  };
+
+  return [
+    Math.round(255 * transfer(rLinear)),
+    Math.round(255 * transfer(gLinear)),
+    Math.round(255 * transfer(bLinear))
+  ];
+};
 
 // https://stackoverflow.com/questions/60678586/update-x-and-y-values-of-a-trace-using-plotly-update
 function updateLocus(seq1, seq2, seq3, newTitle, plot) {
@@ -243,99 +269,6 @@ function formatRGB(rgb) {
   return 'rgba('+ rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + '1)';
 }
 
-var ccPatchNames;
-
-//d3.csv('ccspec.csv', function(err, rows){
-d3.csv('skinspec.csv', function(err, rows){
-  var stride = 10;
-
-  var wlen = unpack(rows, 'Wavelength');
-  var firstW = wlen[0];
-  var lastW = wlen[wlen.length - 1];
-  var patches = Object.keys(rows[0]);
-  ccPatchNames = patches.slice(1);
-  var firstIdx = (400 - firstW) / stride;
-  var lastIdx = (720 - firstW) / stride;
-
-  var colorCheckerSpecR = [];
-  var chartTraces = [];
-
-  var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1);
-
-  for (var i = 1; i < patches.length; i++) {
-    colorCheckerSpecR[i-1] = unpack(rows, patches[i]).slice(firstIdx, lastIdx + 1);
-    var trace = {
-      data: colorCheckerSpecR[i-1],
-      label: patches[i],
-      fill: false,
-      pointHoverRadius: 10,
-      pointBackgroundColor: formatRGB(patchColorsD50[i-1]),
-      borderColor: 'rgba(0, 0, 0, 0.5)',
-      backgroundColor: formatRGB(patchColorsD50[i-1]),
-      pointRadius: 3,
-      borderWidth: 1,
-    }
-    chartTraces.push(trace);
-  }
-
-  var ctx = document.getElementById("canvasCCSpec").getContext("2d");
-  var canvas = document.getElementById("canvasCCSpec");
-  window.ccSpecChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: x_data,
-      datasets: chartTraces,
-    },
-    options: {
-      animation: {
-        duration: 0
-      },
-      responsive: true,
-      interaction: {
-        mode: 'nearest', // find the nearest point on one curve
-        intersect: false,
-      },
-      scales: {
-        yAxes:{
-          min: 0,
-          max: 1,
-          position: 'left',
-        },
-      },
-      plugins: {
-        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
-        zoom: {
-          zoom: {
-            wheel: {
-              enabled: true,
-              speed: 0.1,
-            },
-            mode: 'x',
-          },
-          pan: {
-            enabled: true,
-            modifierKey: 'shift',
-            mode: 'x',
-          },
-        },
-        title: {
-          display: true,
-          text: 'Spectral Reflectance of ColorChecker Classic (by BabelColor)',
-          font: {
-            size: 20,
-            family: 'Helvetica Neue',
-          },
-        },
-        legend: {
-          position: 'left',
-        },
-      }
-    }
-  });
-
-  registerResetZoom('#resetZoomSpecR', window.ccSpecChart);
-});
-
 function genSelectBox(values, id, preset) {
   var select = document.getElementById(id);
 
@@ -366,6 +299,9 @@ function genSelectBox(values, id, preset) {
 var defaultLegendClickHandler = Chart.defaults.plugins.legend.onClick;
 var newLegendClickHandler = function (e, legendItem, legend) {
 };
+
+var xbar, ybar, zbar;
+var ccPatchNames;
 
 d3.csv('camspec.csv', function(err, rows){
   var stride = 10;
@@ -494,13 +430,13 @@ d3.csv('camspec.csv', function(err, rows){
       var lastIdx = (720 - firstW) / stride;
 
       // XYZ CMFs are given at 5 nm intervals
-      var xbar = unpack(rows, 'x').slice(firstIdx, lastIdx + 1).filter((element, index) => {
+      xbar = unpack(rows, 'x').slice(firstIdx, lastIdx + 1).filter((element, index) => {
         return index % 2 === 0;
       });
-      var ybar = unpack(rows, 'y').slice(firstIdx, lastIdx + 1).filter((element, index) => {
+      ybar = unpack(rows, 'y').slice(firstIdx, lastIdx + 1).filter((element, index) => {
         return index % 2 === 0;
       });
-      var zbar = unpack(rows, 'z').slice(firstIdx, lastIdx + 1).filter((element, index) => {
+      zbar = unpack(rows, 'z').slice(firstIdx, lastIdx + 1).filter((element, index) => {
         return index % 2 === 0;
       });
       wlen = wlen.slice(firstIdx, lastIdx + 1).filter((element, index) => {
@@ -639,9 +575,238 @@ d3.csv('camspec.csv', function(err, rows){
           [Array(wlen.length).fill(0.8), redColor],
           [Array(wlen.length).fill(0.9), greenColor],
           [Array(wlen.length).fill(0.6), blueColor]);
+
+      d3.csv('ciesi.csv', function(err, rows){
+        var stride = 5;
+      
+        // the CIE SIs are normalized such that SPD is 100 at 560 nm
+        // https://www.image-engineering.de/library/technotes/753-cie-standard-illuminants
+        var wlen = unpack(rows, 'wavelength');
+        var firstW = wlen[0];
+        var lastW = wlen[wlen.length - 1];
+        var firstIdx = (400 - firstW) / stride;
+        var lastIdx = (720 - firstW) / stride;
+      
+        // SI data are given at 5 nm intervals
+        var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+          return index % 2 === 0;
+        });
+      
+        //var e = Array(wlen.length).fill(100);
+        var StdIllu = Object.keys(rows[0]); // real lluminants start from 1 (0 is wavelength)
+      
+        //var normE = Array(wlen.length).fill(1).slice(firstIdx, lastIdx + 1);
+        var DrawIllu = Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+          return index % 2 === 0;
+        });
+        var t = sampleSPD(unpack(rows, StdIllu[3]).slice(firstIdx, lastIdx + 1), 2);
+        var si_d65 = math.dotDivide(t, Math.max(...t));
+      
+        var canvas = document.getElementById("canvasWhite");
+        var ctx = canvas.getContext("2d");
+        window.whiteChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: x_data,
+            datasets: [
+              {
+                data: si_d65,
+                label: "W",
+                borderColor: "#000000",
+                pointBackgroundColor: "#000000",
+                fill: false,
+                pointHoverRadius: 10,
+                pointRadius: 3,
+                borderWidth: 1,
+              },
+            ]
+          },
+          options: {
+            animation: {
+              duration: 0,
+            },
+            responsive: true,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            scales: {
+              yAxes:{
+                min: 1.0,
+                max: 0.0,
+                position: 'left',
+              },
+            },
+            plugins: {
+              // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+              zoom: {
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                    speed: 0.1,
+                  },
+                  mode: 'x',
+                },
+                pan: {
+                  enabled: true,
+                  modifierKey: 'shift',
+                  mode: 'x',
+                },
+              },
+              title: {
+                //display: true,
+                text: 'White light',
+                fontSize: 24,
+              },
+              legend: {
+                display: false,
+              },
+            }
+          }
+        });
+      
+        genSelectBox(StdIllu.slice(1), "whiteSel", 'D65');
+      
+        registerSelWhite(window.whiteChart, canvas, rows, DrawIllu, firstIdx, lastIdx);
+        registerResetZoom('#resetZoomWhite', window.whiteChart);
+        registerChartReset('#resetWhite', undefined, window.whiteChart, canvas, 1,
+            [Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
+                return index % 2 === 0;
+              }), "#000000"]);
+      
+        // 3D plot; RGB trace first, LMS trace second
+        var patchPlot = document.getElementById('targetDiv');
+        patchPlot.plotted = false;
+        registerGenLinSys('#genLinSys', patchPlot);
+      
+        // heatmap for color difference
+        var colorDiffPlot = document.getElementById('colDiffDiv');
+        // chromaticity plot
+        var chrmPlot = document.getElementById('chrmDiv');
+        registerCalcMat('#calcMatrix', patchPlot, colorDiffPlot, chrmPlot);
+      
+        registerChooseCase('#chooseCam', '#genLinSys', '#calcMatrix', '#camSel');
+
+        genSelectBox(["ColorChecker", "Human Skin"], "targetSel", 'Human Skin');
+
+        registerSelTarget(xbar, ybar, zbar, si_d65)
+        plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, false,
+            'Spectral Reflectance of Human Skin (by NIST)');
+        //plotCaliTarget('ccspec.csv', xbar, ybar, zbar, si_d65, false,
+        //  'Spectral Reflectance of ColorChecker Classic (by BabelColor)');
+      });
     });
   });
 });
+
+function plotCaliTarget(target, xbar, ybar, zbar, si_d65, update, titleText) {
+  d3.csv(target, function(err, rows){
+    var stride = 10;
+  
+    var wlen = unpack(rows, 'Wavelength');
+    var firstW = wlen[0];
+    var lastW = wlen[wlen.length - 1];
+    var patches = Object.keys(rows[0]);
+    ccPatchNames = patches.slice(1);
+    var firstIdx = (400 - firstW) / stride;
+    var lastIdx = (720 - firstW) / stride;
+  
+    var colorCheckerSpecR = [];
+    var chartTraces = [];
+  
+    var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1);
+
+    // the sRGB to XYZ matrix assumes that D65's Y is normalized to 1
+    var scaling_factor = math.dot(ybar, si_d65);
+    for (var i = 1; i < patches.length; i++) {
+      colorCheckerSpecR[i-1] = unpack(rows, patches[i]).slice(firstIdx, lastIdx + 1);
+      var patchColorX = math.dot(xbar, math.dotMultiply(si_d65, colorCheckerSpecR[i-1])) / scaling_factor;
+      var patchColorY = math.dot(ybar, math.dotMultiply(si_d65, colorCheckerSpecR[i-1])) / scaling_factor;
+      var patchColorZ = math.dot(zbar, math.dotMultiply(si_d65, colorCheckerSpecR[i-1])) / scaling_factor;
+      var t = xyz_to_srgb({x: patchColorX, y: patchColorY, z: patchColorZ});
+      var trace = {
+        data: colorCheckerSpecR[i-1],
+        label: patches[i],
+        fill: false,
+        pointHoverRadius: 10,
+        //pointBackgroundColor: formatRGB(patchColorsD50[i-1]),
+        pointBackgroundColor: formatRGB(t),
+        borderColor: 'rgba(0, 0, 0, 0.5)',
+        //backgroundColor: formatRGB(patchColorsD50[i-1]),
+        backgroundColor: formatRGB(t),
+        pointRadius: 3,
+        borderWidth: 1,
+      }
+      chartTraces.push(trace);
+    }
+
+    if (update) {
+      var chart = window.ccSpecChart;
+      chart.data.datasets = chartTraces;
+      chart.options.plugins.title.text = titleText;
+      chart.update();
+
+      return;
+    }
+  
+    var ctx = document.getElementById("canvasCCSpec").getContext("2d");
+    var canvas = document.getElementById("canvasCCSpec");
+    window.ccSpecChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: x_data,
+        datasets: chartTraces,
+      },
+      options: {
+        animation: {
+          duration: 0
+        },
+        responsive: true,
+        interaction: {
+          mode: 'nearest', // find the nearest point on one curve
+          intersect: false,
+        },
+        scales: {
+          yAxes:{
+            min: 0,
+            max: 1,
+            position: 'left',
+          },
+        },
+        plugins: {
+          // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
+          zoom: {
+            zoom: {
+              wheel: {
+                enabled: true,
+                speed: 0.1,
+              },
+              mode: 'x',
+            },
+            pan: {
+              enabled: true,
+              modifierKey: 'shift',
+              mode: 'x',
+            },
+          },
+          title: {
+            display: true,
+            text: titleText,
+            font: {
+              size: 20,
+              family: 'Helvetica Neue',
+            },
+          },
+          legend: {
+            position: 'left',
+          },
+        }
+      }
+    });
+  
+    registerResetZoom('#resetZoomSpecR', window.ccSpecChart);
+  });
+}
 
 function registerDrawCorrectLocus(buttonId, plot, wlen) {
   var calculated = false;
@@ -853,118 +1018,6 @@ function registerSelCam(chart, canvas, plot, rCamSpec, gCamSpec, bCamSpec, drawS
     chart.update();
   });
 }
-
-d3.csv('ciesi.csv', function(err, rows){
-  var stride = 5;
-
-  // the CIE SIs are normalized such that SPD is 100 at 560 nm
-  // https://www.image-engineering.de/library/technotes/753-cie-standard-illuminants
-  var wlen = unpack(rows, 'wavelength');
-  var firstW = wlen[0];
-  var lastW = wlen[wlen.length - 1];
-  var firstIdx = (400 - firstW) / stride;
-  var lastIdx = (720 - firstW) / stride;
-
-  // SI data are given at 5 nm intervals
-  var x_data = range(firstW, lastW, stride).slice(firstIdx, lastIdx + 1).filter((element, index) => {
-    return index % 2 === 0;
-  });
-
-  //var e = Array(wlen.length).fill(100);
-  var StdIllu = Object.keys(rows[0]); // real lluminants start from 1 (0 is wavelength)
-
-  //var normE = Array(wlen.length).fill(1).slice(firstIdx, lastIdx + 1);
-  var DrawIllu = Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
-    return index % 2 === 0;
-  });
-  var t = sampleSPD(unpack(rows, StdIllu[3]).slice(firstIdx, lastIdx + 1), 2);
-  var y_data_1 = math.dotDivide(t, Math.max(...t));
-
-  var canvas = document.getElementById("canvasWhite");
-  var ctx = canvas.getContext("2d");
-  window.whiteChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: x_data,
-      datasets: [
-        {
-          data: y_data_1,
-          label: "W",
-          borderColor: "#000000",
-          pointBackgroundColor: "#000000",
-          fill: false,
-          pointHoverRadius: 10,
-          pointRadius: 3,
-          borderWidth: 1,
-        },
-      ]
-    },
-    options: {
-      animation: {
-        duration: 0,
-      },
-      responsive: true,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      scales: {
-        yAxes:{
-          min: 1.0,
-          max: 0.0,
-          position: 'left',
-        },
-      },
-      plugins: {
-        // https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html#wheel-options
-        zoom: {
-          zoom: {
-            wheel: {
-              enabled: true,
-              speed: 0.1,
-            },
-            mode: 'x',
-          },
-          pan: {
-            enabled: true,
-            modifierKey: 'shift',
-            mode: 'x',
-          },
-        },
-        title: {
-          //display: true,
-          text: 'White light',
-          fontSize: 24,
-        },
-        legend: {
-          display: false,
-        },
-      }
-    }
-  });
-
-  genSelectBox(StdIllu.slice(1), "whiteSel", 'D65');
-
-  registerSelWhite(window.whiteChart, canvas, rows, DrawIllu, firstIdx, lastIdx);
-  registerResetZoom('#resetZoomWhite', window.whiteChart);
-  registerChartReset('#resetWhite', undefined, window.whiteChart, canvas, 1,
-      [Array(wlen.length).fill(0.5).slice(firstIdx, lastIdx + 1).filter((element, index) => {
-          return index % 2 === 0;
-        }), "#000000"]);
-
-  // 3D plot; RGB trace first, LMS trace second
-  var patchPlot = document.getElementById('targetDiv');
-  patchPlot.plotted = false;
-  registerGenLinSys('#genLinSys', patchPlot);
-
-  // heatmap for color difference
-  var colorDiffPlot = document.getElementById('colDiffDiv');
-  // chromaticity plot
-  var chrmPlot = document.getElementById('chrmDiv');
-  registerCalcMat('#calcMatrix', patchPlot, colorDiffPlot, chrmPlot);
-
-  registerChooseCase('#chooseCam', '#genLinSys', '#calcMatrix', '#camSel');
-});
 
 function registerChooseCase(id, genLinSys, calcMat, camSel) {
   $(id).on('click', function(evt) {
@@ -1612,6 +1665,17 @@ function sampleSPD(spd, stride) {
   }
 
   return result;
+}
+
+function registerSelTarget(xbar, ybar, zbar, si_d65) {
+  $('#targetSel').on('change', function(evt) {
+    var val = this.value;
+    if (val == "ColorChecker") {
+      plotCaliTarget('ccspec.csv', xbar, ybar, zbar, si_d65, true, "Spectral Reflectance of ColorChecker Classic (by BabelColor)");
+    } else {
+      plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, true, "Spectral Reflectance of Human Skin (by NIST)");
+    }
+  });
 }
 
 function registerSelWhite(chart, canvas, rows, drawIllu, firstIdx, lastIdx) {
