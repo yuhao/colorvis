@@ -690,10 +690,8 @@ d3.csv('camspec.csv', function(err, rows){
         genSelectBox(["ColorChecker", "Human Skin"], "targetSel", 'Human Skin');
 
         registerSelTarget(xbar, ybar, zbar, si_d65)
-        plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, false,
-            'Spectral Reflectance of Human Skin (by NIST)');
-        //plotCaliTarget('ccspec.csv', xbar, ybar, zbar, si_d65, false,
-        //  'Spectral Reflectance of ColorChecker Classic (by BabelColor)');
+        plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of Human Skin (by NIST)');
+        //plotCaliTarget('ccspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of ColorChecker Classic (by BabelColor)');
       });
     });
   });
@@ -1107,8 +1105,7 @@ function registerCalcMat(buttonId, patchPlot, colorDiffPlot, chrmPlot) {
     QUEUE.Push(["Text", camText2[0], $('#camSel').val()]);
 
     if (calculated) {
-      var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]]};
-
+      var data_update = {'x': [cXYZMat[0]], 'y': [cXYZMat[1]], 'z': [cXYZMat[2]], 'text': [window.ccPatchNames]};
       Plotly.update(patchPlot, data_update, {}, [2]);
 
       plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, true);
@@ -1216,8 +1213,11 @@ function plotChrm(patchPlot, chrmPlot, plotted) {
       'xaxis.range': [Math.max(-1, ranges[0]-0.1), Math.min(2, ranges[1]+0.1)],
       'yaxis.range': [Math.max(-1, ranges[2]-0.1), Math.min(2, ranges[3]+0.1)],
     };
-
     Plotly.update(chrmPlot, data_update, layout_update, [1, 2, 3, 5, 6]);
+
+    var data_update = {'text': [window.ccPatchNames, window.ccPatchNames]};
+    Plotly.update(chrmPlot, data_update, {}, [2, 3]);
+
     return;
   }
 
@@ -1466,7 +1466,7 @@ function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
   }
 
   if (plotted) {
-    var data_update = {'z': [zValues]};
+    var data_update = {'z': [zValues], 'customdata': [tValues]};
 
     Plotly.update(colorDiffPlot, data_update, {}, [0]);
     return;
@@ -1541,7 +1541,8 @@ function plotTargetColors(ccSpec, camSen, stdIllu, plot, update) {
 
   // update both RGB and XYZ points
   if (update) {
-    var data_update = {'x': [patchRGB[0], patchXYZ[0]], 'y': [patchRGB[1], patchXYZ[1]], 'z': [patchRGB[2], patchXYZ[2]]};
+    var data_update = {'x': [patchRGB[0], patchXYZ[0]], 'y': [patchRGB[1], patchXYZ[1]], 'z': [patchRGB[2], patchXYZ[2]],
+                       'text': [window.ccPatchNames, window.ccPatchNames]};
 
     Plotly.update(plot, data_update, {}, [0, 1]);
     return;
