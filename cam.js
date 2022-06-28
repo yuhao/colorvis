@@ -1483,9 +1483,9 @@ function plotColorDiff(colorDiffPlot, XYZMat, cXYZMat, plotted) {
     hovertemplate: '%{z}' +
       '<br>name: %{customdata}<extra></extra>' ,
   }];
-  
+
   var layout = {
-    title: 'Color Difference in XYZ Space',
+    title: 'Color Difference in CIELAB ΔE*',
     annotations: [],
     paper_bgcolor: 'rgba(0, 0, 0, 0)',
     xaxis: {
