@@ -180,7 +180,7 @@ d3.csv('hpe_5.csv', function(err, rows){
     projConeL.push(lPrime);
   }
 
-  lmsLocusMarkerColors = Array(wlen.length).fill('#000000');
+  lmsLocusMarkerColors = Array(wlen.length).fill(redColor);
   var newTrace = {
     x: projConeL,
     y: dConeM,
@@ -193,7 +193,7 @@ d3.csv('hpe_5.csv', function(err, rows){
       color: lmsLocusMarkerColors,
     },
     line: {
-      color: '#000000',
+      color: redColor,
       width: 2
     },
     visible: 'legendonly',
