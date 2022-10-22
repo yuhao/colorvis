@@ -180,7 +180,7 @@ d3.csv('hpe_5.csv', function(err, rows){
     projConeL.push(lPrime);
   }
 
-  lmsLocusMarkerColors = Array(wlen.length).fill('#000000');
+  lmsLocusMarkerColors = Array(wlen.length).fill(redColor);
   var newTrace = {
     x: projConeL,
     y: dConeM,
@@ -193,7 +193,7 @@ d3.csv('hpe_5.csv', function(err, rows){
       color: lmsLocusMarkerColors,
     },
     line: {
-      color: '#000000',
+      color: redColor,
       width: 2
     },
     visible: 'legendonly',
@@ -254,6 +254,37 @@ d3.csv('hpe_5.csv', function(err, rows){
 
   var data = [trace, newTrace, plane1, plane2, anchor].concat(traces);
  
+  // add lines of confusions
+  var loc_traces = [];
+  for (var i = 0; i < projConeL.length; i++) {
+    var start = projConeL[i][0];
+    var end = projConeL[i][1];
+    var line = {
+      //x: [dConeL[i], projConeL[i]],
+      x: [1, 0],
+      y: [dConeM[i], dConeM[i]],
+      z: [dConeS[i], dConeS[i]],
+      type: 'scatter3d',
+      showlegend: false,
+      visible: 'legendonly',
+      line: {
+        width: 1,
+        color: greenColor,
+      },
+      marker: {
+        size: 0,
+        opacity: 1,
+        //color: [colors[start], colors[end]],
+      },
+      hoverinfo: 'skip',
+    };
+    // hovertemplate overwrites hoverinfo, so add it later
+    loc_traces.push(line);
+  }
+  data = data.concat(loc_traces);
+
+
+
   var layout = {
     height: 800,
     //width: 1200,
@@ -324,6 +355,7 @@ d3.csv('hpe_5.csv', function(err, rows){
 
   registerPlanes('#showPlanes', locusPlot);
   registerProjLocus('#showProjLocus', locusPlot);
+  registerLoC('#showLoC', locusPlot);
   registersRGB('#showsRGB', locusPlot);
 });
 
@@ -347,15 +379,27 @@ function showProjLocus(id, plot) {
   }
 }
 
+function showsLoC(id, plot) {
+  var numWaves = plot.data.length;
+
+  if($(id).is(":checked")) {
+    var data_update = {'visible': true};
+    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(18));
+  } else {
+    var data_update = {'visible': 'legendonly'};
+    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(18));
+  }
+}
+
 function showsRGB(id, plot) {
   var numWaves = plot.data.length;
 
   if($(id).is(":checked")) {
     var data_update = {'visible': true};
-    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(5));
+    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(5, 17));
   } else {
     var data_update = {'visible': 'legendonly'};
-    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(5));
+    Plotly.restyle(plot, data_update, [...Array(numWaves).keys()].slice(5, 17));
   }
 }
 
@@ -368,6 +412,12 @@ function registerPlanes(id, plot) {
 function registerProjLocus(id, plot) {
   $(id).on('change', function(evt) {
     showProjLocus(id, plot);
+  });
+}
+
+function registerLoC(id, plot) {
+  $(id).on('change', function(evt) {
+    showsLoC(id, plot);
   });
 }
 

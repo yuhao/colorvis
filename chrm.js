@@ -246,7 +246,7 @@ var sCMFR = [], sCMFG = [], sCMFB = []; // these are precise values without roun
 function registerPlotLocus(buttonId, lmsChart, primChart) {
   $(buttonId).on('click', function(evt) {
     var val = $('input[type=radio][name=prim]:checked').val();
-    if (val == 'drawPrim' || val == 'usePreset3') {
+    if (val == 'drawPrim' || val == 'usePreset3' || val == 'usePreset4') {
       // B
       lMat[0][0] = math.dot(lmsChart.data.datasets[0].data, primChart.data.datasets[0].data);
       lMat[1][0] = math.dot(lmsChart.data.datasets[1].data, primChart.data.datasets[0].data);
@@ -1226,6 +1226,10 @@ function registerSelPrim(formId, lmsChart, lmsCanvas, rgbChart, rgbCanvas) {
       toggleDrag(rgbCanvas, false);
       $('#resetPrim').prop('disabled', true);
       plotLMSPrims();
+    } else if (this.value == 'usePreset4') {
+      toggleDrag(rgbCanvas, false);
+      $('#resetPrim').prop('disabled', true);
+      plotXYZPrims();
     } else if (this.value == 'drawPrim') {
       $('#resetPrim').trigger('click');
       drawPrims(rgbChart, rgbCanvas);
@@ -2033,6 +2037,52 @@ function solveLP(rVal, gVal, bVal) {
 
   var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
   return solution=numeric.trunc(lp.solution, 1e-12);
+}
+
+function plotXYZPrims() {
+  d3.csv('ciexyz31.csv').then(function(rows){
+    var stride = 5;
+
+    wlen = unpack(rows, 'wavelength');
+    var firstW = wlen[0];
+    var lastW = wlen[wlen.length - 1];
+
+    var x_data = range(firstW, lastW, stride);
+
+    x_cmf = unpack(rows, 'x');
+    x_cmf = x_cmf.slice((380 - firstW)/stride, (380 - firstW)/stride + (780-380)/stride + 1);
+    y_cmf = unpack(rows, 'y');
+    y_cmf = y_cmf.slice((380 - firstW)/stride, (380 - firstW)/stride + (780-380)/stride + 1);
+    z_cmf = unpack(rows, 'z');
+    z_cmf = z_cmf.slice((380 - firstW)/stride, (380 - firstW)/stride + (780-380)/stride + 1);
+
+    // find lights that correspond to XYZ primaries.
+    var chart = window.rgbPrimChart;
+    var num = chart.data.datasets[0].data.length;
+    var coeff = Array(num).fill(-1); // seems to be ignored
+    var left = math.diag(Array(num).fill(0));
+    var right = Array(num).fill(0);
+    var leftEq = [x_cmf, y_cmf, z_cmf];
+    var rightEq = [1, 0, 0];
+
+    var lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+    var R = numeric.trunc(lp.solution, 1e-12);
+
+    rightEq = [0, 1, 0];
+    lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+    var G = numeric.trunc(lp.solution, 1e-12);
+
+    rightEq = [0, 0, 1];
+    lp=numeric.solveLP(coeff, left, right, leftEq, rightEq);
+    var B = numeric.trunc(lp.solution, 1e-12);
+
+    chart.data.datasets[0].data = B;
+    chart.data.datasets[1].data = G;
+    chart.data.datasets[2].data = R;
+    chart.options.scales.yAxes.min = Math.min(Math.min(...R), Math.min(...G), Math.min(...B));
+    chart.options.scales.yAxes.max = Math.max(Math.max(...R), Math.max(...G), Math.max(...B));
+    chart.update();
+  });
 }
 
 function plotLMSPrims() {
