@@ -1,11 +1,12 @@
-var redColor = '#da2500';
-var greenColor = '#008f00';
-var blueColor = '#011993';
+var redColor = '#FF0000';
+var greenColor = '#00FF00';
+var blueColor = '#0000FF';
+var magentaColor = '#FF00FF';
+var cyanColor = '#00FFFF';
+var yellowColor = '#FFFF00';
+
 var greyColor = '#888888';
 var purpleColor = '#5c32a8';
-var magentaColor = '#fc0377';
-var cyanColor = '#42f5e6';
-var yellowColor = '#f5d442';
 var brightYellowColor = '#fcd303'; 
 var orangeColor = '#DC7B2E';
 var blueGreenColor = '#63BFAB'; 
@@ -387,7 +388,7 @@ function plotRGB(plotId, wlen) {
   var indices = [[0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [2, 4], [2, 6], [3, 5], [3, 6], [4, 7], [5, 7], [6, 7]];
   var names = ['O', 'R', 'G', 'B', 'R+G', 'R+B', 'G+B', 'R+G+B (W)'];
   var hoverInfo = [true, true, true, 'skip', 'skip', 'skip', 'skip', 'skip', 'skip', true, true, true];
-  var colors = ['#000000', redColor, greenColor, blueColor, yellowColor, cyanColor, magentaColor, '#000000'];
+  var colors = ['#000000', redColor, greenColor, blueColor, yellowColor, magentaColor, cyanColor, '#000000'];
   var modes = Array(3).fill('lines+markers+text').concat(Array(6).fill('lines')).concat(Array(3).fill('lines+markers+text'));
 
   for (var i = 0; i < indices.length; i++) {
