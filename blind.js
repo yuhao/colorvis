@@ -36,14 +36,15 @@ function range(start, end, stride) {
   return Array((end - start) / stride + 1).fill().map((_, idx) => start + idx*stride);
 }
 
-var hpe_xyz2lms = [[0.3897,0.689,-0.0787], [-0.2298,1.1834,0.0464], [0,0,1]];
+var hpe_xyz2lms = [[0.3897,0.689,-0.0787], [-0.2298,1.1834,0.0464], [0,0,1]]; // EEW normalized
 var hpe_xyz2lms_d65 = [[0.40,0.71,-0.08], [-0.23,1.17,0.05], [0.00,0.00,0.92]]; // D65 adapted
+var jv_xyz2lms = [[0.15514, 0.54312, -0.03286], [-0.15514, 0.45684, 0.03286], [0, 0, 0.01608]];
 // this is XYZ of sRGB primaries (not xyz)
 var sRGB_xyz = [[0.4123151515,0.21,0.01932727273], [0.3576,0.72,0.1192], [0.1805,0.07,0.9506333333]];
-var sRGB_lms = math.transpose(math.multiply(hpe_xyz2lms, math.transpose(sRGB_xyz)))
+var sRGB_lms = math.transpose(math.multiply(jv_xyz2lms, math.transpose(sRGB_xyz)))
 
-// read hpe_d65_5.csv for d65-adapted hpe lms, and then use hpe_xyz2lms_d65 matrix
-d3.csv('hpe_5.csv', function(err, rows){
+// read hpe_d65_5.csv for d65-adapted hpe lms and then use hpe_xyz2lms_d65 matrix
+d3.csv('sp.csv', function(err, rows){
   var stride = 5;
 
   // points to the cone arrays that will be used to plot the chart;
@@ -205,7 +206,7 @@ d3.csv('hpe_5.csv', function(err, rows){
       '<br>S: %{z}' +
       '<br>wavelength: %{text}<extra></extra>' ,
     type: 'scatter3d',
-    name: 'Protaonpia spectral locus',
+    name: 'Protanopia spectral locus',
   };
 
   // the sRGB gamut
