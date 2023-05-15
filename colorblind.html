@@ -92,13 +92,14 @@
 		<p>Normal color perception is 3D in that each color can be represented
 by a point in a 3D space. The plot below plots the spectral locus in the LMS
 space. A fundamental assumption we will make here is that the set of colors
-that a dichromat can see if strictly a subset of the set of colors that
-trichromats can see. So the question is, where are those colors perceivable by
-a dichromat in the LMS space? Well, since one type of cone cells is missing,
-the perceivable colors have only two degrees of freedom. So a dichromat's
-perceivable colors make up a 2D manifold. What this means is that a set of
-colors that are visually distinct to a normal trichromat will be perceived as
-the same color by a dichromat. How do we rigorously study this?</p>
+that a dichromate can see is strictly a subset of the set of colors that
+trichromats can see. So where are those colors perceivable by a dichromat?
+Well, since one type of cone cells is missing, the dichromatic color space
+should have only two degrees of freedom as opposed to three, and a dichromate's
+perceivable colors make up a 2D, rather than 3D, manifold. What this means is
+that a set of colors that are visually distinct to a normal trichromat will be
+perceived as the same color by a dichromat. How do we rigorously study
+this weakened color vision?</p>
 
       <div class="row">
         <div class="col-sm-3 d-flex align-self-center">
@@ -131,7 +132,7 @@ the same color by a dichromat. How do we rigorously study this?</p>
 
         <h4>Confusion Lines</h4>
 		<p>The key lies in the notion of <b>confusion lines</b>, which are
-lines defined in a trichromatic color space, e.g., LMS. All the points on a
+defined in a trichromatic color space, e.g., LMS. All the points on a
 confusion line represent colors that are perceptually the same to a dichromate.
 Since a protanope misses L cones, all colors that differ only in the L cone
 responses naturally lie on a confusion line; that confusion lie is necessarily
@@ -157,7 +158,7 @@ from the XYZ color matching functions.</p>
         <h4>Isochromes</h4>
 		<p>We know that all colors on the same confusion line are perceptually
 the same, but still we don't know, for all those colors on a confusion line,
-exactly what sort of color a dichromat sees. The key to answer this question is
+exactly what sort of color a dichromate sees. The key to answer this question is
 the notion of <b>isochromes</b>, which are colors perceived correctly by a
 dichromate? Let's say we know one such color P for protanopes, then we can draw
 a protanopia confusion line that goes through P; by definition all the colors
@@ -168,7 +169,7 @@ question is how do we find the isochromes?</p>
 and dichromates.  Imagine we have a normal trichromat and a protanope look at a
 color; even if they have the same color sensation, how would they communicate
 with each other about it?  You might be tempted to find isochromes by asking a
-dichromat whether two colors appear the same.  For instance, to know what color
+dichromate whether two colors appear the same.  For instance, to know what color
 a protanopia actually sees for color A, you show color A and another color B to
 a protanope and ask to her tell you whether the two colors match. However, this
 color matching experiment will only tell you that colors A and B appear the
@@ -182,7 +183,7 @@ all, it's difficult to be empathetic.</p>
 		<p>Remarkably, there is an exceedingly rare color-blindness called
 <i>unilateral dichromacy</i>, where a person’s one eye is dichromatic and the
 other eye is trichromatic. These people have two kinds of eyes but one brain.
-Color matching between the two eyes by a unilateral dichromat would allow us to
+Color matching between the two eyes by a unilateral dichromate would allow us to
 identify isochromes, assuming of course that the dichromatic eye and the
 trichromatic eye are similar to those of a "normal" dichromatic and
 trichromatic eye, respectively.  There are a handful of studies reported on
@@ -212,7 +213,7 @@ found at 485 nm and 660 nm.</p>
         <h3>Dichromatic Color Perception Model</h3>
 
 <p>Now with the handful of isochromes, let's see how we can attempt to build a
-model to simulate the world a dichromat sees. Before we proceed, it is critical
+model to simulate the world a dichromate sees. Before we proceed, it is critical
 to note that while everything described so far (confusion lines and isochromes)
 have psychological explanations and are empirically validated, none of the
 simulation models is validated, fundamentally because it's hard for a dichromat
