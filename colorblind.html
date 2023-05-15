@@ -79,7 +79,7 @@
       <div class="row">
         <h3>Introduction</h3>
         <p>In this tutorial we will explore color deficiency or color blindness. How does a color-blind person see color? How do we predict/simulate the color perception of a color-blind person? Understanding the mechanisms of color deficiency would allow you to appreciate daltonization, techniques that help regain some of the color perception for a color blind person.</p>
-        <p>In some sense predicting/synthesizing the view of the world as it appears to a deficient color vision is a philosophical issue: can we ever be sure of another’s (color) sensation? Naturally, there are many competing theories to color blindness. They vary in the assumptions they make about the mechanisms behind color-blind vision. This tutorial is based on the theory described in the classic paper by <a href="http://vision.psychol.cam.ac.uk/jdmollon/papers/Dichromat_simulation.pdf">Brettel et al. (1997)</a>.</p>
+        <p>Predicting the view of the world as it appears to someone with a deficient color vision is a philosophical issue: can we ever be sure of another’s (color) sensation? Naturally, there are many competing theories to color blindness. They vary in the assumptions they make about the mechanisms behind color-blind vision. This tutorial is based on the theory described in the classic paper by <a href="http://vision.psychol.cam.ac.uk/jdmollon/papers/Dichromat_simulation.pdf">Brettel et al. (1997)</a>.</p>
       </div>
     </div>
 
@@ -96,9 +96,90 @@
     <div class="d-grid gap-3 pt-3 mb-4 px-4 bg-light border rounded-3">
       <div class="row">
         <h3>The Principles</h3>
-        <p>Normal color perception is 3D in that each color can be represented by a point in a 3D space. The plot below plots the spectral locus in the LMS space. We know that the colors that a color-blind person can see are a subset of the colors that people with normal vision can see. So the question is, where do those colors lie in the LMS space?</p>
-        <h4>Building the Intuition</h4>
-        <p>You might be thinking that if one type of cone cells is missing, the perceivable colors should then lie on a 2D plane. And you would be right. Extensive research has shown that colors that a dichromat can see lie on a 2D plane, as opposed to in a 3D space in a normal trichromatic vision. Geometrically, you can think of this as projecting a point $[L, M, S]$, a color that a trichromat can see, onto a plane $\mathbf{P}$; the projected point $[L', M', S']$ on the plane $\mathbf{P}$ represents the actual color that a dichromat would see.</p>
+		<p>Normal color perception is 3D in that each color can be represented
+by a point in a 3D space. The plot below plots the spectral locus in the LMS
+space. A fundamental assumption we will make here is that the set of colors
+that a dichromat can see if strictly a subset of the set of colors that
+trichromats can see. So the question is, where are those colors perceivable by
+a dichromat in the LMS space? Well, since one type of cone cells is missing,
+the perceivable colors have only two degrees of freedom. So a dichromate's
+perceivable colors make up a 2D manifold. What this means is that a set of
+colors that are visually distinct to a normal trichromat will be perceived as
+the same color by a dichromat. How do we rigorously study this?</p>
+        <h4>Confusion Line</h4>
+		<p>The key lies in the notion of <b>confusion lines</b>, which are
+lines defined in a trichromatic color space, e.g., LMS. All the points on a
+confusion line represent colors that are perceptually the same to a dichromate.
+Since a protanope misses L cones, all colors that differ only in the L cone
+responses naturally lie on a confusion line; that confusion lie is necessarily
+parallel to the L-axis in the LMS space. In fact, all the confusion lines for
+protanopia are parallel to the L-axis in the LMS space. Similarly, deuteranopia
+and tritanopia confusion lines are parallel to the M-axis and S-axis,
+respectively.</p>
+		<p>Toggle the "Show Lines of Confusion" button in the plot below to see
+the lines.  While it's not shown here, one interesting thing about confusion
+lines is that they converge to the same point in the chromaticity diagram. The
+exact convergence point depends on the particular kind of dichromacy. See a
+visualization <a
+href="http://www.daltonize.org/2010/05/there-is-not-just-one-color-blindness.html">here</a>.
+This is because the confusion lines are parallel to each other in the XYZ/LMS
+space, and the projection from XYZ to xy is a perspective projection, which
+converges parallel lines. Some color-blindness simulations, such as <a
+href="https://www-users.cse.umn.edu/~gmeyer/papers/meyer-greenberg-cga-1988.pdf">Meyer
+and Greenberg (1988)</a>, perform the simulation leveraging the convergence
+point. Interestingly, the Meyer and Greenberg paper also leverages the
+convergence points of different dichromacy to derive the LMS cone sensitivities
+from the XYZ color matching functions.</p>
+
+        <h4>Isochromes</h4>
+		<p>We know that all colors on the same confusion line are perceptually
+the same, but still we don't know, for all those colors on a confusion line,
+exactly what sort of color a dichromat sees. The key to answer this question is
+the notion of <b>isochromes</b>, which are colors perceived correctly by a
+dichromate? Let's say we know one such color P for protanopes, then we can draw
+a protanopia confusion line that goes through P; by definition all the colors
+on that confusion line will be perceived as color P by a protanope. The
+question is how do we find the isochromes?</p>
+
+		<p>It's impossible to find isochromes by simply querying dichromates.
+For instance, if you want to know what color a protanopia actually sees for
+color A, you might be tempted to show color A and another color B to a
+protanope and ask to her tell you whether the two colors match. However, this
+color matching experiment will only tell you that colors A and B appear the
+same, but it doesn't tell you that she actually sees color B when shown color A
+&#8212; it might very well be the case that colors A and B are both seen as
+another color C. Fundamentally, we just can't precisely and quantitatively
+communicate our internal perception (about color) verbally. It's just like
+asking someone what happiness is &#8212; their happiness might be different
+from yours.</p>
+
+		<p>Remarkably, there is an exceedingly rare color-blindness called
+<i>unilateral dichromacy</i>, where a person’s one eye is dichromatic and the
+other eye is trichromatic. These people have two kinds of eyes but one brain.
+Color matching between the two eyes by a unilateral dichromat would allow us to
+identify isochromes, assuming of course that the dichromatic eye and the
+trichromatic eye are similar to those of a "normal" dichromatic and
+trichromatic eye, respectively.  There are a handful of studies reported on
+unilaterial dichromates. <a
+href="https://nvlpubs.nist.gov/nistpubs/jres/041/jresv41n4p247_A1b.pdf"> Judd
+(1948)</a> is perhaps the most cited; it actually didn't obtain any new data.
+Rather, it meticulously summarized data from prior studies, where only 8 had
+quantitative data that were useful. <a
+href="https://opg.optica.org/josa/abstract.cfm?uri=josa-38-6-502">Sloan and
+Wollach (1948)</a>, <a
+href="https://www.science.org/doi/10.1126/science.127.3300.675">Graham and Hsia
+(1958)</a>, <a
+href="https://www.sciencedirect.com/science/article/abs/pii/0042698976901796">MacLeod
+and Lennie (1976)</a> reported results for a unilateral protanope/deuterape,
+while <a href="https://pubmed.ncbi.nlm.nih.gov/6603509/">Alpern, Kitahara, and
+Krantz (1983)</a> reported results for a unilateral tritanope.</p>
+
+        <p>Such studies show that monochromatic lights at 475 nm and 575 nm are isochromes for protanopes and deuteranopes, and for tritanopes isochromes are found at 485 nm and 660 nm. It is also found that equal-energy white (EEW) appears to be the same between dichromats and trichromats. We now have our three isochromes for protanopes (475 nm, 575 nm, and EEW) and can construct the projection plane.</p>
+
+
+        A color $C$ $[L, M, S]$ seen by a trichromat will be seen as the color $C'$ $[L', M, S]$ by a protanope. Note how the M and S cone responses do not change, and only the L cone response changes. This is easy to understand: since a protanope misses the L cones, the M and S cone responses should not change. Intuitively, this is moving the color $C$ along the L-axis in the LMS space.</p>
+
+should then lie on a 2D plane. And you would be right. Extensive research has shown that colors that a dichromat can see lie on a 2D plane, as opposed to in a 3D space in a normal trichromatic vision. Geometrically, you can think of this as projecting a point $[L, M, S]$, a color that a trichromat can see, onto a plane $\mathbf{P}$; the projected point $[L', M', S']$ on the plane $\mathbf{P}$ represents the actual color that a dichromat would see.</p>
         <p>Two questions remain. First, where is the plane $\mathbf{P}$? Naturally, this plane would depend on the exact kind of dichromacy a color-blind person has. Second, how is a color (3D point) mapped to the 2D plane $\mathbf{P}$?</p>
         <p>Answering the questions depends on the assumption made about color blindness. A widely accepted assumption is that a color $C$ $[L, M, S]$ will be perceived as the color $C'$ $[L', M, S]$ by a protanope. Note that the M and S cone responses do not change, and only the L cone response changes. This assumption is not unreasonable: since a protanope misses the L cones, the M and S cone responses should not change. Intuitively, this is moving the color $C$ along the L-axis in the LMS space.</p>
         <p>Since the M and S coordinates do not change, this mapping is essentially an <a href="https://en.wikipedia.org/wiki/Orthographic_projection">orthographic projection</a> of the point $C$ $[L, M, S]$ toward the MS-plane and intersecting the projection with the plane $\mathbf{P}$. The intercept on $\mathbf{P}$ is $C'$. Note that if $L'$ was 0, $\mathbf{P}$ would exactly be the MS-plane, but as we will see later, $L'$ is not 0, and so the MS-plane and $\mathbf{P}$ are not the same. Equivalently, you can also think of this as an <a href="https://en.wikipedia.org/wiki/Oblique_projection">oblique projection</a> of the point $C$ onto $\mathbf{P}$, and the projected point is $C'$.</p>
