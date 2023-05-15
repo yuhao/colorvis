@@ -148,12 +148,12 @@ visualization <a
 href="http://www.daltonize.org/2010/05/there-is-not-just-one-color-blindness.html">here</a>.
 This is because the confusion lines are parallel to each other in the XYZ/LMS
 space, and the projection from XYZ to xy is a perspective projection, which
-converges parallel lines. Some color-blindness simulations, such as <a
+converges parallel lines. <a
 href="https://www-users.cse.umn.edu/~gmeyer/papers/meyer-greenberg-cga-1988.pdf">Meyer
-and Greenberg (1988)</a>, perform the simulation leveraging the convergence
-point. Interestingly, the Meyer and Greenberg paper also leverages the
-convergence points of different dichromacy to derive the LMS cone sensitivities
-from the XYZ color matching functions.</p>
+and Greenberg (1988)</a> actually builds a dichromatic color vision model using
+the convergence point (they also leveraged the convergence points of different
+dichromacy to derive the LMS cone sensitivities from the XYZ color matching
+functions, which is an interesting intellectual exercise left for you to explore).</p>
 
         <h4>Isochromes</h4>
 		<p>We know that all colors on the same confusion line are perceptually
@@ -244,25 +244,27 @@ phenomenological models fall apart.</p>
 
 <p>
 The model proposed by Brettel et al. assumes that all the isochromes lie on a
-plane. That way, we can simply connect the known isochromes to to find all the
-isochromes. But experiments on unilateral dichromates give us only two
-isochromes, which are insufficient to form a unique plane. What Brettel et al.
-did is to further assume that all the equal-energy white (EEW; uniform power
-distribution across the spectrum) are isochromes (they called them "neutral
-colors"). Note that this means the origin $\mathbf{O}$ in the LMS space (i.e.,
-black; no light) is an isochrome too, since that's just a special instance of
-EEW. In fact, all the EEWs form a line that originates from $\mathbf{O}$.
+plane. But experiments on unilateral dichromates give us only two isochromes,
+which are insufficient to form a unique plane. What Brettel et al.  did is to
+further assume that all the equal-energy white (EEW; uniform power distribution
+across the spectrum) are isochromes (they called them "neutral colors"). Note
+that this means the origin $O$ in the LMS space (i.e., black; no light) is an
+isochrome too, since that's just a special instance of EEW with uniformly zero
+power across the spectrum. In fact, all the EEWs form a line that goes through
+$O$. $O$ being an isochrome isn't a bad assumption; after all, when there is no
+light, dichromates should see the same "black" as trichromats do.
 </p>
 
 <p>
-So what we have is an isochrome line $\overline{O~EEW}$ and two ishchrome
+So what we have is an isochrome line $\overline{O\cdot EEW}$ and two ishchrome
 colors at 475 nm and 575 nm. This actually gives us two planes: a plan that
-contains $\overline{O~EEW}$ and 475 nm, and the other plan that contains
-$\overline{O~EEW}$ and 575 nm. Brettel's model basically says that all the
-isochromes lie in these two planes. Toggle the "Show Projection Planes" switch
-in the plot above. You will see the projection planes. It turns out that the
-two planes are almost parallel to each other; their normals are $[1, -1.16,
-0.12]$ and $[1, -1.12, 0.09]$, respectively.
+contains $\overline{O\cdot EEW}$ and 475 nm, and the other plan that contains
+$\overline{O\cdot EEW}$ and 575 nm. Brettel's model basically says that all the
+isochromes lie in these two half-planes that join at $\overline{O\cdot EEW}$.
+Toggle the "Show Isochrome Planes" switch in the plot above. You will see the
+two isochrome half-planes for protanopia. It turns out that the two planes are
+almost parallel to each other; their normals are $[1, -1.16, 0.12]$ and $[1,
+-1.12, 0.09]$, respectively.
 </p>
 
 <p>
@@ -303,7 +305,7 @@ are the same, but the L responses are different.</p>
         <p>
 There are many nice properties of the Brettel model in addition to being computationally very efficient to implement. It was designed to fit perfectly with the experimental data on unilateral dichromates (by constructing the isochrome planes to go pass the known isochromes).
 
-It was also wise to assume that the entire line of $\overline{O~EEW}$ is an isochrome line, which essentially gives rise to the two planes as opposed to a single plane if one had assumed that only $EEW$ was an isochrome. Why is it important to have the origin $\mathbf{O}$ as an isochrome? For one thing, it ensures that luminance doesn’t affect whether a color is an
+It was also wise to assume that the entire line of $\overline{O\cdot EEW}$ is an isochrome line, which essentially gives rise to the two planes as opposed to a single plane if one had assumed that only $EEW$ was an isochrome. Why is it important to have the origin $O$ as an isochrome? For one thing, it ensures that luminance doesn’t affect whether a color is an
 isochrome or not. If a color $C$ is an isochrome, i.e., lying on the isochromes
 planes, it’s guaranteed that any color on the line $\overline{OC}$ lies on
 isochrome planes, too. What do colors on the $\overline{OC}$ line have in
@@ -311,7 +313,7 @@ common? They have the same chromaticity but differ in luminance.
 </p>
 
 <p>
-Interestingly, the two-plane model also corroborates results on a unilateral tritanope reported in <a href="https://pubmed.ncbi.nlm.nih.gov/6603509/">Alpern et al. (1983)</a>, which show that "<i>A mixture of the two isochromes that appeared purple to the normal eye appeared neutral to the tritanopic eye.</i>" The two isochromes for tritanopia are 485 nm and 660 nm. Now if you calculate the two isochrome planes for tritanopia, you will see that the two planes are nowhere close to being parallel to each other. What this means is that the line connecting 485 nm and 660 nm does not lie in the two planes, corrobotating the fact that a mixture of the two isochromes is not an isochrome. If we had simply construct the isochrome plan by connecting $\mathbf{O}$, 485 nm, and 660 nm or by connecting $EEW$, 485 nm, and 660 nm, we would get one single isochrome plane, and thus a mixture of two isochromes would end up being another isochrome.
+Interestingly, the two-plane model also corroborates results on a unilateral tritanope reported in <a href="https://pubmed.ncbi.nlm.nih.gov/6603509/">Alpern et al. (1983)</a>, which show that "<i>A mixture of the two isochromes that appeared purple to the normal eye appeared neutral to the tritanopic eye.</i>" The two isochromes for tritanopia are 485 nm and 660 nm. Now if you calculate the two isochrome planes for tritanopia, you will see that the two planes are nowhere close to being parallel to each other. What this means is that the line connecting 485 nm and 660 nm does not lie in the two planes, corrobotating the fact that a mixture of the two isochromes is not an isochrome. If we had simply construct the isochrome plan by connecting $O$, 485 nm, and 660 nm or by connecting $EEW$, 485 nm, and 660 nm, we would get one single isochrome plane, and thus a mixture of two isochromes would end up being another isochrome.
 </p>
 
 <p>
