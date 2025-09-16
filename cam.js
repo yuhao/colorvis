@@ -687,7 +687,7 @@ d3.csv('camspec.csv', function(err, rows){
       
         registerChooseCase('#chooseCam', '#genLinSys', '#calcMatrix', '#camSel');
 
-        genSelectBox(["ColorChecker", "Human Skin"], "targetSel", 'Human Skin');
+        genSelectBox(["ColorChecker", "Human Skin"], "targetSel", 'ColorChecker');
 
         registerSelTarget(xbar, ybar, zbar, si_d65)
         plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of Human Skin (by NIST)');
