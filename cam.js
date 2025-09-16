@@ -690,8 +690,8 @@ d3.csv('camspec.csv', function(err, rows){
         genSelectBox(["ColorChecker", "Human Skin"], "targetSel", 'ColorChecker');
 
         registerSelTarget(xbar, ybar, zbar, si_d65)
-        plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of Human Skin (by NIST)');
-        //plotCaliTarget('ccspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of ColorChecker Classic (by BabelColor)');
+        //plotCaliTarget('skinspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of Human Skin (by NIST)');
+        plotCaliTarget('ccspec.csv', xbar, ybar, zbar, si_d65, false, 'Spectral Reflectance of ColorChecker Classic (by BabelColor)');
       });
     });
   });
